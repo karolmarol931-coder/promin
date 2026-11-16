@@ -60,6 +60,8 @@ jobs:
       contents: write
     steps:
       - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const tag = context.ref.replace('refs/tags/', '');
@@ -79,6 +81,59 @@ jobs:
               core.setFailed(`Release ${tag} is not a draft.`);
               return;
             }
+
+            const manifestAsset = release.assets.find(asset => asset.name === 'latest.json');
+            if (!manifestAsset) {
+              core.setFailed(`Release ${tag} has no updater manifest.`);
+              return;
+            }
+
+            const manifestResponse = await fetch(manifestAsset.url, {
+              headers: {
+                authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+                accept: 'application/octet-stream',
+                'X-GitHub-Api-Version': '2022-11-28',
+              },
+            });
+            if (!manifestResponse.ok) {
+              core.setFailed(`Could not download updater manifest: HTTP ${manifestResponse.status}.`);
+              return;
+            }
+
+            const manifest = await manifestResponse.json();
+            const assetsById = new Map(release.assets.map(asset => [String(asset.id), asset.name]));
+            let rewrittenUrls = 0;
+            for (const [target, platform] of Object.entries(manifest.platforms ?? {})) {
+              const match = platform.url.match(/^https:\/\/api\.github\.com\/repos\/[^/]+\/[^/]+\/releases\/assets\/(\d+)$/);
+              if (!match) continue;
+
+              const assetName = assetsById.get(match[1]);
+              if (!assetName) {
+                core.setFailed(`Updater target ${target} references an asset missing from ${tag}.`);
+                return;
+              }
+              platform.url = `https://github.com/${context.repo.owner}/${context.repo.repo}/releases/download/${tag}/${encodeURIComponent(assetName)}`;
+              rewrittenUrls += 1;
+            }
+
+            if (Object.values(manifest.platforms ?? {}).some(platform => platform.url.startsWith('https://api.github.com/'))) {
+              core.setFailed(`Updater manifest for ${tag} still contains GitHub API asset URLs.`);
+              return;
+            }
+            core.info(`Rewrote ${rewrittenUrls} updater asset URL(s) to direct release downloads.`);
+
+            await github.rest.repos.deleteReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              asset_id: manifestAsset.id,
+            });
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.id,
+              name: manifestAsset.name,
+              data: Buffer.from(`${JSON.stringify(manifest, null, 2)}\n`),
+            });
 
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
