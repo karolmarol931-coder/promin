@@ -30,6 +30,8 @@ interface ToolPickerProps {
   isSearching?: boolean;
   /** Compact "resting" view: favourites + recommended only, with a button to expand. */
   compact?: boolean;
+  /** Size the desktop all-tools panel to its content while keeping a height limit. */
+  contentSized?: boolean;
   /** Called when the user clicks "View all tools" in compact mode. */
   onShowAllTools?: () => void;
 }
@@ -51,6 +53,14 @@ const SCROLLABLE_STYLE: React.CSSProperties = {
   height: "100%",
   marginTop: -2,
 };
+const CONTENT_SIZED_SCROLLABLE_STYLE: React.CSSProperties = {
+  flex: "0 1 auto",
+  overflowY: "auto",
+  overflowX: "hidden",
+  minHeight: 0,
+  maxHeight: "100%",
+  marginTop: -2,
+};
 const CONTAINER_STYLE: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -68,6 +78,7 @@ const ToolPicker = ({
   filteredTools,
   isSearching = false,
   compact = false,
+  contentSized = false,
   onShowAllTools,
 }: ToolPickerProps) => {
   const { t } = useTranslation();
@@ -130,10 +141,17 @@ const ToolPicker = ({
   const { searchGroups } = useToolSections(effectiveFilteredForSearch);
 
   return (
-    <Box h="100%" style={CONTAINER_STYLE}>
+    <Box
+      h={contentSized ? "auto" : "100%"}
+      style={
+        contentSized
+          ? { ...CONTAINER_STYLE, flex: "0 1 auto", maxHeight: "100%" }
+          : CONTAINER_STYLE
+      }
+    >
       <Box
         ref={scrollerRef}
-        style={SCROLLABLE_STYLE}
+        style={contentSized ? CONTENT_SIZED_SCROLLABLE_STYLE : SCROLLABLE_STYLE}
         className="tool-picker-scrollable"
       >
         {isSearching ? (
@@ -280,8 +298,6 @@ const ToolPicker = ({
             </Stack>
 
             {!quickSection && !allSection && <NoToolsFound />}
-
-            <div aria-hidden style={{ height: 200 }} />
           </>
         )}
       </Box>
