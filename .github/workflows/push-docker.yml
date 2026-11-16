@@ -28,11 +28,6 @@ on:
         required: false
         type: boolean
         default: false
-  push:
-    branches:
-      - release
-      - main
-
 # cancel in-progress jobs if a new job is triggered
 # This is useful to avoid running multiple builds for the same branch if a new commit is pushed
 # or a pull request is updated.

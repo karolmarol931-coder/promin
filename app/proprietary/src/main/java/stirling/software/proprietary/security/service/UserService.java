@@ -410,14 +410,9 @@ public class UserService implements UserServiceInterface {
         return Optional.ofNullable(user);
     }
 
-    /** Resolves a user by Supabase auth UUID; empty for rows with no supabase_id. */
-    public Optional<User> findBySupabaseId(UUID supabaseId) {
-        return userRepository.findBySupabaseId(supabaseId);
-    }
-
     @Transactional
     public void trackApiKeyFirstUse(User user) {
-        // No-op default; saas mode overrides via SaasUserExtensionService#trackApiKeyFirstUse.
+        // This extension point is implemented by deployments that track first use remotely.
     }
 
     /** Low-level user persistence; bypasses {@link #saveUserCore}'s settings/audit lifecycle. */
@@ -673,7 +668,6 @@ public class UserService implements UserServiceInterface {
         if (settings == null) {
             return;
         }
-        // Entitlement refresh may use the network; do it before taking the admission lock.
         int max = settings.calculateMaxAllowedUsers();
 
         // Serialise admission. The lock is held until saveUserCore's transaction commits, by which

@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Tooltip } from "@editor/components/shared/Tooltip";
 import "@editor/components/shared/quickNav/QuickNavRail.css";
 
-export type QuickNavTarget = "reader" | "editor" | "files" | "processor";
+export type QuickNavTarget = "reader" | "editor" | "files";
 
 export interface QuickNavEntry {
   id: string;

@@ -87,19 +87,19 @@ describe("quick-nav identity during view switches", () => {
     auth.loading = true;
     picture.url = null;
     picture.loading = true;
-    switchView("processor");
+    switchView("settings");
     expect(screen.getByRole("button", { name: /Ada/ })).toBeInTheDocument();
     expect(screen.getByRole("img")).toHaveAttribute("src", "/ada.png");
 
     auth.displayName = "Grace";
     auth.loading = false;
-    switchView("processor");
+    switchView("settings");
     expect(screen.getByRole("button", { name: /Ada/ })).toBeInTheDocument();
     expect(screen.getByRole("img")).toHaveAttribute("src", "/ada.png");
 
     picture.url = "/grace.png";
     picture.loading = false;
-    switchView("processor");
+    switchView("settings");
     expect(screen.getByRole("button", { name: /Grace/ })).toBeInTheDocument();
     expect(screen.getByRole("img")).toHaveAttribute("src", "/grace.png");
 
@@ -129,7 +129,7 @@ describe("quick-nav identity during view switches", () => {
 
     auth.displayName = null;
     picture.url = null;
-    switchView("processor");
+    switchView("settings");
     expect(screen.getByRole("button", { name: /Ada/ })).toBeInTheDocument();
     expect(screen.getByRole("img")).toHaveAttribute("src", "/ada.png");
 
@@ -149,7 +149,7 @@ describe("quick-nav identity during view switches", () => {
 
     auth.displayName = null;
     picture.url = null;
-    switchView("processor");
+    switchView("settings");
     expect(screen.getByRole("button", { name: /Ada/ })).toBeInTheDocument();
 
     await act(async () => rejectAccount(new Error("Signed out")));

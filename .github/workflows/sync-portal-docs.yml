@@ -1,20 +1,14 @@
 name: Sync Portal Docs
 
 # Regenerates the portal Developer Docs manifest from the Stirling docs repo and
-# opens a PR when it changes. Runs weekly, on manual dispatch, or when the docs
-# repo fires a `docs-updated` repository_dispatch.
+# opens a PR when it changes. It runs only on manual dispatch.
 on:
-  schedule:
-    - cron: "0 6 * * 1"
   workflow_dispatch:
     inputs:
       ref:
         description: "Docs repo ref (branch or tag) to sync from"
         required: false
         default: "main"
-  repository_dispatch:
-    types: [docs-updated]
-
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true

@@ -150,8 +150,6 @@ class SpringAuthClient {
   private sessionCheckIntervalMs = 10000; // 10 seconds default
   private tokenRefreshThresholdMs = 30000; // 30 seconds default
 
-  private readonly DESKTOP_SAAS_REFRESH_EARLY_SECONDS = 60;
-
   constructor() {
     // Start periodic session validation
     this.startSessionMonitoring();
@@ -282,59 +280,11 @@ class SpringAuthClient {
   }> {
     try {
       // Get JWT from localStorage
-      let token = localStorage.getItem(JWT_STORAGE_KEY);
+      const token = localStorage.getItem(JWT_STORAGE_KEY);
 
       if (!token) {
         // console.debug('[SpringAuth] getSession: No JWT in localStorage');
         return { data: { session: null }, error: null };
-      }
-
-      if (await platform().isDesktopSaaSAuthMode()) {
-        let tokenExpiry = this.getTokenExpiry(token);
-        if (tokenExpiry.expiresIn <= this.DESKTOP_SAAS_REFRESH_EARLY_SECONDS) {
-          const refreshed = await platform().refreshPlatformSession();
-          if (!refreshed) {
-            localStorage.removeItem(JWT_STORAGE_KEY);
-            return { data: { session: null }, error: null };
-          }
-
-          const refreshedToken = localStorage.getItem(JWT_STORAGE_KEY);
-          if (!refreshedToken) {
-            localStorage.removeItem(JWT_STORAGE_KEY);
-            return { data: { session: null }, error: null };
-          }
-
-          token = refreshedToken;
-          tokenExpiry = this.getTokenExpiry(token);
-        }
-
-        if (tokenExpiry.expiresIn <= 0) {
-          localStorage.removeItem(JWT_STORAGE_KEY);
-          return { data: { session: null }, error: null };
-        }
-
-        const platformUser = await platform().getPlatformSessionUser();
-
-        const session: Session = {
-          user: {
-            id:
-              platformUser?.email ||
-              platformUser?.username ||
-              "desktop-saas-user",
-            email: platformUser?.email ?? "",
-            // Username may be empty when the platform layer can't identify
-            // the user - downstream displayName derivation handles that
-            // case and falls back to a generic placeholder.
-            username: platformUser?.username ?? "",
-            role: "USER",
-            is_anonymous: platformUser?.is_anonymous,
-          },
-          access_token: token,
-          expires_in: tokenExpiry.expiresIn,
-          expires_at: tokenExpiry.expiresAt,
-        };
-
-        return { data: { session }, error: null };
       }
 
       // Verify with backend
@@ -507,24 +457,6 @@ class SpringAuthClient {
    */
   async signOut(): Promise<{ error: AuthError | null }> {
     try {
-      // Avoid a static import: it would put the Supabase SDK on the startup path
-      // even for installs that never use it. The inner catch keeps a failed load
-      // from skipping the local cleanup below.
-      try {
-        const { clearSupabaseSession } =
-          await import("@editor/auth/supabase/supabaseClient");
-        clearSupabaseSession();
-      } catch {
-        // Nothing loaded means nothing to clear.
-      }
-      localStorage.removeItem("stirling.portalSaasOwner");
-      sessionStorage.removeItem("stirling.portalConnect");
-      Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i))
-        .filter(
-          (key): key is string =>
-            key !== null && (key.startsWith("sb-") || key.includes("supabase")),
-        )
-        .forEach((key) => localStorage.removeItem(key));
       if (typeof window !== "undefined") {
         window.sessionStorage.setItem(
           "stirling_sso_auto_login_logged_out",
@@ -532,12 +464,7 @@ class SpringAuthClient {
         );
       }
 
-      // Only call the backend logout endpoint when the platform tells us
-      // the current backend implements it. In desktop SaaS mode the
-      // apiClient points at the SaaS gateway, which doesn't expose
-      // `/api/v1/auth/logout` (Supabase manages session lifecycle); POSTing
-      // there returns 500 and pollutes error toasts even though the local
-      // cleanup below succeeds.
+      // Some hosts manage their session outside this backend.
       if (await platform().shouldCallBackendLogout()) {
         const response = await http().post("/api/v1/auth/logout", null, {
           headers: {
@@ -557,10 +484,7 @@ class SpringAuthClient {
         // Clear any cached OAuth redirect/session state
         resetOAuthState();
       } catch (err) {
-        console.warn(
-          "[SpringAuth] Failed to clear Supabase/local auth tokens",
-          err,
-        );
+        console.warn("[SpringAuth] Failed to clear local auth tokens", err);
       }
 
       // Clear cookies that might hold refresh/session tokens
@@ -622,36 +546,6 @@ class SpringAuthClient {
     error: AuthError | null;
   }> {
     try {
-      if (await platform().isDesktopSaaSAuthMode()) {
-        const refreshed = await platform().refreshPlatformSession();
-        if (!refreshed) {
-          localStorage.removeItem(JWT_STORAGE_KEY);
-          return {
-            data: { session: null },
-            error: { message: "Token refresh failed - please log in again" },
-          };
-        }
-
-        const { data, error } = await this.getSession();
-        if (error || !data.session) {
-          return {
-            data: { session: null },
-            error: error || {
-              message: "Token refresh failed - please log in again",
-            },
-          };
-        }
-
-        // Calculate adaptive intervals for desktop SaaS mode
-        const token = localStorage.getItem(JWT_STORAGE_KEY);
-        if (token) {
-          this.calculateAdaptiveIntervals(token);
-        }
-
-        this.notifyListeners("TOKEN_REFRESHED", data.session);
-        return { data, error: null };
-      }
-
       const refreshConfig: AuthRequestConfig = {
         headers: {
           "X-XSRF-TOKEN": this.getCsrfToken() || "",

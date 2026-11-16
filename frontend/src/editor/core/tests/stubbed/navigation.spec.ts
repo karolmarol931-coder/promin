@@ -1,4 +1,5 @@
 import { test, expect } from "@editor/tests/helpers/stub-test-base";
+import { revealPickerTool } from "@editor/tests/helpers/ui-helpers";
 
 /**
  * Routing & navigation behaviour for the SPA. Merges what was previously
@@ -38,7 +39,8 @@ test.describe("Navigation", () => {
       .click();
     await expect(page).toHaveURL("/editor");
 
-    await page.locator('a[href="/split"]').first().click();
+    const splitTool = await revealPickerTool(page, "split");
+    await splitTool.first().click();
     await expect(page).toHaveURL(/\/split/);
 
     await page.goBack();

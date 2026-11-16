@@ -14,7 +14,6 @@ vi.mock("@editor/utils/urlRouting", () => ({
   toolRoute: h.toolRoute,
   editorHomeRoute: h.editorHomeRoute,
 }));
-vi.mock("@editor/utils/scarfTracking", () => ({ firePixel: vi.fn() }));
 vi.mock("@editor/contexts/AppConfigContext", () => ({
   useAppConfig: () => ({ config: { premiumEnabled: true } }),
 }));

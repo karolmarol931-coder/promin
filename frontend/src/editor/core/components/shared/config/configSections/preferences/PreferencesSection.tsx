@@ -1,26 +1,16 @@
 import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { SettingsCard } from "@editor/components/shared/config/SettingsCard";
-import { useAppConfig } from "@editor/contexts/AppConfigContext";
 import { AdminSetupBanner } from "@editor/components/shared/config/configSections/preferences/AdminSetupBanner";
 import { AppearanceCard } from "@editor/components/shared/config/configSections/preferences/AppearanceCard";
 import { EditorDefaultsCard } from "@editor/components/shared/config/configSections/preferences/EditorDefaultsCard";
 import { DownloadsCard } from "@editor/components/shared/config/configSections/preferences/DownloadsCard";
-import { SoftwareUpdatesCard } from "@editor/components/shared/config/configSections/preferences/SoftwareUpdatesCard";
 import { HotkeysCard } from "@editor/components/shared/config/configSections/preferences/HotkeysCard";
-import type {
-  DesktopInstall,
-  DesktopUpdateModeControl,
-} from "@editor/components/shared/config/configSections/preferences/preferencesCardProps";
 import "@editor/components/shared/config/configSections/preferences/PreferencesSection.css";
 
 export interface PreferencesSectionProps {
-  /** SaaS: login is always on, so the "turn login on" banner never applies. */
+  /** Whether login is enforced by the host. */
   hideAdminBanner?: boolean;
-  /** SaaS build and managed-disabled desktop: no update UI, and no update call. */
-  hideUpdateSection?: boolean;
-  desktopInstall?: DesktopInstall;
-  desktopUpdateMode?: DesktopUpdateModeControl;
   /**
    * The Account and Two-factor cards. Core has no accounts, so the flavors that
    * do pass them in (AccountCards) rather than core reaching into proprietary.
@@ -43,26 +33,17 @@ function focusIsHotkeys(): boolean {
  * has no draft and no save footer: every control writes as you touch it.
  *
  * The old General row was one unlabelled card of unrelated controls; it is split
- * into Appearance, Editor defaults, Downloads and Software updates so each can
+ * into Appearance, Editor defaults and Downloads so each can
  * be linked to. Shortcuts stays last and collapsed: it renders a row per
  * registered tool and would otherwise bury everything above it.
  */
 export default function PreferencesSection({
   hideAdminBanner = false,
-  hideUpdateSection = false,
-  desktopInstall,
-  desktopUpdateMode,
   accountSlot,
   editorDefaultsSlot,
 }: PreferencesSectionProps) {
   const { t } = useTranslation();
-  const { config } = useAppConfig();
   const startHotkeysOpen = focusIsHotkeys();
-
-  // Same condition the standalone section used: a version to report, or the
-  // desktop updater. Not mounting the card is what skips the update check.
-  const showUpdates =
-    !hideUpdateSection && Boolean(config?.appVersion || desktopInstall);
 
   return (
     <div className="settings-section-container">
@@ -92,18 +73,6 @@ export default function PreferencesSection({
         >
           <DownloadsCard />
         </SettingsCard>
-
-        {showUpdates && (
-          <SettingsCard
-            id="softwareUpdates"
-            title={t("settings.general.updates.title", "Software Updates")}
-          >
-            <SoftwareUpdatesCard
-              desktopInstall={desktopInstall}
-              desktopUpdateMode={desktopUpdateMode}
-            />
-          </SettingsCard>
-        )}
 
         <SettingsCard
           id="hotkeys"

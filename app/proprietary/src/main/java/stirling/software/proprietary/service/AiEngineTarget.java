@@ -2,8 +2,8 @@ package stirling.software.proprietary.service;
 
 import java.util.Map;
 
-/** Where one AI engine call goes and the auth headers it carries; baseUrl has no trailing slash. */
-public record AiEngineTarget(String baseUrl, Map<String, String> headers, boolean cloud) {
+/** The configured AI engine URL and its auth headers; baseUrl has no trailing slash. */
+public record AiEngineTarget(String baseUrl, Map<String, String> headers) {
 
     public AiEngineTarget {
         headers = Map.copyOf(headers);

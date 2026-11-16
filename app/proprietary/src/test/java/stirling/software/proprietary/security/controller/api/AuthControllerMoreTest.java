@@ -1,7 +1,6 @@
 package stirling.software.proprietary.security.controller.api;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,17 +28,14 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import stirling.software.common.model.ApplicationProperties;
 import stirling.software.common.model.enumeration.Role;
-import stirling.software.proprietary.access.service.ResourceAccessService;
 import stirling.software.proprietary.access.service.TeamLeadLookup;
 import stirling.software.proprietary.security.model.AuthenticationType;
 import stirling.software.proprietary.security.model.Authority;
-import stirling.software.proprietary.security.model.LoginLandingView;
 import stirling.software.proprietary.security.model.User;
 import stirling.software.proprietary.security.model.api.user.UsernameAndPassMfa;
 import stirling.software.proprietary.security.service.CustomUserDetailsService;
 import stirling.software.proprietary.security.service.JwtServiceInterface;
 import stirling.software.proprietary.security.service.LoginAttemptService;
-import stirling.software.proprietary.security.service.LoginLandingService;
 import stirling.software.proprietary.security.service.MfaService;
 import stirling.software.proprietary.security.service.RefreshRateLimitService;
 import stirling.software.proprietary.security.service.TotpService;
@@ -64,9 +60,7 @@ class AuthControllerMoreTest {
     @Mock private MfaService mfaService;
     @Mock private TotpService totpService;
     @Mock private RefreshRateLimitService refreshRateLimitService;
-    @Mock private ResourceAccessService resourceAccessService;
     @Mock private TeamLeadLookup teamLeadLookup;
-    @Mock private LoginLandingService loginLandingService;
 
     @BeforeEach
     void setUp() {
@@ -90,14 +84,9 @@ class AuthControllerMoreTest {
                         securityProperties,
                         applicationProperties,
                         new stirling.software.proprietary.service.AiUserDataService(null),
-                        resourceAccessService,
                         teamLeadLookup,
                         org.mockito.Mockito.mock(
-                                stirling.software.proprietary.service.OrgOwnerService.class),
-                        loginLandingService);
-        lenient()
-                .when(loginLandingService.getLandingView(any()))
-                .thenReturn(LoginLandingView.EDITOR);
+                                stirling.software.proprietary.service.OrgOwnerService.class));
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 

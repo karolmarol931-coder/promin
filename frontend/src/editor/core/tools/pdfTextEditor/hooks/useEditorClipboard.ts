@@ -43,6 +43,9 @@ export function useEditorClipboard(cbs: EditorClipboardCallbacks) {
     // Set by the native `cut` of the sink - i.e. proof the browser actually
     // took the text to the system clipboard.
     let sinkCutObserved = false;
+    // Some embedded WebViews do not dispatch a paste event after the shortcut.
+    let appClipboardText: string | null = null;
+    let pasteEventObserved = false;
     // Deferred cleanup for the in-flight clipboard keystroke.
     let pendingRelease: (() => void) | null = null;
     let pendingTimer: ReturnType<typeof setTimeout> | null = null;
@@ -82,7 +85,15 @@ export function useEditorClipboard(cbs: EditorClipboardCallbacks) {
     }
 
     function onCut(e: ClipboardEvent): void {
-      if (e.target === getSink()) sinkCutObserved = true;
+      if (e.target !== getSink()) return;
+      sinkCutObserved = true;
+      appClipboardText = getSink()?.value ?? null;
+    }
+
+    function onCopy(e: ClipboardEvent): void {
+      if (e.target === getSink()) {
+        appClipboardText = getSink()?.value ?? null;
+      }
     }
 
     function onPaste(e: ClipboardEvent) {
@@ -95,11 +106,13 @@ export function useEditorClipboard(cbs: EditorClipboardCallbacks) {
       // very paste we set it up to receive.
       const intoSink =
         sink !== null && (e.target === sink || document.activeElement === sink);
+      if (intoSink) pasteEventObserved = true;
       // A caret inside a run (or in Find/Replace/password) keeps native paste.
       if (!intoSink && isFocusInContentEditable()) return;
-      const text = e.clipboardData?.getData("text/plain");
+      const text = e.clipboardData?.getData("text/plain") || appClipboardText;
       if (!text) return;
       e.preventDefault();
+      appClipboardText = null;
       ref.current.insertPastedText(text, stripFormatting);
     }
 
@@ -117,14 +130,19 @@ export function useEditorClipboard(cbs: EditorClipboardCallbacks) {
         const restoreTo = document.activeElement as HTMLElement | null;
         const sink = ensureSink();
         sink.value = "";
+        pasteEventObserved = false;
         // Synchronous, and deliberately NOT preventDefault: the keystroke's own
         // default action is the paste.
         sink.focus({ preventScroll: true });
         scheduleRelease(() => {
-          // No paste arrived (empty clipboard, image-only, engine declined):
-          // drop the modifier state so it can't leak into the next paste.
+          const fallbackText = pasteEventObserved ? null : appClipboardText;
+          const stripFormatting = pastePlain;
           pastePlain = false;
           releaseSink(restoreTo);
+          if (fallbackText) {
+            appClipboardText = null;
+            ref.current.insertPastedText(fallbackText, stripFormatting);
+          }
         });
         return;
       }
@@ -144,6 +162,9 @@ export function useEditorClipboard(cbs: EditorClipboardCallbacks) {
         sink.value = text;
         sink.focus({ preventScroll: true });
         sink.select();
+        if (document.execCommand(key === "x" ? "cut" : "copy")) {
+          e.preventDefault();
+        }
       }
       scheduleRelease(() => {
         // Read the evidence before releaseSink() wipes the sink.
@@ -158,6 +179,7 @@ export function useEditorClipboard(cbs: EditorClipboardCallbacks) {
     }
 
     window.addEventListener("cut", onCut);
+    window.addEventListener("copy", onCopy);
     window.addEventListener("paste", onPaste);
     window.addEventListener("keydown", onKeyDown);
     return () => {
@@ -167,6 +189,7 @@ export function useEditorClipboard(cbs: EditorClipboardCallbacks) {
       pendingTimer = null;
       pendingRelease = null;
       window.removeEventListener("cut", onCut);
+      window.removeEventListener("copy", onCopy);
       window.removeEventListener("paste", onPaste);
       window.removeEventListener("keydown", onKeyDown);
       document.getElementById(SINK_ID)?.remove();

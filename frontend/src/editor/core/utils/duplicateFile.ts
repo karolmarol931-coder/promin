@@ -10,7 +10,6 @@ type AddFilesFn = (
     selectFiles?: boolean;
     skipWorkspaceDispatch?: boolean;
     autoUnzip?: boolean;
-    skipUploadTracking?: boolean;
   },
 ) => Promise<StirlingFile[]>;
 
@@ -58,7 +57,6 @@ export async function duplicateStoredFile(
       // across the library.
       autoUnzip: false,
       // A local copy is not a new document entering the system.
-      skipUploadTracking: true,
     },
   );
   if (!copy) return null;

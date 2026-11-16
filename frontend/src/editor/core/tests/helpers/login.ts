@@ -1,26 +1,6 @@
 import { Page } from "@playwright/test";
 
 /**
- * Ensure the cookie consent banner doesn't appear by setting the consent cookie.
- * Call this before navigating or after clearing cookies.
- */
-export async function ensureCookieConsent(page: Page): Promise<void> {
-  await page.context().addCookies([
-    {
-      name: "cc_cookie",
-      value: JSON.stringify({
-        categories: ["necessary"],
-        revision: 0,
-        data: null,
-        rfc_cookie: false,
-      }),
-      domain: "localhost",
-      path: "/",
-    },
-  ]);
-}
-
-/**
  * Mark onboarding as completed in localStorage to prevent the onboarding
  * modal from appearing. This is more reliable than trying to click through
  * the onboarding slides, which can cause unintended tool selections.
@@ -35,7 +15,7 @@ export async function skipOnboarding(page: Page): Promise<void> {
 }
 
 /**
- * Shared login helper for Stirling-PDF E2E tests.
+ * Shared login helper for Promin E2E tests.
  * Logs in with the given credentials and waits for the dashboard to load.
  *
  * Default credentials are `admin / adminadmin` — set by the live-setup
@@ -51,7 +31,6 @@ export async function login(
   username = DEFAULT_TEST_USERNAME,
   password = DEFAULT_TEST_PASSWORD,
 ): Promise<void> {
-  await ensureCookieConsent(page);
   // Skip onboarding before navigating so the modal never appears
   await skipOnboarding(page);
   await page.goto("/login", { waitUntil: "domcontentloaded" });
@@ -71,7 +50,7 @@ export async function login(
 }
 
 /**
- * Dismiss all startup dialogs (welcome + cookie consent + any others).
+ * Dismiss startup dialogs.
  * Uses Escape key to close overlays without triggering side effects.
  */
 export async function dismissWelcomeDialog(page: Page): Promise<void> {
@@ -93,28 +72,6 @@ export async function dismissWelcomeDialog(page: Page): Promise<void> {
 }
 
 /**
- * Dismiss the cookie consent banner if it appears.
- * The banner is rendered inside #cc-main by the CookieConsent library.
- */
-export async function dismissCookieConsent(page: Page): Promise<void> {
-  try {
-    // Target buttons specifically inside the cookie consent container
-    const ccMain = page.locator("#cc-main");
-    const dismissBtn = ccMain
-      .locator(
-        'button:has-text("Tidak, terima kasih"), button:has-text("No Thanks"), button:has-text("Oke"), button:has-text("OK")',
-      )
-      .first();
-    if (await dismissBtn.isVisible({ timeout: 2000 })) {
-      await dismissBtn.click({ force: true });
-      await page.waitForTimeout(500);
-    }
-  } catch {
-    // No cookie consent banner present
-  }
-}
-
-/**
  * Login and dismiss any welcome dialogs.
  */
 export async function loginAndSetup(
@@ -123,9 +80,5 @@ export async function loginAndSetup(
   password = DEFAULT_TEST_PASSWORD,
 ): Promise<void> {
   await login(page, username, password);
-  // Cookie consent may appear on top, dismiss it first
-  await dismissCookieConsent(page);
   await dismissWelcomeDialog(page);
-  // In case cookie appeared after welcome was dismissed
-  await dismissCookieConsent(page);
 }

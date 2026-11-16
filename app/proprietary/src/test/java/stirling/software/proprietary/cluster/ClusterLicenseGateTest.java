@@ -35,19 +35,6 @@ class ClusterLicenseGateTest {
     }
 
     @Test
-    void offlineTeamCanBootForRecovery() throws Exception {
-        var gate = new ClusterLicenseGate();
-        injectRunningProOrHigher(gate, false);
-        var checker =
-                org.mockito.Mockito.mock(
-                        stirling.software.proprietary.security.configuration.ee.LicenseKeyChecker
-                                .class);
-        org.mockito.Mockito.when(checker.isTeamOfflineExpired()).thenReturn(true);
-        org.springframework.test.util.ReflectionTestUtils.setField(gate, "licenseChecker", checker);
-        assertDoesNotThrow(() -> invokeVerify(gate));
-    }
-
-    @Test
     void serverOrEnterpriseLicense_allowsClusterMode() throws Throwable {
         ClusterLicenseGate gate = new ClusterLicenseGate();
         injectRunningProOrHigher(gate, Boolean.TRUE);
@@ -70,12 +57,5 @@ class ClusterLicenseGateTest {
         assertTrue(
                 msg.contains("cluster.enabled=false"),
                 "message must offer the opt-out (disable cluster): " + msg);
-    }
-
-    @Test
-    void saasFlavor_bypassesGate_whenRunningProOrHigherBeanAbsent() throws Throwable {
-        // In saas builds the runningProOrHigher bean is absent (@Autowired required=false -> null).
-        ClusterLicenseGate gate = new ClusterLicenseGate();
-        assertDoesNotThrow(() -> invokeVerify(gate));
     }
 }

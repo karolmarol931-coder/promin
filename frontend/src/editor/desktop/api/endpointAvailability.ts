@@ -1,13 +1,7 @@
 import { isAxiosError } from "axios";
-import {
-  isLocalProcessingOnly,
-  isOffDeviceEndpointName,
-} from "@editor/services/documentPrivacyService";
+import { isOffDeviceEndpointName } from "@editor/services/documentPrivacyService";
 import apiClient from "@editor/services/apiClient";
 import { tauriBackendService } from "@editor/services/tauriBackendService";
-import { selfHostedServerMonitor } from "@editor/services/selfHostedServerMonitor";
-import { endpointAvailabilityService } from "@editor/services/endpointAvailabilityService";
-import { connectionModeService } from "@editor/services/connectionModeService";
 import {
   createBackendNotReadyError,
   isBackendNotReadyError,
@@ -20,21 +14,8 @@ export type EndpointAvailabilityMap = Record<
   EndpointAvailabilityDetails
 >;
 
-/** Self-hosted server down, but a local bundled backend is reachable. */
-export function isSelfHostedOffline(): boolean {
-  return (
-    selfHostedServerMonitor.getSnapshot().status === "offline" &&
-    !!tauriBackendService.getBackendUrl()
-  );
-}
-
-/**
- * Gate every remote check on the backend reporting its dependencies ready.
- * Not-ready surfaces as a retryable error so the query retries rather than
- * caching a premature answer. {@link isBackendNotReadyError} also matches the
- * backend-starting error the fetch itself can throw, so both share one retry.
- */
-async function ensureDependenciesReady(): Promise<void> {
+async function ensureBackendReady(): Promise<void> {
+  if (!tauriBackendService.isOnline) throw createBackendNotReadyError();
   try {
     const response = await apiClient.get<AppConfig>(
       "/api/v1/config/app-config",
@@ -42,12 +23,11 @@ async function ensureDependenciesReady(): Promise<void> {
     );
     if (response.data?.dependenciesReady) return;
   } catch {
-    // Unreachable app-config is itself "not ready yet".
+    // The backend is not ready until its config endpoint responds.
   }
   throw createBackendNotReadyError();
 }
 
-/** New servers return the whole map for a bare call; old ones need the param. */
 async function fetchAvailabilityMap(
   endpoints: string[],
 ): Promise<EndpointAvailabilityMap> {
@@ -58,131 +38,53 @@ async function fetchAvailabilityMap(
     );
     return response.data;
   } catch (error) {
-    if (isAxiosError(error) && error.response?.status === 400) {
-      const param = encodeURIComponent(endpoints.join(","));
-      const response = await apiClient.get<EndpointAvailabilityMap>(
-        `/api/v1/config/endpoints-availability?endpoints=${param}`,
-        { suppressErrorToast: true },
-      );
-      return response.data;
-    }
-    throw error;
+    if (!isAxiosError(error) || error.response?.status !== 400) throw error;
+    const query = encodeURIComponent(endpoints.join(","));
+    const response = await apiClient.get<EndpointAvailabilityMap>(
+      `/api/v1/config/endpoints-availability?endpoints=${query}`,
+      { suppressErrorToast: true },
+    );
+    return response.data;
   }
 }
 
-function normalise(map: EndpointAvailabilityMap): EndpointAvailabilityMap {
-  const out: EndpointAvailabilityMap = {};
-  for (const [name, detail] of Object.entries(map)) {
-    out[name] = {
-      enabled: detail?.enabled ?? false,
-      reason: detail?.reason ?? null,
-    };
-  }
-  return out;
-}
-
-/** SaaS routing covers a locally-disabled endpoint, so mark it available. */
-function applySaasOptimism(
+function normalise(
   map: EndpointAvailabilityMap,
+  requested: string[],
 ): EndpointAvailabilityMap {
-  const out: EndpointAvailabilityMap = { ...map };
-  for (const [name, detail] of Object.entries(out)) {
-    if (!detail.enabled) out[name] = { enabled: true, reason: null };
-  }
-  return out;
-}
-
-/** Self-hosted offline: ask the local backend about each endpoint directly. */
-async function resolveOffline(
-  endpoints: string[],
-): Promise<EndpointAvailabilityMap> {
-  const localUrl = tauriBackendService.getBackendUrl();
-  const results = await Promise.all(
-    [...new Set(endpoints)].map(async (endpoint) => {
-      try {
-        const supported =
-          await endpointAvailabilityService.isEndpointSupportedLocally(
-            endpoint,
-            localUrl,
-          );
-        return [endpoint, supported] as const;
-      } catch {
-        return [endpoint, false] as const;
-      }
-    }),
-  );
-  const map: EndpointAvailabilityMap = {};
-  for (const [endpoint, supported] of results) {
-    map[endpoint] = {
-      enabled: supported,
-      reason: supported ? null : "NOT_SUPPORTED_LOCALLY",
+  const result: EndpointAvailabilityMap = {};
+  for (const endpoint of requested) {
+    const detail = map[endpoint];
+    const enabled =
+      !isOffDeviceEndpointName(endpoint) && (detail?.enabled ?? false);
+    result[endpoint] = {
+      enabled,
+      reason: enabled ? null : (detail?.reason ?? "NOT_SUPPORTED_LOCALLY"),
     };
   }
-  return map;
+  return result;
 }
 
-/**
- * The whole availability map for the current environment. Fail-closed on a
- * fetch error outside SaaS mode (each requested endpoint disabled), matching
- * desktop's stance that an unknown local capability is unavailable — the
- * opposite of the web fail-open, and the reason this is a desktop shadow.
- */
 export async function resolveEndpointsAvailability(
   endpoints: string[],
 ): Promise<EndpointAvailabilityMap> {
-  if (await isLocalProcessingOnly()) {
-    const map = await resolveOffline(endpoints);
-    for (const endpoint of endpoints) {
-      if (isOffDeviceEndpointName(endpoint))
-        map[endpoint] = { enabled: false, reason: "NOT_SUPPORTED_LOCALLY" };
-    }
-    return map;
-  }
-  if (isSelfHostedOffline()) {
-    return resolveOffline(endpoints);
-  }
-
-  await ensureDependenciesReady();
-  const saas = (await connectionModeService.getCurrentMode()) === "saas";
-
+  await ensureBackendReady();
   try {
-    const map = normalise(await fetchAvailabilityMap(endpoints));
-    return saas ? applySaasOptimism(map) : map;
+    return normalise(await fetchAvailabilityMap(endpoints), endpoints);
   } catch (error) {
     if (isBackendNotReadyError(error)) throw error;
-    const fallback: EndpointAvailabilityMap = {};
-    for (const endpoint of endpoints) {
-      fallback[endpoint] = saas
-        ? { enabled: true, reason: null }
-        : { enabled: false, reason: "UNKNOWN" };
-    }
-    return fallback;
+    return Object.fromEntries(
+      endpoints.map((endpoint) => [
+        endpoint,
+        { enabled: false, reason: "UNKNOWN" },
+      ]),
+    );
   }
 }
 
-/** Whether one endpoint is enabled, with the same SaaS optimism. */
 export async function resolveEndpointEnabled(
   endpoint: string,
 ): Promise<boolean> {
-  if (await isLocalProcessingOnly())
-    return (await resolveEndpointsAvailability([endpoint]))[endpoint].enabled;
-  if (isSelfHostedOffline()) {
-    // ConvertSettings already filters unsupported endpoints from the dropdown,
-    // so a selected endpoint is supported locally by the time it reaches here.
-    return true;
-  }
-
-  await ensureDependenciesReady();
-  const saas = (await connectionModeService.getCurrentMode()) === "saas";
-
-  try {
-    const response = await apiClient.get<boolean>(
-      `/api/v1/config/endpoint-enabled?endpoint=${encodeURIComponent(endpoint)}`,
-      { suppressErrorToast: true },
-    );
-    return response.data || saas;
-  } catch (error) {
-    if (isBackendNotReadyError(error)) throw error;
-    return saas;
-  }
+  const availability = await resolveEndpointsAvailability([endpoint]);
+  return availability[endpoint]?.enabled ?? false;
 }

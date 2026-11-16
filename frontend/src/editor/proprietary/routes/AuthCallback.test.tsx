@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router-dom";
 import AuthCallback from "@editor/routes/AuthCallback";
+import { EDITOR_BASENAME } from "@editor/routes/editorBasename";
 import {
   POST_LOGIN_REDIRECT_STORAGE_KEY,
   springAuth,
@@ -85,8 +86,10 @@ describe("AuthCallback", () => {
       // Verify getSession was called to validate token
       expect(springAuth.getSession).toHaveBeenCalled();
 
-      // Verify it lands on the editor (no processor access in this build)
-      expect(mockNavigate).toHaveBeenCalledWith("/editor", { replace: true });
+      // Verify the desktop login returns to the editor.
+      expect(mockNavigate).toHaveBeenCalledWith(EDITOR_BASENAME, {
+        replace: true,
+      });
     });
   });
 
@@ -272,7 +275,7 @@ describe("AuthCallback", () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith("/editor", {
+        expect(mockNavigate).toHaveBeenCalledWith(EDITOR_BASENAME, {
           replace: true,
         });
       });
@@ -313,7 +316,9 @@ describe("AuthCallback", () => {
     );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/editor", { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith(EDITOR_BASENAME, {
+        replace: true,
+      });
     });
     expect(sessionStorage.getItem(POST_LOGIN_REDIRECT_STORAGE_KEY)).toBeNull();
   });

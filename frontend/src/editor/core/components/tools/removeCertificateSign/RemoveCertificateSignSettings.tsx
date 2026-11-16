@@ -21,7 +21,7 @@ const RemoveCertificateSignSettings: React.FC<
       <p className="text-muted">
         {t(
           "removeCertSign.description",
-          "This tool will remove digital certificate signatures from your PDF document.",
+          "Removes the digital signature. Its visible mark may remain on the page, but it is no longer a valid signature.",
         )}
       </p>
     </div>

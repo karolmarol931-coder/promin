@@ -287,6 +287,29 @@ class AttachmentServiceTest {
             List<AttachmentInfo> attachments = attachmentService.listAttachments(result);
             assertEquals(1, attachments.size());
             assertEquals("new.txt", attachments.get(0).getFilename());
+            assertEquals("Embedded attachment: new.txt", attachments.get(0).getDescription());
+        }
+    }
+
+    @Test
+    void renameAttachment_PreservesCustomDescription() throws IOException {
+        try (var document = new PDDocument()) {
+            var file =
+                    new MockMultipartFile(
+                            "file", "old.txt", MediaType.TEXT_PLAIN_VALUE, "data".getBytes());
+            attachmentService.addAttachment(document, List.of(file));
+            document.getDocumentCatalog()
+                    .getNames()
+                    .getEmbeddedFiles()
+                    .getNames()
+                    .get("old.txt")
+                    .setFileDescription("Quarterly export");
+
+            PDDocument result = attachmentService.renameAttachment(document, "old.txt", "new.txt");
+
+            assertEquals(
+                    "Quarterly export",
+                    attachmentService.listAttachments(result).get(0).getDescription());
         }
     }
 

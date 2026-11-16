@@ -36,6 +36,10 @@ public class CustomHtmlSanitizer {
                     }
 
                     String trimmedValue = value.trim();
+                    if (applicationProperties.getSystem().isOfflineMode()
+                            && !trimmedValue.regionMatches(true, 0, "data:", 0, 5)) {
+                        return null;
+                    }
 
                     if (trimmedValue.regionMatches(true, 0, "data:", 0, 5)
                             && !RASTER_IMAGE_DATA_URI.matcher(trimmedValue).find()) {
@@ -78,6 +82,7 @@ public class CustomHtmlSanitizer {
     }
 
     public boolean isDisabled() {
-        return applicationProperties.getSystem().isDisableSanitize();
+        ApplicationProperties.System system = applicationProperties.getSystem();
+        return system.isDisableSanitize() && !system.isOfflineMode();
     }
 }

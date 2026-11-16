@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 import javax.sql.DataSource;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.datasource.init.CannotReadScriptException;
 import org.springframework.jdbc.datasource.init.ScriptException;
 import org.springframework.stereotype.Service;
@@ -41,7 +40,6 @@ import stirling.software.proprietary.security.model.exception.BackupNotFoundExce
 
 @Slf4j
 @Service
-@Profile("!saas")
 public class DatabaseService implements DatabaseServiceInterface {
 
     public static final String BACKUP_PREFIX = "backup_";

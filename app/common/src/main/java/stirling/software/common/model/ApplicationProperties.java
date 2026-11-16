@@ -126,13 +126,7 @@ public class ApplicationProperties {
         PropertySource<?> propertySource =
                 new YamlPropertySourceFactory().createPropertySource(null, encodedResource);
 
-        boolean saasActive = Arrays.asList(environment.getActiveProfiles()).contains("saas");
-        if (saasActive) {
-            // Saas-pinned values in application-saas.properties must beat settings.yml.
-            environment.getPropertySources().addLast(propertySource);
-        } else {
-            environment.getPropertySources().addFirst(propertySource);
-        }
+        environment.getPropertySources().addFirst(propertySource);
 
         log.debug("Loaded properties: {}", propertySource.getSource());
 
@@ -234,9 +228,8 @@ public class ApplicationProperties {
          * Absolute directories that policy folder input sources and output sinks may read from or
          * write to. Empty (the default) disables folder access except to implicitly defined
          * folders, such as server storage folders (if enabled) and the pipeline watched folders.
-         * Stirling's own config directory is always off-limits, and folder access is always
-         * disabled in SaaS mode regardless of this list. Processing folders let every authenticated
-         * user, not only team leaders, read and replace files under these roots.
+         * Stirling's own config directory is always off-limits. Processing folders let every
+         * authenticated user, not only team leaders, read and replace files under these roots.
          */
         private List<String> allowedFolderRoots = new java.util.ArrayList<>();
 
@@ -347,9 +340,6 @@ public class ApplicationProperties {
     public static class AiEngine {
         private boolean enabled = false;
 
-        /** {@code SELF_HOSTED} calls {@link #url}; {@code CLOUD} runs AI on Stirling Cloud. */
-        private AiEngineMode mode = AiEngineMode.SELF_HOSTED;
-
         private String url = "http://localhost:5001";
         private int timeoutSeconds = 120;
 
@@ -365,7 +355,7 @@ public class ApplicationProperties {
 
         /**
          * Whether the processor pushes settings-derived AI config to the engine on startup/save.
-         * Pin false for env-driven deployments (SaaS) to keep the engine env-controlled.
+         * Disable this for environment-managed engines to keep their configuration independent.
          */
         private boolean pushConfigToEngine = true;
 
@@ -380,23 +370,6 @@ public class ApplicationProperties {
 
         /** Per-capability on/off switches so an admin can disable individual AI tools. */
         private Features features = new Features();
-
-        /**
-         * Cloud mode only: whether Stirling Cloud may keep document text for later questions. AI
-         * tools send page text either way, so this controls retention, not what leaves the server.
-         */
-        private boolean cloudDocumentIndexing = false;
-
-        /**
-         * Stirling Cloud's API host; blank uses the account-link host, the only one the device
-         * credential is valid for. Not in settings.yml: set it via env or custom_settings.yml.
-         */
-        private String cloudBaseUrl = "";
-
-        public enum AiEngineMode {
-            SELF_HOSTED,
-            CLOUD
-        }
 
         @Data
         public static class Models {
@@ -580,9 +553,8 @@ public class ApplicationProperties {
             /**
              * Additional JWT audiences accepted at the MCP endpoint, on top of {@link #resourceId}.
              * Empty (default) keeps strict RFC 8707 binding. Some IdPs cannot mint
-             * resource-specific audiences - e.g. Supabase's OAuth server always issues {@code
-             * aud=authenticated} - so operators list the audience their IdP actually emits here
-             * (env: {@code MCP_AUTH_ACCEPTEDAUDIENCES}, comma-separated).
+             * resource-specific audiences, so operators can list the audience their IdP actually
+             * emits here (env: {@code MCP_AUTH_ACCEPTEDAUDIENCES}, comma-separated).
              */
             private List<String> acceptedAudiences = new ArrayList<>();
 
@@ -1320,6 +1292,7 @@ public class ApplicationProperties {
 
     @Data
     public static class System {
+        private boolean offlineMode;
         private String defaultLocale;
         private boolean googlevisibility;
         private boolean showUpdate = true;
@@ -1328,9 +1301,6 @@ public class ApplicationProperties {
         private boolean customHTMLFiles;
         private String tessdataDir;
         private boolean enableAlphaFunctionality;
-        private Boolean enableAnalytics;
-        private Boolean enablePosthog;
-        private Boolean enableScarf;
         private Boolean enableDesktopInstallSlide = true;
         private boolean enableEasterEggs = true;
         private Datasource datasource;
@@ -1352,42 +1322,15 @@ public class ApplicationProperties {
         private String frontendUrl; // Frontend URL for invite email links (e.g.
 
         // 'https://app.example.com'). If not set, falls back to backendUrl.
-        private boolean enableMobileScanner = true; // Enable mobile phone QR code upload feature
-        private boolean enableMobileSignature =
-                true; // Enable drawing signatures on a phone via QR code
-        private MobileScannerSettings mobileScannerSettings = new MobileScannerSettings();
         private ServerCertificate serverCertificate = new ServerCertificate();
 
         @Data
-        public static class MobileScannerSettings {
-            private boolean convertToPdf = true; // Whether to automatically convert images to PDF
-            private String imageResolution = "full"; // Options: "full", "reduced"
-            private String pageFormat = "A4"; // Options: "keep", "A4", "letter"
-            private boolean stretchToFit = false; // Whether to stretch image to fill page
-        }
-
-        @Data
         public static class ServerCertificate {
-            private boolean enabled =
-                    true; // Enable server-side "Sign with Stirling-PDF" certificate
-            private String organizationName = "Stirling PDF Inc";
+            private boolean enabled = true; // Enable the server-side signing certificate
+            private String organizationName = "Promin Partner";
             private int validity = 365; // Certificate validity in days
             private boolean regenerateOnStartup =
                     false; // Generate a new certificate on each startup
-        }
-
-        public boolean isAnalyticsEnabled() {
-            return this.enableAnalytics != null && this.enableAnalytics;
-        }
-
-        public boolean isPosthogEnabled() {
-            // Treat null as enabled when analytics is enabled
-            return this.isAnalyticsEnabled() && (this.enablePosthog == null || this.enablePosthog);
-        }
-
-        public boolean isScarfEnabled() {
-            // Treat null as enabled when analytics is enabled
-            return this.isAnalyticsEnabled() && (this.enableScarf == null || this.enableScarf);
         }
     }
 
@@ -1430,9 +1373,8 @@ public class ApplicationProperties {
         @Data
         public static class S3 {
             /**
-             * Optional custom endpoint (e.g. {@code https://<account>.r2.cloudflarestorage.com},
-             * {@code https://<project>.supabase.co/storage/v1/s3}, or {@code http://localhost:9000}
-             * for MinIO). Blank = use AWS regional default.
+             * Optional custom endpoint (e.g. {@code https://<account>.r2.cloudflarestorage.com} or
+             * {@code http://localhost:9000} for MinIO). Blank = use AWS regional default.
              */
             private String endpoint = "";
 
@@ -1461,11 +1403,11 @@ public class ApplicationProperties {
             /**
              * Controls when the SDK adds an {@code x-amz-checksum-*} header on PUT/UploadPart.
              * Default {@code WHEN_SUPPORTED} (the SDK default since 2.30) makes the SDK send a
-             * CRC32 checksum on every upload - this works on AWS S3, MinIO, current Supabase,
-             * Backblaze B2 (post-July-2025), and modern R2. Set to {@code WHEN_REQUIRED} to
-             * suppress the auto-checksum on vendors that reject unknown {@code x-amz-checksum-*}
-             * headers (older Backblaze B2, some R2 corner cases, GCS S3 endpoint). Invalid values
-             * fall back to {@code WHEN_SUPPORTED}.
+             * CRC32 checksum on every upload - this works on AWS S3, MinIO, Backblaze B2
+             * (post-July-2025), and modern R2. Set to {@code WHEN_REQUIRED} to suppress the
+             * auto-checksum on vendors that reject unknown {@code x-amz-checksum-*} headers (older
+             * Backblaze B2, some R2 corner cases, GCS S3 endpoint). Invalid values fall back to
+             * {@code WHEN_SUPPORTED}.
              */
             private String requestChecksumCalculation = "WHEN_SUPPORTED";
 
@@ -1625,7 +1567,6 @@ public class ApplicationProperties {
         private String defaultStartupView = "tools";
         private boolean defaultHideUnavailableTools = false;
         private boolean defaultHideUnavailableConversions = false;
-        private HideDisabledTools hideDisabledTools = new HideDisabledTools();
 
         public String getAppNameNavbar() {
             return appNameNavbar != null && !appNameNavbar.trim().isEmpty() ? appNameNavbar : null;
@@ -1646,12 +1587,6 @@ public class ApplicationProperties {
                 return "automate";
             }
             return "tools";
-        }
-
-        @Data
-        public static class HideDisabledTools {
-            private boolean googleDrive = false;
-            private boolean mobileQRScanner = false;
         }
     }
 
@@ -1724,12 +1659,12 @@ public class ApplicationProperties {
 
             @Deprecated
             public String getCreator() {
-                return creator == null || creator.trim().isEmpty() ? "Stirling-PDF" : creator;
+                return creator == null || creator.trim().isEmpty() ? "Promin" : creator;
             }
 
             @Deprecated
             public String getProducer() {
-                return producer == null || producer.trim().isEmpty() ? "Stirling-PDF" : producer;
+                return producer == null || producer.trim().isEmpty() ? "Promin" : producer;
             }
         }
     }
@@ -1881,15 +1816,6 @@ public class ApplicationProperties {
         public static class ProFeatures {
             private boolean database;
             private CustomMetadata customMetadata = new CustomMetadata();
-            private GoogleDrive googleDrive = new GoogleDrive();
-
-            @Data
-            public static class GoogleDrive {
-                private boolean enabled = false;
-                private String clientId = "";
-                private String apiKey = "";
-                private String appId = "";
-            }
 
             @Data
             public static class CustomMetadata {
@@ -1899,13 +1825,11 @@ public class ApplicationProperties {
                 private String producer;
 
                 public String getCreator() {
-                    return creator == null || creator.trim().isEmpty() ? "Stirling-PDF" : creator;
+                    return creator == null || creator.trim().isEmpty() ? "Promin" : creator;
                 }
 
                 public String getProducer() {
-                    return producer == null || producer.trim().isEmpty()
-                            ? "Stirling-PDF"
-                            : producer;
+                    return producer == null || producer.trim().isEmpty() ? "Promin" : producer;
                 }
             }
         }

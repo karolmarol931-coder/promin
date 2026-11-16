@@ -48,10 +48,9 @@ export function SystemCard({
     [settings.ui?.languages],
   );
 
-  // SYSTEM_DEFAULTLOCALE accepts en-GB as well as en_GB, but every option below
-  // is keyed on the underscore form, so match the stored value to it before
-  // handing it to the Select. Normalising only what is displayed keeps the
-  // configured value untouched when the field is left alone.
+  // Server settings accept hyphenated and underscored tags, while Select options
+  // use underscores. Normalize only the displayed value so an untouched field
+  // preserves the configured form.
   const defaultLocaleValue = useMemo(
     () =>
       toUnderscoreFormat(
@@ -101,7 +100,7 @@ export function SystemCard({
                 ui: { ...settings.ui, appNameNavbar: e.target.value },
               })
             }
-            placeholder="Stirling PDF"
+            placeholder="Promin"
             disabled={!loginEnabled}
           />
         </div>
@@ -249,59 +248,6 @@ export function SystemCard({
             disabled={!loginEnabled}
           />
         </div>
-
-        {/* Hide Disabled Tools Settings */}
-        <SettingsToggleRow
-          label={t(
-            "admin.settings.general.hideDisabledTools.googleDrive.label",
-            "Hide Google Drive",
-          )}
-          info={t(
-            "admin.settings.general.hideDisabledTools.googleDrive.description",
-            "Hide Google Drive button when not enabled",
-          )}
-          pending={isFieldPending("ui.hideDisabledTools.googleDrive")}
-          checked={settings.ui?.hideDisabledTools?.googleDrive || false}
-          onChange={(checked) =>
-            setSettings({
-              ...settings,
-              ui: {
-                ...settings.ui,
-                hideDisabledTools: {
-                  ...settings.ui?.hideDisabledTools,
-                  googleDrive: checked,
-                },
-              },
-            })
-          }
-          disabled={!loginEnabled}
-        />
-
-        <SettingsToggleRow
-          label={t(
-            "admin.settings.general.hideDisabledTools.mobileScanner.label",
-            "Hide Mobile Scanner",
-          )}
-          info={t(
-            "admin.settings.general.hideDisabledTools.mobileScanner.description",
-            "Hide mobile QR scanner button when not enabled",
-          )}
-          pending={isFieldPending("ui.hideDisabledTools.mobileQRScanner")}
-          checked={settings.ui?.hideDisabledTools?.mobileQRScanner || false}
-          onChange={(checked) =>
-            setSettings({
-              ...settings,
-              ui: {
-                ...settings.ui,
-                hideDisabledTools: {
-                  ...settings.ui?.hideDisabledTools,
-                  mobileQRScanner: checked,
-                },
-              },
-            })
-          }
-          disabled={!loginEnabled}
-        />
 
         <SettingsToggleRow
           label={t(

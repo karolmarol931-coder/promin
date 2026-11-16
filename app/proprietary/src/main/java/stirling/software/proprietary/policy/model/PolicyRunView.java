@@ -18,7 +18,6 @@ public record PolicyRunView(
         int stepCount,
         String error,
         String errorCode,
-        Boolean errorSubscribed,
         List<ResultFile> outputs,
         /** When the run was created, epoch millis, so a rediscovered run shows its real age. */
         long createdAt,
@@ -39,7 +38,6 @@ public record PolicyRunView(
                 run.stepCount(),
                 run.getError(),
                 run.getErrorCode(),
-                run.getErrorSubscribed(),
                 run.getOutputs(),
                 run.getCreatedAt().toEpochMilli(),
                 fileNameOf(run.getFileIdentity()),
@@ -82,7 +80,6 @@ public record PolicyRunView(
                 0,
                 0,
                 entry.error(),
-                null,
                 null,
                 outputs,
                 createdAt,

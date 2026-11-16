@@ -1,7 +1,6 @@
 package stirling.software.SPDF;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
@@ -10,14 +9,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.core.env.Environment;
 
 import stirling.software.common.configuration.AppConfig;
-import stirling.software.common.model.ApplicationProperties;
 
 /**
  * Remaining static-helper and lifecycle coverage for {@link SPDFApplication} that the existing
@@ -26,12 +25,11 @@ import stirling.software.common.model.ApplicationProperties;
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@ResourceLock(value = "STIRLING_PDF_TAURI_MODE", mode = ResourceAccessMode.READ_WRITE)
 @DisplayName("SPDFApplication remaining coverage")
 class SPDFApplicationExtraTest {
 
     @Mock private AppConfig appConfig;
-    @Mock private Environment env;
-    @Mock private ApplicationProperties applicationProperties;
 
     private static Object invokeStatic(String name, Class<?>[] sig, Object... args)
             throws Exception {
@@ -129,40 +127,19 @@ class SPDFApplicationExtraTest {
     }
 
     @Nested
-    @DisplayName("init (non-Tauri, browser disabled)")
+    @DisplayName("init")
     class InitNonTauri {
 
         @Test
-        @DisplayName("populates the static URL fields without opening a browser")
-        void initBrowserDisabled() {
+        @DisplayName("sets the configured backend port")
+        void initSetsPort() {
             System.clearProperty("STIRLING_PDF_TAURI_MODE");
-            when(appConfig.getBackendUrl()).thenReturn("http://localhost");
-            when(appConfig.getContextPath()).thenReturn("/app");
             when(appConfig.getServerPort()).thenReturn("9000");
-            when(env.getProperty("BROWSER_OPEN")).thenReturn(null);
 
-            SPDFApplication app = new SPDFApplication(appConfig, env, applicationProperties);
+            SPDFApplication app = new SPDFApplication(appConfig);
             app.init();
 
-            assertThat(SPDFApplication.getStaticBaseUrl()).isEqualTo("http://localhost:9000");
-            assertThat(SPDFApplication.getStaticContextPath()).isEqualTo("/app");
             assertThat(SPDFApplication.getStaticPort()).isEqualTo("9000");
         }
-    }
-
-    @Test
-    @DisplayName("getStaticBaseUrl reflects the most recent init")
-    void staticBaseUrlReflectsInit() {
-        AppConfig cfg = mock(AppConfig.class);
-        when(cfg.getBackendUrl()).thenReturn("https://example.org");
-        when(cfg.getContextPath()).thenReturn("/");
-        when(cfg.getServerPort()).thenReturn("443");
-        Environment e = mock(Environment.class);
-        when(e.getProperty("BROWSER_OPEN")).thenReturn("false");
-
-        new SPDFApplication(cfg, e, applicationProperties).init();
-
-        // default https port 443 is omitted from the normalized base url
-        assertThat(SPDFApplication.getStaticBaseUrl()).isEqualTo("https://example.org");
     }
 }

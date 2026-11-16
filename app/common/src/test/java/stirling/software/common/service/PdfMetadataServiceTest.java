@@ -53,7 +53,7 @@ class PdfMetadataServiceTest {
         }
     }
 
-    private static final String LABEL = "Stirling-PDF v1.0.0";
+    private static final String LABEL = "Promin v1.0.0";
 
     /**
      * Builds a service whose pro-features are disabled (real ApplicationProperties, all defaults).

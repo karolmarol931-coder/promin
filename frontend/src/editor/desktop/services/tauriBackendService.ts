@@ -13,8 +13,6 @@ export class TauriBackendService {
   private healthMonitor: Promise<void> | null = null;
   private startPromise: Promise<void> | null = null;
   private statusListeners = new Set<(status: BackendStatus) => void>();
-  /** True when we own the backend process (startBackend called, not initializeExternalBackend) */
-  private isLocalBackend = false;
   private recoveryTimer: ReturnType<typeof setTimeout> | null = null;
   private isRecovering = false;
   private restartAttempts = 0;
@@ -49,10 +47,7 @@ export class TauriBackendService {
   }
 
   getBackendUrl(): string | null {
-    // Use the IPv4 loopback literal, not "localhost": on macOS (and some Linux)
-    // "localhost" can resolve to IPv6 ::1 first, but the bundled backend binds
-    // the IPv4 wildcard, so a ::1 connection is refused and every tool shows
-    // "backend offline" even though the backend is up.
+    // The bundled backend binds to IPv4 loopback.
     return this.backendPort ? `http://127.0.0.1:${this.backendPort}` : null;
   }
 
@@ -77,7 +72,7 @@ export class TauriBackendService {
 
     // Auto-recovery: when our own backend goes unhealthy, try restarting it
     // before reporting as permanently offline.
-    if (status === "unhealthy" && this.isLocalBackend && !this.isRecovering) {
+    if (status === "unhealthy" && !this.isRecovering) {
       this.scheduleRecovery();
     }
   }
@@ -181,34 +176,10 @@ export class TauriBackendService {
     }
   }
 
-  /**
-   * Initialize health monitoring for an external server (server mode)
-   * Does not start bundled backend, but enables health checks.
-   * Also discovers the local bundled backend port so it can be used as a fallback
-   * when the self-hosted server is offline.
-   */
-  async initializeExternalBackend(): Promise<void> {
+  async startBackend(): Promise<void> {
     if (this.backendStarted) {
       return;
     }
-
-    this.backendStarted = true; // Mark as active for health checks
-    this.startupGraceUntil = Date.now() + TauriBackendService.STARTUP_GRACE_MS;
-    this.setStatus("starting");
-    this.beginHealthMonitoring();
-
-    // Discover the local bundled backend port in the background.
-    // The Rust side always starts the local backend, so we can poll for its port
-    // even in self-hosted mode. This allows local fallback when the server is offline.
-    void this.waitForPort();
-  }
-
-  async startBackend(backendUrl?: string): Promise<void> {
-    if (this.backendStarted) {
-      return;
-    }
-
-    this.isLocalBackend = true; // We own this backend process
 
     if (this.startPromise) {
       return this.startPromise;
@@ -217,7 +188,7 @@ export class TauriBackendService {
     this.startupGraceUntil = Date.now() + TauriBackendService.STARTUP_GRACE_MS;
     this.setStatus("starting");
 
-    this.startPromise = invoke("start_backend", { backendUrl })
+    this.startPromise = invoke("start_backend")
       .then(async () => {
         this.backendStarted = true;
         this.setStatus("starting");
@@ -346,13 +317,9 @@ export class TauriBackendService {
     return false;
   }
 
-  /**
-   * Reset backend state (used when switching from external to local backend)
-   */
   reset(): void {
     this.backendStarted = false;
     this.backendPort = null;
-    this.isLocalBackend = false;
     this.isRecovering = false;
     this.restartAttempts = 0;
     this.hasBeenHealthy = false;

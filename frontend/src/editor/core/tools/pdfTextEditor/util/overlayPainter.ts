@@ -252,6 +252,46 @@ function lineBlocks(el: HTMLElement): HTMLElement[] {
   );
 }
 
+export function moveCaretToLineEdge(
+  el: HTMLElement,
+  selection: Selection,
+  edge: "start" | "end",
+  extend: boolean,
+): boolean {
+  if (selection.rangeCount === 0) return false;
+  const focus = selection.focusNode;
+  const focusedElement =
+    focus instanceof HTMLElement ? focus : focus?.parentElement;
+  const focusedBlock = focusedElement?.closest<HTMLElement>(`[${LINE_ATTR}]`);
+  const blocks = lineBlocks(el);
+  const block =
+    focusedBlock && el.contains(focusedBlock)
+      ? focusedBlock
+      : edge === "start"
+        ? blocks[0]
+        : blocks[blocks.length - 1];
+  if (!block) return false;
+
+  const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+  let target: Text | null = null;
+  let node = walker.nextNode();
+  while (node) {
+    if (node.textContent) {
+      target = node as Text;
+      if (edge === "start") break;
+    }
+    node = walker.nextNode();
+  }
+
+  const targetNode: Node = target ?? block;
+  const offset = target ? (edge === "start" ? 0 : target.length) : 0;
+  if (extend) {
+    if (!selection.extend) return false;
+    selection.extend(targetNode, offset);
+  } else setCollapsed(selection, targetNode, offset);
+  return true;
+}
+
 /**
  * Characters of the run's model text that precede the caret. Computed by
  * reading a truncated clone through the SAME walk that produces the model

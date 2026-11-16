@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -260,6 +261,29 @@ class OfficeDocumentSanitizerTest {
 
         byte[] result = sanitizer.sanitize(docx, "docx");
         assertArrayEquals(docx, result);
+    }
+
+    @Test
+    void sanitize_offlineModeOverridesDisabledSanitizationAndAllowlist() throws IOException {
+        applicationProperties.getSystem().setDisableSanitize(true);
+        applicationProperties.getSystem().setOfflineMode(true);
+        applicationProperties
+                .getSystem()
+                .getHtml()
+                .getUrlSecurity()
+                .getAllowedDomains()
+                .add("webhook.site");
+        Map<String, byte[]> entries = new LinkedHashMap<>();
+        entries.put("word/_rels/document.xml.rels", DOCX_RELS.getBytes(StandardCharsets.UTF_8));
+        byte[] docx = zip(entries);
+
+        byte[] cleaned = sanitizer.sanitize(docx, "docx");
+
+        String rels =
+                new String(
+                        unzip(cleaned).get("word/_rels/document.xml.rels"), StandardCharsets.UTF_8);
+        assertFalse(rels.contains(EXTERNAL_URL));
+        verify(ssrfProtectionService, org.mockito.Mockito.never()).isUrlAllowed(eq(EXTERNAL_URL));
     }
 
     @Test

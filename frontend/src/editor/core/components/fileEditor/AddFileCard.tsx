@@ -1,43 +1,37 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Menu, Tooltip } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useFilesModalContext } from "@editor/contexts/FilesModalContext";
-import { useAppConfig } from "@editor/contexts/AppConfigContext";
 import { useFileActionTerminology } from "@editor/hooks/useFileActionTerminology";
-import { useIsPhone } from "@editor/hooks/useIsMobile";
 import { useProcessingFolderCreation } from "@editor/hooks/useProcessingFolderCreation";
 import { usePoliciesEnabled } from "@editor/components/policies/usePoliciesEnabled";
 import { useIsWorkbenchFileDragOver } from "@editor/components/layout/useWorkbenchFileDrop";
-import MobileUploadModal from "@editor/components/shared/MobileUploadModal";
 import { openFilesFromDisk } from "@editor/services/openFilesFromDisk";
 import { ActionIcon } from "@editor/ui/ActionIcon";
 import { Button } from "@editor/ui/Button";
 import { Icon } from "@editor/ui/Icon";
-import { Logo } from "@editor/ui/Logo";
+import { LandingBrand } from "@editor/components/shared/LandingBrand";
 import styles from "@editor/components/fileEditor/AddFileCard.module.css";
 
 interface AddFileCardProps {
-  /** Receives files from the computer and mobile sources; the library adds its own. */
+  /** Receives files from the computer; the library adds its own. */
   onFilesSelected: (files: File[]) => void;
 }
 
 /**
  * The workbench's standing "add files" slot in the thumbnail grid. Add Files
- * opens the file library; the overflow menu holds the direct computer and
- * mobile uploads. Drops are handled by the workbench, whose drag state this
+ * opens the file library; the overflow menu holds the direct computer upload.
+ * Drops are handled by the workbench, whose drag state this
  * card reflects.
  */
 const AddFileCard = ({ onFilesSelected }: AddFileCardProps) => {
   const { t } = useTranslation();
   const terminology = useFileActionTerminology();
   const { openFilesModal } = useFilesModalContext();
-  const { config } = useAppConfig();
-  const isPhone = useIsPhone();
   const folderCreation = useProcessingFolderCreation();
   const signedIn = usePoliciesEnabled();
   const isFileDragOver = useIsWorkbenchFileDragOver();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [mobileUploadOpen, setMobileUploadOpen] = useState(false);
   const moreOptionsLabel = t(
     "fileEditor.addCard.moreOptions",
     "More upload options",
@@ -87,19 +81,11 @@ const AddFileCard = ({ onFilesSelected }: AddFileCardProps) => {
               >
                 {t("fileEditor.addCard.fromComputer", "Upload from computer")}
               </Menu.Item>
-              {config?.enableMobileScanner && !isPhone && (
-                <Menu.Item
-                  leftSection={<Icon name="qr-code" size="1rem" />}
-                  onClick={() => setMobileUploadOpen(true)}
-                >
-                  {terminology.mobileUpload}
-                </Menu.Item>
-              )}
             </Menu.Dropdown>
           </Menu>
         </div>
 
-        <Logo variant="iconOnly" iconHeight="2.75rem" />
+        <LandingBrand compact />
 
         <div className={styles.controls}>
           <div className={styles.actions}>
@@ -149,11 +135,6 @@ const AddFileCard = ({ onFilesSelected }: AddFileCardProps) => {
         multiple
         onChange={handleFallbackSelect}
         style={{ display: "none" }}
-      />
-      <MobileUploadModal
-        opened={mobileUploadOpen}
-        onClose={() => setMobileUploadOpen(false)}
-        onFilesReceived={onFilesSelected}
       />
       {folderCreation.dialog}
     </div>

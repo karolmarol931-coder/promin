@@ -1,15 +1,8 @@
-import { useMemo } from "react";
 import { useLogoAssets } from "@editor/hooks/useLogoAssets";
 
-/** Theme-specific no-text logo SVG URLs under the `modern-logo` folder. */
+/** Theme-specific Promin mark image URLs. */
 export function useLogoPath(): { dark: string; light: string } {
-  const { folderPath } = useLogoAssets();
+  const { tooltipLogo } = useLogoAssets();
 
-  return useMemo(
-    () => ({
-      dark: `${folderPath}/StirlingPDFLogoNoTextDark.svg`,
-      light: `${folderPath}/StirlingPDFLogoNoTextLight.svg`,
-    }),
-    [folderPath],
-  );
+  return { dark: tooltipLogo, light: tooltipLogo };
 }

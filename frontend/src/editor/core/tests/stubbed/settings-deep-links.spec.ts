@@ -20,7 +20,7 @@ async function openSettings(
 const TARGETS = [
   // The two links the audit and usage pages point at.
   ["/settings/adminSecurity#auditLogging", "auditLogging"],
-  // The link the mail card and the mobile-upload card point at.
+  // The link the mail card points at.
   ["/settings/adminGeneral#frontendUrl", "frontendUrl"],
   ["/settings/adminConnections#adminMcp", "adminMcp"],
   // The row the super search builds for "shortcut" / "keybinding".

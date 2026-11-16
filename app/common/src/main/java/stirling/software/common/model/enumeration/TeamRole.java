@@ -3,10 +3,7 @@ package stirling.software.common.model.enumeration;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Team membership roles LEADER: Can invite/remove members, manage settings, view usage, manage
- * billing MEMBER: Regular team member with standard access
- */
+/** Team membership roles: leaders manage membership and settings; members have standard access. */
 @Getter
 @RequiredArgsConstructor
 public enum TeamRole {

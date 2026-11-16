@@ -16,9 +16,6 @@ import {
   clearPlatformAuthOnLoginInit,
 } from "@editor/extensions/authSessionCleanup";
 import {
-  getPlatformSessionUser,
-  isDesktopSaaSAuthMode,
-  refreshPlatformSession,
   savePlatformToken,
   shouldCallBackendLogout,
 } from "@editor/extensions/platformSessionBridge";
@@ -35,10 +32,7 @@ configureSpringAuth({
   platform: {
     clearPlatformAuthAfterSignOut,
     clearPlatformAuthOnLoginInit,
-    isDesktopSaaSAuthMode,
     shouldCallBackendLogout,
-    getPlatformSessionUser,
-    refreshPlatformSession,
     savePlatformToken,
     startOAuthNavigation,
   },

@@ -96,6 +96,9 @@ public class WatermarkController {
             }
         }
         String alphabet = request.getAlphabet();
+        if (alphabet == null || alphabet.isBlank()) {
+            alphabet = "roman";
+        }
         float fontSize = request.getFontSize();
         float rotation = request.getRotation();
         float opacity = request.getOpacity();

@@ -566,8 +566,8 @@ export function ChatPanel({
 
       <div className="chat-panel-input">
         <Textarea
-          placeholder={t("chat.dock.placeholder", "Ask Stirling Agent")}
-          aria-label={t("chat.dock.placeholder", "Ask Stirling Agent")}
+          placeholder={t("chat.dock.placeholder", "Ask Promin Agent")}
+          aria-label={t("chat.dock.placeholder", "Ask Promin Agent")}
           value={input}
           onChange={(e) => setInput(e.currentTarget.value)}
           onKeyDown={handleKeyDown}

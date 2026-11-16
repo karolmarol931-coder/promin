@@ -52,7 +52,7 @@ vi.mock("@editor/services/policyApi", () => ({
   getPolicyRun: mocks.getPolicyRun,
   listPolicyRuns: mocks.listPolicyRuns,
   downloadPolicyOutput: vi.fn(),
-  resolvePolicyRunTarget: () => "saas",
+  resolvePolicyRunTarget: () => "local",
 }));
 vi.mock("@editor/services/fileStorage", () => ({
   fileStorage: {

@@ -9,7 +9,6 @@ import {
 } from "@editor/data/toolsTaxonomy";
 import { useMultipleEndpointsEnabled } from "@editor/hooks/useEndpointConfig";
 import { useSelfHostedToolAvailability } from "@editor/hooks/useSelfHostedToolAvailability";
-import { useSaaSMode } from "@editor/hooks/useSaaSMode";
 import { FileId } from "@editor/types/file";
 import { ToolId } from "@editor/types/toolId";
 import type { EndpointDisableReason } from "@editor/types/endpointAvailability";
@@ -42,7 +41,6 @@ export const useToolManagement = (): ToolManagementResult => {
   const { allTools } = useToolRegistry();
   const baseRegistry = allTools;
   const { preferences } = usePreferences();
-  const isSaaSMode = useSaaSMode();
 
   const allEndpoints = useMemo(
     () => getAllEndpoints(baseRegistry),
@@ -92,18 +90,9 @@ export const useToolManagement = (): ToolManagementResult => {
         (endpoint: string) => endpointStatus[endpoint] !== false,
       );
 
-      // In SaaS mode tools without local support can route to the cloud backend
-      if (!hasLocalSupport && isSaaSMode) return true;
-
       return hasLocalSupport;
     },
-    [
-      endpointsLoading,
-      endpointStatus,
-      baseRegistry,
-      isSaaSMode,
-      selfHostedOfflineIds,
-    ],
+    [endpointsLoading, endpointStatus, baseRegistry, selfHostedOfflineIds],
   );
 
   const deriveToolDisableReason = useCallback(

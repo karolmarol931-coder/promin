@@ -29,8 +29,6 @@ export interface QuickNavRailContainerProps extends Omit<
   /** Omitted in builds with no docs to browse. */
   onOpenDocs?: () => void;
   docsActive?: boolean;
-  /** Omitted in builds with no processor to invite anyone into. */
-  onInvite?: () => void;
   onToggleNotifications?: () => void;
   notificationsOpen?: boolean;
   identity?: QuickNavIdentity | null;
@@ -43,7 +41,6 @@ export function QuickNavRailContainer({
   accountActive = false,
   onOpenDocs,
   docsActive = false,
-  onInvite,
   onToggleNotifications,
   notificationsOpen,
   identity = null,
@@ -65,13 +62,6 @@ export function QuickNavRailContainer({
                 onToggle={onToggleNotifications}
                 open={notificationsOpen}
               />
-              {onInvite && (
-                <RailButton
-                  label={t("quickNav.invite", "Invite")}
-                  icon={<Icon name="user-plus" size="1.125rem" />}
-                  onClick={onInvite}
-                />
-              )}
               {onOpenDocs && (
                 <RailButton
                   label={t("quickNav.docs", "Documentation")}

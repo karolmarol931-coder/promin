@@ -1,19 +1,7 @@
 import type { SlideConfig } from "@editor/types/types";
 import type { ButtonAccent } from "@editor/ui/Button";
 
-/**
- * Shared shape for onboarding slide flows. Both the core/editor flow and the
- * SaaS flow describe the same thing — a sequence of slides, each with a hero,
- * body content, and a row of buttons — so the structure lives here once and is
- * parameterised per flow by its own action/hero/state unions. Previously these
- * interfaces were copy-pasted into each flow config.
- */
-
-export interface OSOption {
-  label: string;
-  url: string;
-  value: string;
-}
+/** Shared slide contracts for the local editor onboarding flow. */
 
 export interface ButtonDefinition<Action extends string, State> {
   key: string;

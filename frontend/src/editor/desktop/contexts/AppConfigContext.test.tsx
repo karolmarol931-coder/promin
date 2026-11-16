@@ -14,8 +14,6 @@ vi.mock("@editor-core/contexts/AppConfigContext", () => ({
       storageShareLinksEnabled: true,
       storageGroupSigningEnabled: true,
       aiEngineEnabled: true,
-      enableMobileScanner: true,
-      enableMobileSignature: true,
       premiumEnabled: true,
     },
   }),
@@ -31,8 +29,6 @@ test("managed privacy overrides server document features while preserving accoun
     storageShareLinksEnabled: false,
     storageGroupSigningEnabled: false,
     aiEngineEnabled: false,
-    enableMobileScanner: false,
-    enableMobileSignature: false,
     premiumEnabled: true,
   });
   state.localOnly = false;

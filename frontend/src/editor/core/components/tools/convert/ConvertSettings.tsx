@@ -12,7 +12,6 @@ import {
 } from "@editor/utils/convertUtils";
 import { getConversionEndpoints } from "@editor/data/toolsTaxonomy";
 import { usePreferences } from "@editor/contexts/PreferencesContext";
-import { useConversionCloudStatus } from "@editor/hooks/useConversionCloudStatus";
 import { useLocalProcessingOnly } from "@editor/hooks/useLocalProcessingOnly";
 import GroupedFormatDropdown from "@editor/components/tools/convert/GroupedFormatDropdown";
 import ConvertToImageSettings from "@editor/components/tools/convert/ConvertToImageSettings";
@@ -81,27 +80,10 @@ const ConvertSettings = ({
 
   const { endpointStatus } = useMultipleEndpointsEnabled(allEndpoints);
 
-  // Get comprehensive conversion status (availability + cloud routing)
-  const conversionStatus = useConversionCloudStatus();
-
   const isConversionAvailable = (fromExt: string, toExt: string): boolean => {
-    const conversionKey = `${fromExt}-${toExt}`;
-
-    // In desktop SaaS mode, check combined availability (local OR SaaS)
-    if (conversionStatus.availability[conversionKey] !== undefined) {
-      return conversionStatus.availability[conversionKey];
-    }
-
-    // Fallback to local-only check (web mode or desktop non-SaaS mode)
     const endpointKey = EXTENSION_TO_ENDPOINT[fromExt]?.[toExt];
     if (!endpointKey) return false;
-
-    const isAvailable = endpointStatus[endpointKey] === true;
-    return isAvailable;
-  };
-
-  const doesConversionUseCloud = (fromExt: string, toExt: string): boolean => {
-    return conversionStatus.cloudStatus[`${fromExt}-${toExt}`] || false;
+    return endpointStatus[endpointKey] === true;
   };
 
   // Enhanced FROM options with endpoint availability
@@ -143,14 +125,9 @@ const ConvertSettings = ({
     }
 
     return filteredOptions;
-  }, [
-    parameters.fromExtension,
-    endpointStatus,
-    hideUnavailableConversions,
-    conversionStatus,
-  ]);
+  }, [parameters.fromExtension, endpointStatus, hideUnavailableConversions]);
 
-  // Enhanced TO options with endpoint availability and cloud status
+  // Enhanced TO options with local endpoint availability
   const enhancedToOptions = useMemo(() => {
     if (!parameters.fromExtension) return [];
 
@@ -161,14 +138,9 @@ const ConvertSettings = ({
         parameters.fromExtension,
         option.value,
       );
-      const usesCloud = doesConversionUseCloud(
-        parameters.fromExtension,
-        option.value,
-      );
       return {
         ...option,
         enabled,
-        usesCloud,
       };
     });
 
@@ -177,12 +149,7 @@ const ConvertSettings = ({
     }
 
     return enhanced;
-  }, [
-    parameters.fromExtension,
-    endpointStatus,
-    hideUnavailableConversions,
-    conversionStatus,
-  ]);
+  }, [parameters.fromExtension, endpointStatus, hideUnavailableConversions]);
 
   const resetParametersToDefaults = () => {
     onParameterChange("imageOptions", {
@@ -527,7 +494,7 @@ const ConvertSettings = ({
           </>
         )}
 
-      {/* Stirling Office Convert or LibreOffice */}
+      {/* Promin Office Convert or LibreOffice */}
       {usesOfficeEngine(parameters.fromExtension, parameters.toExtension) && (
         <>
           <Divider />

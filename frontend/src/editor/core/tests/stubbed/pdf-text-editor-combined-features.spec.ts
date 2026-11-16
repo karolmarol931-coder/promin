@@ -250,7 +250,7 @@ test.describe("PDF text editor - combined feature set", () => {
     page,
   }) => {
     await open(page, 1);
-    const id = await runId(page, 1, "Stirling\\s+PDF\\s+is\\s+a\\s+robust");
+    const id = await runId(page, 1, "Promin\\s+PDF\\s+is\\s+a\\s+robust");
     await selectRun(page, id);
     await page.getByTestId("pdf-editor-toggle-lock").click();
     await page.waitForTimeout(200);
@@ -293,7 +293,7 @@ test.describe("PDF text editor - combined feature set", () => {
     page,
   }) => {
     await open(page, 1);
-    const a = await runId(page, 1, "Stirling\\s+PDF\\s+is\\s+a\\s+robust");
+    const a = await runId(page, 1, "Promin\\s+PDF\\s+is\\s+a\\s+robust");
     const b = await runId(page, 1, "Comprehensive\\s+toolkit");
     await selectMany(page, [a, b]);
     await clickArrange(page, "pdf-editor-align-left");
@@ -323,13 +323,9 @@ test.describe("PDF text editor - combined feature set", () => {
     const before = await totalRuns(page);
     const cutText = await runText(page, 1, id);
     await selectRun(page, id);
-    // Cut is suppressed while focus is inside a contentEditable run (so the
-    // browser's native cut wins there).
     await page.evaluate(() =>
       (document.activeElement as HTMLElement | null)?.blur(),
     );
-    // Ctrl+X / Ctrl+V ride the native cut/paste ClipboardEvent, which needs no
-    // permission grant and behaves identically on every engine.
     await page.keyboard.press("Control+x");
     await expect
       .poll(() => totalRuns(page), { message: "cut removes the run" })
@@ -342,6 +338,27 @@ test.describe("PDF text editor - combined feature set", () => {
     expect(await selectedRunText(page), "paste restores the cut text").toBe(
       cutText,
     );
+  });
+
+  test("copy (Ctrl+C) and paste (Ctrl+V) duplicate the selected run", async ({
+    page,
+  }) => {
+    await open(page, 1);
+    const id = await runId(page, 1, "Comprehensive\\s+toolkit");
+    const copiedText = await runText(page, 1, id);
+    const before = await totalRuns(page);
+    await selectRun(page, id);
+    await page.evaluate(() =>
+      (document.activeElement as HTMLElement | null)?.blur(),
+    );
+    await page.keyboard.press("Control+c");
+    await page.keyboard.press("Control+v");
+    await expect
+      .poll(() => totalRuns(page), {
+        message: "copy and paste duplicate a run",
+      })
+      .toBeGreaterThan(before);
+    expect(await selectedRunText(page)).toBe(copiedText);
   });
 
   test("z-order: bring-to-front on an inserted image applies and undoes cleanly", async ({
@@ -384,7 +401,7 @@ test.describe("PDF text editor - combined feature set", () => {
     page,
   }) => {
     await open(page, 1);
-    const id = await runId(page, 1, "Stirling\\s+PDF\\s+is\\s+a\\s+robust");
+    const id = await runId(page, 1, "Promin\\s+PDF\\s+is\\s+a\\s+robust");
     const before = await page.evaluate(
       (rid: string) => [
         ...(window as unknown as EditorTestWindow).__editor_store.doc
@@ -633,7 +650,7 @@ test.describe("PDF text editor - combined feature set", () => {
     page,
   }) => {
     await open(page, 1);
-    const a = await runId(page, 1, "Stirling\\s+PDF\\s+is\\s+a\\s+robust");
+    const a = await runId(page, 1, "Promin\\s+PDF\\s+is\\s+a\\s+robust");
     const b = await runId(page, 1, "Comprehensive\\s+toolkit");
     await selectMany(page, [a, b]);
     await clickArrange(page, "pdf-editor-align-right");
@@ -659,7 +676,7 @@ test.describe("PDF text editor - combined feature set", () => {
     page,
   }) => {
     await open(page, 1);
-    const a = await runId(page, 1, "Stirling\\s+PDF\\s+is\\s+a\\s+robust");
+    const a = await runId(page, 1, "Promin\\s+PDF\\s+is\\s+a\\s+robust");
     const b = await runId(page, 1, "Comprehensive\\s+toolkit");
     await selectMany(page, [a, b]);
     await clickArrange(page, "pdf-editor-align-top");

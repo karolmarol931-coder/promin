@@ -5,7 +5,8 @@ import { ActionIcon } from "@editor/ui/ActionIcon";
 import { Button, type ButtonAccent } from "@editor/ui/Button";
 import { Icon } from "@editor/ui/Icon";
 import { Z_INDEX_ONBOARDING_CARD } from "@editor/styles/zIndex";
-import stirlingMark from "@editor/assets/brand/modern-logo/logo512.png";
+import prominAppIcon from "@editor/assets/brand/promin/promin-app-icon.png";
+import prominMark from "@editor/assets/brand/promin/promin-location-mark.svg";
 import styles from "@editor/components/onboarding/InitialOnboardingModal/InitialOnboardingModal.module.css";
 
 /** A footer button. `action` is an opaque string handled by the caller. */
@@ -48,7 +49,7 @@ export interface OnboardingSlideShellProps {
 }
 
 /**
- * Hero art for the inset panel. `appIcon` renders the Stirling app mark
+ * Hero art for the inset panel. `appIcon` renders the Promin app icon
  * directly; otherwise the children glyph sits inside a soft white tile.
  */
 export function ShellHero({
@@ -60,7 +61,7 @@ export function ShellHero({
 }) {
   if (appIcon) {
     return (
-      <img src={stirlingMark} alt="Stirling" className={styles.heroAppIcon} />
+      <img src={prominAppIcon} alt="Promin" className={styles.heroAppIcon} />
     );
   }
   return <div className={styles.heroTile}>{children}</div>;
@@ -69,7 +70,7 @@ export function ShellHero({
 /**
  * Shared onboarding slide chrome: branded header + step progress, an inset
  * hero panel, left-aligned title/body, and a right-aligned action footer.
- * Generic over button actions so every flow (editor, SaaS, portal) renders
+ * Generic over button actions so every onboarding flow renders
  * the same card.
  */
 export default function OnboardingSlideShell({
@@ -192,12 +193,12 @@ function ShellHeader({
     <header className={styles.header}>
       <div className={styles.brand}>
         <img
-          src={stirlingMark}
+          src={prominMark}
           alt=""
           aria-hidden="true"
           className={styles.brandLogo}
         />
-        <span className={styles.wordmark}>Stirling</span>
+        <span className={styles.wordmark}>PROMIN</span>
       </div>
       <div className={styles.headerRight}>
         {stepLabel && <span className={styles.stepPill}>{stepLabel}</span>}

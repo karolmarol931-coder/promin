@@ -1,7 +1,5 @@
 package stirling.software.proprietary.security.database;
 
-import java.util.Arrays;
-
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
@@ -12,10 +10,6 @@ public class H2SQLCondition implements Condition {
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
         var env = context.getEnvironment();
-
-        if (Arrays.asList(env.getActiveProfiles()).contains("saas")) {
-            return false;
-        }
 
         // Legacy custom-DB block, if explicitly enabled, is authoritative.
         boolean enableCustomDatabase =

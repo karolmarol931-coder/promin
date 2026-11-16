@@ -6,9 +6,6 @@ vi.mock("@editor/contexts/ViewerContext", () => ({
   ViewerContext: React.createContext(null),
 }));
 vi.mock("@editor/services/fileStorage", () => ({ fileStorage: {} }));
-vi.mock("@editor/data/processorEntitySearch", () => ({
-  useProcessorEntityGroups: vi.fn(),
-}));
 vi.mock("@editor/data/settingsContentSearch", () => ({
   findSettingsContentMatch: () => null,
   buildMatchSnippet: vi.fn(),
@@ -54,7 +51,7 @@ describe("self-hosted Users settings search", () => {
     const results = rankSettingsResults(
       "users",
       i18n.t,
-      { isAdmin: false, loginEnabled: true, portalAccessible: true },
+      { isAdmin: false, loginEnabled: true },
       vi.fn(),
     );
 

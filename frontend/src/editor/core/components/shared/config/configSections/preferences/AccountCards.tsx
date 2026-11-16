@@ -20,7 +20,8 @@ import { accountService } from "@editor/services/accountService";
 import { Z_INDEX_OVER_CONFIG_MODAL } from "@editor/styles/zIndex";
 import { QRCodeSVG } from "qrcode.react";
 import { useAccountLogout } from "@editor/extensions/accountLogout";
-import { BASE_PATH, withBasePath } from "@editor/constants/app";
+import { withBasePath } from "@editor/constants/app";
+import prominMark from "@editor/assets/brand/promin/promin-location-mark.svg";
 import { MfaSetupResponse } from "@editor/responses/Mfa/MfaResponse";
 
 /** The signed-in user's shape is layer-specific, so read fields defensively. */
@@ -69,7 +70,7 @@ export function AccountCards() {
     (value: string) => value.replace(/\D/g, "").slice(0, 6),
     [],
   );
-  const qrLogoSrc = `${BASE_PATH}/modern-logo/StirlingPDFLogoNoTextDark.svg`;
+  const qrLogoSrc = prominMark;
 
   const authTypeFromMetadata = useMemo(() => {
     const metadata = (user as { app_metadata?: unknown } | null)?.app_metadata;

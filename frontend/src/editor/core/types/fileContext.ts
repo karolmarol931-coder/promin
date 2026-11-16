@@ -84,11 +84,11 @@ export interface StirlingFileStub extends BaseFileMetadata {
   /**
    * Cached classification label ids — the source of truth the Files sidebar
    * groups by (so it never re-reads PDF bytes); resolve to display names via the
-   * label-display seam. Written when the classify policy runs (SaaS) and CARRIED
+   * label-display seam. Written when the classify policy runs and carried
    * FORWARD onto every later version via the stub (see {@code createChildStub} +
    * the CONSUME_FILES reducer), so a second policy or a tool edit keeps the file
    * in its label groups instead of dropping to "Other". Undefined for
-   * unclassified files / non-SaaS builds.
+   * unclassified files or builds without classification support.
    */
   classificationLabels?: string[];
   /**
@@ -128,7 +128,7 @@ export function createQuickKey(file: File): string {
   return `${file.name}|${file.size}|${file.lastModified}`;
 }
 
-// Stirling PDF file with embedded UUID - replaces loose File + FileId parameter passing
+// Promin file with embedded UUID - replaces loose File + FileId parameter passing
 export interface StirlingFile extends File {
   readonly fileId: FileId;
   readonly quickKey: string; // Fast deduplication key: name|size|lastModified
@@ -195,7 +195,7 @@ export function createStirlingFile(
   id?: FileId,
   options?: { bindSessionAccess?: boolean },
 ): StirlingFile {
-  // If the file already has Stirling metadata and we aren't trying to override it,
+  // If the file already has Promin metadata and we aren't trying to override it,
   // return as–is. When a new id is requested we clone the File so we can embed
   // the fresh identifier without mutating the original object.
   if (isStirlingFile(file)) {
@@ -407,7 +407,7 @@ export interface FileContextActions {
     options?: {
       insertAfterPageId?: string;
       selectFiles?: boolean;
-      skipUploadTracking?: boolean;
+
       /**
        * Produced in-app rather than uploaded, which stops the policy auto-run enforcing an upload
        * policy on it. Set by anything adding a file already through a policy or a tool.
@@ -428,7 +428,6 @@ export interface FileContextActions {
         fileName: string,
       ) => Promise<boolean>;
       allowDuplicates?: boolean;
-      skipUploadTracking?: boolean;
     },
   ) => Promise<StirlingFile[]>;
   addStirlingFileStubs: (

@@ -9,7 +9,10 @@ import {
 import { Icon } from "@editor/ui/Icon";
 import { useTranslation } from "react-i18next";
 import { SPLIT_METHODS } from "@editor/constants/splitConstants";
-import { SplitParameters } from "@editor/hooks/tools/split/useSplitParameters";
+import {
+  SplitParameters,
+  validateSplitParameters,
+} from "@editor/hooks/tools/split/useSplitParameters";
 import { Z_INDEX_AUTOMATE_DROPDOWN } from "@editor/styles/zIndex";
 
 export interface SplitSettingsProps {
@@ -18,32 +21,139 @@ export interface SplitSettingsProps {
     key: K,
     value: SplitParameters[K],
   ) => void;
+  pageCount?: number;
   disabled?: boolean;
 }
 
 const SplitSettings = ({
   parameters,
   onParameterChange,
+  pageCount,
   disabled = false,
 }: SplitSettingsProps) => {
   const { t } = useTranslation();
 
-  const renderByPagesForm = () => (
-    <TextInput
-      label={t("split.splitPages", "Pages")}
-      placeholder={t("pageSelectionPrompt", "e.g. 1,3,5-10")}
-      value={parameters.pages}
-      onChange={(e) => onParameterChange("pages", e.target.value)}
-      disabled={disabled}
-    />
-  );
+  const getPageSplitPreview = (): {
+    count: number;
+    ranges: string[];
+  } | null => {
+    if (!pageCount || !parameters.pages.trim()) return null;
+    if (parameters.pages.trim().toLowerCase() === "all") {
+      return {
+        count: pageCount,
+        ranges: Array.from({ length: Math.min(pageCount, 4) }, (_, index) =>
+          String(index + 1),
+        ),
+      };
+    }
+
+    if (!validateSplitParameters(parameters, pageCount)) return null;
+
+    let cutCount = 0;
+    let firstPage = 1;
+    const ranges: string[] = [];
+    for (const token of parameters.pages.split(",")) {
+      const trimmed = token.trim();
+      const range = /^(\d+)\s*-\s*(\d*)$/.exec(trimmed);
+      const start = range ? Number(range[1]) : Number(trimmed);
+      const end = range ? (range[2] ? Number(range[2]) : pageCount) : start;
+      if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end))
+        return null;
+      const lastCutPage = Math.min(end, pageCount - 1);
+      const tokenCutCount = Math.max(0, lastCutPage - start + 1);
+      for (
+        let page = start;
+        page <= lastCutPage && ranges.length < 4;
+        page += 1
+      ) {
+        ranges.push(
+          firstPage === page ? `${firstPage}` : `${firstPage}–${page}`,
+        );
+        firstPage = page + 1;
+      }
+      firstPage = start + tokenCutCount;
+      cutCount += tokenCutCount;
+    }
+
+    if (cutCount === 0) return null;
+    const count = cutCount + 1;
+    if (firstPage <= pageCount && ranges.length < 4) {
+      ranges.push(
+        firstPage === pageCount ? `${firstPage}` : `${firstPage}–${pageCount}`,
+      );
+    }
+    return { count, ranges };
+  };
+
+  const renderByPagesForm = () => {
+    const isInvalid =
+      parameters.pages.trim() !== "" &&
+      !validateSplitParameters(parameters, pageCount);
+    const splitPreview = getPageSplitPreview();
+
+    const previewMoreCount = splitPreview
+      ? splitPreview.count - splitPreview.ranges.length
+      : 0;
+
+    return (
+      <Stack gap="xs">
+        <TextInput
+          label={t("split.pages.label", "Split after pages")}
+          description={
+            pageCount
+              ? t(
+                  "split.pages.descriptionWithCount",
+                  "Enter page numbers after which to start a new file, for example 2, 5. You can split after pages 1–{{lastPage}} in the shortest selected PDF.",
+                  { count: pageCount, lastPage: Math.max(0, pageCount - 1) },
+                )
+              : t(
+                  "split.pages.description",
+                  "Enter page numbers after which to start a new file, for example 2, 5.",
+                )
+          }
+          error={
+            isInvalid
+              ? t(
+                  "split.pages.invalid",
+                  "Enter valid page numbers or ranges. A cut after the last page would not split the PDF.",
+                )
+              : undefined
+          }
+          placeholder={t("split.pages.placeholder", "For example: 2, 5")}
+          value={parameters.pages}
+          onChange={(e) => onParameterChange("pages", e.target.value)}
+          disabled={disabled}
+          rightSection={null}
+          aria-describedby={splitPreview ? "split-page-preview" : undefined}
+        />
+        {splitPreview && (
+          <Text id="split-page-preview" size="xs" c="dimmed" aria-live="polite">
+            {t(
+              "split.pages.preview",
+              "Creates {{count}} files: {{ranges}}{{more}}",
+              {
+                count: splitPreview.count,
+                ranges: splitPreview.ranges.join(", "),
+                more:
+                  previewMoreCount > 0
+                    ? t("split.pages.previewMore", " and {{count}} more", {
+                        count: previewMoreCount,
+                      })
+                    : "",
+              },
+            )}
+          </Text>
+        )}
+      </Stack>
+    );
+  };
 
   const renderBySectionsForm = () => (
     <Stack gap="sm">
       <TextInput
         label={t("split-by-sections.horizontal.label", "Horizontal Divisions")}
         type="number"
-        min="0"
+        min="1"
         max="300"
         value={parameters.hDiv}
         onChange={(e) => onParameterChange("hDiv", e.target.value)}
@@ -56,7 +166,7 @@ const SplitSettings = ({
       <TextInput
         label={t("split-by-sections.vertical.label", "Vertical Divisions")}
         type="number"
-        min="0"
+        min="1"
         max="300"
         value={parameters.vDiv}
         onChange={(e) => onParameterChange("vDiv", e.target.value)}
@@ -139,11 +249,16 @@ const SplitSettings = ({
 
   const renderSplitValueForm = () => {
     let label, placeholder;
+    let description: string | undefined;
 
     switch (parameters.method) {
       case SPLIT_METHODS.BY_SIZE:
         label = t("split.value.fileSize.label", "File Size");
         placeholder = t("split.value.fileSize.placeholder", "e.g. 10MB, 500KB");
+        description = t(
+          "split.value.fileSize.description",
+          "Splits only between pages. A single large page can exceed this size.",
+        );
         break;
       case SPLIT_METHODS.BY_PAGE_COUNT:
         label = t("split.value.pageCount.label", "Pages per File");
@@ -164,6 +279,7 @@ const SplitSettings = ({
     return (
       <TextInput
         label={label}
+        description={description}
         placeholder={placeholder}
         value={parameters.splitValue}
         onChange={(e) => onParameterChange("splitValue", e.target.value)}
@@ -206,8 +322,8 @@ const SplitSettings = ({
   const renderByPageDividerForm = () => (
     <Stack gap="sm">
       <Anchor
-        href="https://stirlingpdf.io/files/Auto%20Splitter%20Divider%20(with%20instructions).pdf"
-        target="_blank"
+        href="/files/Auto%20Splitter%20Divider%20(with%20instructions).pdf"
+        download="promin-auto-split-divider.pdf"
         size="sm"
         style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
       >

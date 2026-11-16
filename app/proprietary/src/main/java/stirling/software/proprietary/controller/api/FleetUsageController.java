@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,9 +34,6 @@ import stirling.software.proprietary.security.database.repository.UserRepository
 @RequestMapping("/api/v1/usage")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
-// Self-hosted only: counts are server-wide. On SaaS this endpoint is owned by the team-scoped
-// SaasFleetUsageController (@Profile("saas")) so one backend can't leak another tenant's usage.
-@Profile("!saas")
 public class FleetUsageController {
 
     private static final List<String> PDF_TYPES = List.of("PDF_PROCESS", "FILE_OPERATION");

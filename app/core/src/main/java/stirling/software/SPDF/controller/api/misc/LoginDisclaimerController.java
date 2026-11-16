@@ -14,8 +14,8 @@ import stirling.software.common.service.LoginAgreementService;
 /**
  * Serves the login agreement / disclaimer for the frontend. Shares the /api/v1/config access rules:
  * it requires authentication when login is enabled (the modal is shown after login, never on the
- * login screen) and is permit-all in anonymous/no-login mode and in SaaS. The text is read live
- * from disk, so admin edits take effect on the next login without a restart.
+ * login screen) and is permit-all in anonymous/no-login mode. The text is read live from disk, so
+ * admin edits take effect on the next login without a restart.
  */
 @ConfigApi
 @Hidden

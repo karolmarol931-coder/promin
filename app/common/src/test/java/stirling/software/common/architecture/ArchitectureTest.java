@@ -9,10 +9,7 @@ import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 
-/**
- * Module dependency-direction guardrails. Allowed direction: {@code saas → proprietary → common}
- * and {@code stirling-pdf → proprietary → common}.
- */
+/** Module dependency-direction guardrails for core, proprietary, and common code. */
 class ArchitectureTest {
 
     private static final JavaClasses commonClasses =
@@ -46,18 +43,6 @@ class ArchitectureTest {
     }
 
     @Test
-    void commonDoesNotDependOnSaas() {
-        ArchRule rule =
-                noClasses()
-                        .that()
-                        .resideInAPackage("stirling.software.common..")
-                        .should()
-                        .dependOnClassesThat()
-                        .resideInAPackage("stirling.software.saas..");
-        rule.check(commonClasses);
-    }
-
-    @Test
     void clusterInterfacesHaveNoImplementationDependencies() {
         ArchRule rule =
                 noClasses()
@@ -65,8 +50,7 @@ class ArchitectureTest {
                         .resideInAPackage("stirling.software.common.cluster..")
                         .should()
                         .dependOnClassesThat()
-                        .resideInAnyPackage(
-                                "stirling.software.proprietary..", "stirling.software.saas..");
+                        .resideInAPackage("stirling.software.proprietary..");
         rule.check(commonClasses);
     }
 }

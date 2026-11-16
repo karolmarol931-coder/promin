@@ -135,6 +135,22 @@ class CustomHtmlSanitizerTest {
     }
 
     @Test
+    @DisplayName("offline mode keeps sanitization enabled when the setting disables it")
+    void offlineModeOverridesDisabledSanitization() {
+        when(systemProperties.isDisableSanitize()).thenReturn(true);
+        when(systemProperties.isOfflineMode()).thenReturn(true);
+
+        String sanitized =
+                customHtmlSanitizer.sanitize(
+                        "<p>Local</p><img src=\"https://example.invalid/image.png\">");
+
+        assertFalse(customHtmlSanitizer.isDisabled());
+        assertFalse(sanitized.contains("https://example.invalid"));
+        assertTrue(sanitized.contains("Local"));
+        verify(ssrfProtectionService, never()).isUrlAllowed(anyString());
+    }
+
+    @Test
     void testSanitizeAllowsTables() {
         // Arrange - Testing Sanitizers.TABLES
         String htmlWithTable =

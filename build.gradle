@@ -81,8 +81,6 @@ ext.getEnv = { ->
     logger.lifecycle("DOCKER_ENABLE_SECURITY: ${des}")
     def flavorValue = System.getenv('STIRLING_FLAVOR')
     logger.lifecycle("STIRLING_FLAVOR: ${flavorValue}")
-    def saas = System.getenv('ENABLE_SAAS')
-    logger.lifecycle("ENABLE_SAAS: ${saas}")
     def daf = System.getenv('DISABLE_ADDITIONAL_FEATURES')
     logger.lifecycle("DISABLE_ADDITIONAL_FEATURES: ${daf}")
 }
@@ -109,12 +107,6 @@ bootJar {
     enabled = false
 }
 
-// :saas is only included for SaaS builds, but a default-flavor clean must still remove artifacts
-// left behind by an earlier SaaS build.
-tasks.named('clean') {
-    delete layout.projectDirectory.dir('app/saas/build')
-}
-
 // Configure main class for the root project
 springBoot {
     mainClass = 'stirling.software.SPDF.SPDFApplication'
@@ -122,7 +114,7 @@ springBoot {
 
 allprojects {
     group = 'stirling.software'
-    version = '3.2.2'
+    version = '3.2.3'
 
     configurations.configureEach {
         exclude group: "org.springframework.boot", module: "spring-boot-starter-tomcat"

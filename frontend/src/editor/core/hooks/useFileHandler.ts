@@ -15,8 +15,7 @@ export const useFileHandler = () => {
         skipWorkspaceDispatch?: boolean;
         /** Defaults to true; false keeps an archive intact (e.g. duplicating one). */
         autoUnzip?: boolean;
-        /** Skip the upload metric - the file isn't new to the system (e.g. a copy). */
-        skipUploadTracking?: boolean;
+
         /** Folder every added file is born into (see AddFileOptions). */
         folderId?: string;
         /** Classification computed outside the policy system (see AddFileOptions). */

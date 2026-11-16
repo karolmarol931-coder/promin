@@ -41,7 +41,7 @@ class SigningEmailTemplatesTest {
 
             assertThat(html)
                     .contains("src=\"cid:" + EmailService.BRAND_LOGO_CONTENT_ID + "\"")
-                    .contains("alt=\"Stirling\"")
+                    .contains("alt=\"Promin Partner\"")
                     .contains("background-color:#af3434")
                     .doesNotContain("#007bff");
         }

@@ -23,7 +23,7 @@ One `--c-*` note: colour icons the same way you colour text. `<Icon name="x" sty
 Two props cover the cases one outline glyph cannot:
 
 - **`filled`** paints a mono icon with `currentColor` instead of `fill="none"`. Use it for the on state of a toggle whose off state is the same outline, so favourited/pinned reads at a glance: `<Icon name="star" filled={isFavorite} />`. Only meaningful on a closed shape; on `pin` the open needle line stays a stroke, which is what you want.
-- **`colorless`** dims a brand mark, for a source that is off or unavailable (the Google Drive entry in the file-source list). Opacity only: the mark keeps its own colours. The rule lives in `colorless.css`.
+- **`colorless`** dims a brand mark for a source that is off or unavailable. Opacity only: the mark keeps its own colours. The rule lives in `colorless.css`.
 
 Neither is a styling escape hatch: reach for `filled` only where the outline already carries the off state, and `colorless` only where a source is genuinely unavailable.
 

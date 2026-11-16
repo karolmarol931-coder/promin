@@ -50,10 +50,7 @@ import {
 import { createNewStirlingFileStub } from "@editor/types/fileContext";
 import { ToolOperation } from "@editor/types/file";
 import { ensureBackendReady } from "@editor/services/backendReadinessGuard";
-import { trackEditorOperation } from "@editor/services/analytics";
 import { notifyToolCompleted } from "@editor/services/toolUsageTracker";
-import { useWillUseCloud } from "@editor/hooks/useWillUseCloud";
-import { useCreditCheck } from "@editor/hooks/useCreditCheck";
 import { useToolRunComplete } from "@editor/hooks/useToolRunComplete";
 import { notifyPdfProcessingComplete } from "@editor/services/desktopNotificationService";
 import {
@@ -130,18 +127,6 @@ export const useToolOperation = <TParams>(
     extractZipFiles,
   } = useToolResources();
 
-  // Determine endpoint for cloud usage check and credit routing.
-  // For function endpoints, use defaultParameters to get a representative static value.
-  const endpointString = config.endpoint
-    ? typeof config.endpoint === "function"
-      ? config.defaultParameters
-        ? (config.endpoint(config.defaultParameters) ?? undefined)
-        : undefined
-      : config.endpoint
-    : undefined;
-
-  const { checkCredits } = useCreditCheck(config.operationType, endpointString);
-  const willUseCloud = useWillUseCloud(endpointString);
   const continueResolutions = useResolutionContinuation();
   const notificationsAvailable = useNotificationsAvailable();
   const onToolRunComplete = useToolRunComplete();
@@ -284,16 +269,7 @@ export const useToolOperation = <TParams>(
         return;
       }
 
-      // Credit check — no-op in core builds, real check in desktop/SaaS versions.
-      // Pass runtime endpoint so the check can determine if this routes locally (no credits needed).
-      const creditError = await checkCredits(runtimeEndpoint);
-      if (creditError !== null) {
-        actions.setError(creditError);
-        return;
-      }
-
-      // Backend readiness check (will skip for SaaS-routed endpoints).
-      // Custom processors without an endpoint skip this — they manage their own backend calls.
+      // Custom processors without an endpoint manage their own backend calls.
       const endpointForReadyCheck =
         config.toolType !== ToolType.custom ? runtimeEndpoint : undefined;
       const backendReady = await ensureBackendReady(endpointForReadyCheck);
@@ -568,10 +544,6 @@ export const useToolOperation = <TParams>(
 
         if (processedFiles.length > 0) {
           assertFilesNotBlocked(policyIds);
-          trackEditorOperation(
-            config.operationType,
-            successSourceIds.length || validFiles.length,
-          );
           actions.setFiles(processedFiles);
 
           // Generate thumbnails and download URL concurrently
@@ -858,8 +830,6 @@ export const useToolOperation = <TParams>(
       createDownloadInfo,
       cleanupBlobUrls,
       extractZipFiles,
-      willUseCloud,
-      checkCredits,
       continueResolutions,
       notificationsAvailable,
       onToolRunComplete,
@@ -971,7 +941,6 @@ export const useToolOperation = <TParams>(
     status: state.status,
     errorMessage: state.errorMessage,
     progress: state.progress,
-    willUseCloud,
 
     // Actions
     getEligibleFiles,

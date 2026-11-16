@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.springframework.data.domain.Pageable;
@@ -39,10 +38,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
 
     Optional<User> findByEmail(String email);
 
-    /** Both associations are EAGER, so fetch them in one statement rather than three. */
-    @EntityGraph(attributePaths = {"team", "authorities"})
-    Optional<User> findBySupabaseId(UUID supabaseId);
-
     Optional<User> findBySsoProviderAndSsoProviderId(String ssoProvider, String ssoProviderId);
 
     List<User> findByAuthenticationTypeIgnoreCase(String authenticationType);
@@ -74,12 +69,11 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
             FROM User u LEFT JOIN u.team t
             WHERE (u.enabled IS NULL OR u.enabled = true)
                 AND u.username IS NOT NULL
-                AND (u.authenticationType IS NULL OR LOWER(u.authenticationType) <> 'anonymous')
             ORDER BY u.username, u.id
             """)
     List<UserSummaryDTO> findEnabledSigningUsers();
 
-    /** Team-scoped picker summaries; disabled and anonymous accounts cannot be recipients. */
+    /** Team-scoped picker summaries, ordered and limited by the database. */
     @Query(
             """
             SELECT new stirling.software.common.model.api.security.UserSummaryDTO(
@@ -87,7 +81,6 @@ public interface UserRepository extends JpaRepository<User, Long>, UserRepositor
             FROM User u JOIN u.team t
             WHERE t.id = :teamId AND (u.enabled IS NULL OR u.enabled = true)
                 AND u.username IS NOT NULL
-                AND (u.authenticationType IS NULL OR LOWER(u.authenticationType) <> 'anonymous')
             ORDER BY u.username, u.id
             """)
     List<UserSummaryDTO> findEnabledSigningUsersByTeamId(@Param("teamId") Long teamId);

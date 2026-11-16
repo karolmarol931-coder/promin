@@ -30,8 +30,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import stirling.software.common.model.job.ResultFile;
-import stirling.software.proprietary.billing.ContentHasher;
 import stirling.software.proprietary.policy.config.FolderAccessGuard;
+import stirling.software.proprietary.policy.ledger.ContentHasher;
 import stirling.software.proprietary.policy.ledger.FolderIdentities;
 import stirling.software.proprietary.policy.ledger.ProcessedLedger;
 import stirling.software.proprietary.policy.model.OutputSpec;

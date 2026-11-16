@@ -289,7 +289,7 @@ public interface PersistentAuditEventRepository extends JpaRepository<Persistent
             @Param("types") List<String> types,
             @Param("since") Instant since);
 
-    // Team-scoped (SaaS) variants: same free-UI counts, constrained to a team's member principals.
+    // Team-scoped variants constrain counts to a team's member principals.
     @Query(
             "SELECT COUNT(e) FROM PersistentAuditEvent e "
                     + "WHERE e.type IN :types AND e.source = :source "

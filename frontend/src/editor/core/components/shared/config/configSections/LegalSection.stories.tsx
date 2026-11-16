@@ -2,9 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import LegalSection from "@editor/components/shared/config/configSections/LegalSection";
 import { AppConfigProvider } from "@editor/contexts/AppConfigContext";
 
-// Reads legal document links and the analytics flag via useAppConfig() (the
-// preview's own provider tree doesn't supply this — that's the portal
-// context), so wrap here. AppConfigProvider uses autoFetch off so stories
+// AppConfigProvider uses autoFetch off so stories
 // render a fixed config instead of hitting the API.
 const meta = {
   title: "Shared/Config/ConfigSections/LegalSection",
@@ -14,7 +12,7 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** All optional legal documents configured, analytics disabled — no Cookie Preferences card. */
+/** All optional legal documents configured. */
 export const Default: Story = {
   decorators: [
     (StoryComponent) => (
@@ -22,7 +20,6 @@ export const Default: Story = {
         autoFetch={false}
         bootstrapMode="non-blocking"
         initialConfig={{
-          enableAnalytics: false,
           privacyPolicy: "https://example.com/privacy",
           termsAndConditions: "https://example.com/terms",
           accessibilityStatement: "https://example.com/accessibility",
@@ -36,7 +33,7 @@ export const Default: Story = {
   ],
 };
 
-/** Analytics enabled — adds the Cookie Preferences card with its "Manage" button. */
+/** Required legal links configured. */
 export const WithAnalyticsEnabled: Story = {
   decorators: [
     (StoryComponent) => (
@@ -44,7 +41,6 @@ export const WithAnalyticsEnabled: Story = {
         autoFetch={false}
         bootstrapMode="non-blocking"
         initialConfig={{
-          enableAnalytics: true,
           privacyPolicy: "https://example.com/privacy",
           termsAndConditions: "https://example.com/terms",
           accessibilityStatement: "https://example.com/accessibility",
@@ -62,11 +58,7 @@ export const WithAnalyticsEnabled: Story = {
 export const MinimalLinks: Story = {
   decorators: [
     (StoryComponent) => (
-      <AppConfigProvider
-        autoFetch={false}
-        bootstrapMode="non-blocking"
-        initialConfig={{ enableAnalytics: false }}
-      >
+      <AppConfigProvider autoFetch={false} bootstrapMode="non-blocking">
         <StoryComponent />
       </AppConfigProvider>
     ),

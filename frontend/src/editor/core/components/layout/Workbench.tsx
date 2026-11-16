@@ -179,7 +179,7 @@ export default function Workbench() {
           </Center>
         );
       }
-      return <LandingPage />;
+      return <LandingPage readerEmpty={readerMode} />;
     }
 
     switch (currentView) {
@@ -219,7 +219,11 @@ export default function Workbench() {
     <Box
       className="flex-1 h-full min-w-0 relative flex flex-col"
       data-tour="workbench"
-      style={{ backgroundColor: "var(--c-bg)", minWidth: 0, minHeight: 0 }}
+      style={{
+        backgroundColor: "var(--c-bg)",
+        minWidth: 0,
+        minHeight: 0,
+      }}
       {...dropHandlers}
     >
       {isFileDragOver && (

@@ -410,13 +410,6 @@
             "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0.txt"
         },
         {
-            "moduleName": "com.posthog.java:posthog",
-            "moduleUrl": "http://github.com/PostHog/posthog-java",
-            "moduleVersion": "1.2.0",
-            "moduleLicense": "MIT License",
-            "moduleLicenseUrl": "http://www.opensource.org/licenses/mit-license.php"
-        },
-        {
             "moduleName": "com.sanctionco.jmail:jmail",
             "moduleUrl": "https://github.com/RohanNagar/jmail",
             "moduleVersion": "2.2.2",

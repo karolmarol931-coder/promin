@@ -18,7 +18,7 @@ function run(overrides: Partial<PolicyRunRecord>): PolicyRunRecord {
     fileId: "in",
     fileName: "in.pdf",
     fileSize: 1,
-    target: "saas",
+    target: "local",
     status: "COMPLETED",
     outputs: [],
     outputFileIds: ["out"],

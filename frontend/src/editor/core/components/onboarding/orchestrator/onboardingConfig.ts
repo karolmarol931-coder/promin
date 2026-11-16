@@ -1,14 +1,9 @@
 export type OnboardingStepId =
   | "first-login"
   | "welcome"
-  | "processor-intro"
-  | "desktop-install"
   | "security-check"
-  | "admin-overview"
   | "tool-layout"
   | "tour-overview"
-  | "server-license"
-  | "analytics-choice"
   | "mfa-setup";
 
 export type OnboardingStepType = "modal-slide" | "tool-prompt";
@@ -19,15 +14,6 @@ export interface OnboardingRuntimeState {
   // Open key into the tour registry (see tourRegistry.ts).
   tourType: string;
   isDesktopApp: boolean;
-  desktopSlideEnabled: boolean;
-  analyticsNotConfigured: boolean;
-  analyticsEnabled: boolean;
-  licenseNotice: {
-    totalUsers: number | null;
-    freeTierLimit: number;
-    isOverLimit: boolean;
-    requiresLicense: boolean;
-  };
   requiresPasswordChange: boolean;
   firstLoginUsername: string;
   usingDefaultCredentials: boolean;
@@ -46,13 +32,8 @@ export interface OnboardingStep {
   slideId?:
     | "first-login"
     | "welcome"
-    | "processor-intro"
-    | "desktop-install"
     | "security-check"
-    | "admin-overview"
-    | "server-license"
     | "tour-overview"
-    | "analytics-choice"
     | "mfa-setup";
   allowDismiss?: boolean;
 }
@@ -62,18 +43,9 @@ export const DEFAULT_RUNTIME_STATE: OnboardingRuntimeState = {
   tourRequested: false,
   tourType: "whatsnew",
   isDesktopApp: false,
-  analyticsNotConfigured: false,
-  analyticsEnabled: false,
-  licenseNotice: {
-    totalUsers: null,
-    freeTierLimit: 5,
-    isOverLimit: false,
-    requiresLicense: false,
-  },
   requiresPasswordChange: false,
   firstLoginUsername: "",
   usingDefaultCredentials: false,
-  desktopSlideEnabled: true,
   requiresMfaSetup: false,
 };
 
@@ -86,37 +58,11 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     condition: (ctx) => !ctx.isDesktopApp,
   },
   {
-    id: "processor-intro",
-    type: "modal-slide",
-    slideId: "processor-intro",
-    // Admins can manage policies in the portal/processor; regular users can't.
-    condition: (ctx) => ctx.effectiveIsAdmin,
-  },
-  {
-    id: "admin-overview",
-    type: "modal-slide",
-    slideId: "admin-overview",
-    condition: (ctx) => ctx.effectiveIsAdmin,
-  },
-  {
-    id: "desktop-install",
-    type: "modal-slide",
-    slideId: "desktop-install",
-    condition: (ctx) => !ctx.isDesktopApp && ctx.desktopSlideEnabled,
-  },
-  {
     id: "tour-overview",
     type: "modal-slide",
     slideId: "tour-overview",
     condition: (ctx) =>
       !ctx.effectiveIsAdmin && ctx.tourType !== "admin" && !ctx.isDesktopApp,
-  },
-  {
-    id: "server-license",
-    type: "modal-slide",
-    slideId: "server-license",
-    condition: (ctx) =>
-      ctx.effectiveIsAdmin && ctx.licenseNotice.requiresLicense,
   },
 ];
 

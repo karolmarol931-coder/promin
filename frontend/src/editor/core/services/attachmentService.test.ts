@@ -125,10 +125,10 @@ describe("attachmentService CRUD", () => {
     isAxiosErrorMock.mockReturnValue(true);
     const zip = new JSZip();
     zip.file("a.txt", "hello");
-    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const zipData = await zip.generateAsync({ type: "uint8array" });
     post
       .mockRejectedValueOnce({ response: { status: 404 } })
-      .mockResolvedValueOnce({ data: zipBlob });
+      .mockResolvedValueOnce({ data: zipData });
 
     const result = await extractSingleAttachment(pdfFile(), "a.txt");
     expect(result).toBeInstanceOf(Blob);

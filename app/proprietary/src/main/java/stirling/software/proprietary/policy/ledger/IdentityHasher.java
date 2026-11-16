@@ -2,8 +2,6 @@ package stirling.software.proprietary.policy.ledger;
 
 import java.nio.charset.StandardCharsets;
 
-import stirling.software.proprietary.billing.ContentHasher;
-
 /**
  * Fixed-width key form of a source-owned identity, so any identity length fits the ledger's primary
  * key. Backend-agnostic: every source type's identities are keyed through here, which is why this

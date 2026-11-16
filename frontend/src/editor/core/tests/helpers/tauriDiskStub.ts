@@ -152,20 +152,12 @@ export async function installTauri(page: Page) {
           case "get_opened_files":
           case "pop_window_file_ids":
             return [];
-          case "get_desktop_os":
-            return "windows";
           case "get_app_version":
             return "2.14.0";
-          case "is_first_launch":
-            return false;
           case "is_default_pdf_handler":
             return true;
           case "can_install_updates":
             return false;
-          case "get_update_mode":
-            return "manual";
-          case "get_connection_config":
-            return { mode: "local", serverUrl: null, setupCompleted: true };
           default:
             return null;
         }

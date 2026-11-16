@@ -230,6 +230,11 @@ class FileToPdfMoreTest {
     }
 
     private CapturedRun run(byte[] input, String fileName) throws Exception {
+        return run(input, fileName, sanitizer);
+    }
+
+    private CapturedRun run(byte[] input, String fileName, CustomHtmlSanitizer htmlSanitizer)
+            throws Exception {
         CapturedRun captured = new CapturedRun();
         ProcessExecutor executor = mock(ProcessExecutor.class);
         Mockito.doAnswer(
@@ -252,7 +257,7 @@ class FileToPdfMoreTest {
                     input,
                     fileName,
                     tempFileManager,
-                    sanitizer);
+                    htmlSanitizer);
         }
         return captured;
     }
@@ -285,6 +290,25 @@ class FileToPdfMoreTest {
 
             int flag = run.command.indexOf("--allowed-protocols");
             assertThat(run.command.get(flag + 1)).isEqualTo("data,http,https");
+        }
+
+        @Test
+        @DisplayName("offline mode blocks remote protocols even when sanitization is disabled")
+        void offlineModeBlocksRemoteProtocols() throws Exception {
+            ApplicationProperties props = new ApplicationProperties();
+            props.getSystem().setOfflineMode(true);
+            props.getSystem().setDisableSanitize(true);
+            CustomHtmlSanitizer offlineSanitizer = new CustomHtmlSanitizer(null, props);
+
+            CapturedRun run =
+                    run(
+                            "<p>Local</p><img src=\"https://example.invalid/image.png\">"
+                                    .getBytes(StandardCharsets.UTF_8),
+                            "page.html",
+                            offlineSanitizer);
+
+            assertThat(run.command).contains("--allowed-protocols", "data");
+            assertThat(run.html).doesNotContain("https://example.invalid");
         }
 
         @Test

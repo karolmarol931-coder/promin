@@ -14,7 +14,6 @@ export function useTabReadiness() {
       draw: handlerFor("draw"),
       type: handlerFor("type"),
       upload: handlerFor("upload"),
-      phone: handlerFor("phone"),
     };
   }, []);
   return { ready, handlers };

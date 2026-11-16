@@ -256,7 +256,6 @@ test("local opening applies the administrator policy without claiming owner auth
     route.fulfill({
       json: {
         enableLogin: false,
-        enableAnalytics: false,
         languages: ["en-US"],
         defaultLocale: "en-US",
         honorOwnerPasswords: false,

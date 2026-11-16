@@ -297,7 +297,7 @@ describe("useResolutionContinuation", () => {
         policyRow({
           actions: [
             offer("DECRYPT", "RESOLUTION", false),
-            offer("VIEW_IN_PROCESSOR", "OVERFLOW"),
+            offer("FUTURE_ACTION", "OVERFLOW"),
           ],
         }),
       ],

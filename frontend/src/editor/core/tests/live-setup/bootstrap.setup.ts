@@ -1,6 +1,5 @@
 import { test, expect } from "@editor/tests/helpers/test-base";
 import {
-  ensureCookieConsent,
   skipOnboarding,
   DEFAULT_TEST_USERNAME,
   DEFAULT_TEST_PASSWORD,
@@ -57,8 +56,6 @@ test.describe("Live-suite bootstrap", () => {
       });
       return;
     }
-
-    await ensureCookieConsent(page);
     await skipOnboarding(page);
 
     await page.goto("/login", { waitUntil: "domcontentloaded" });

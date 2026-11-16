@@ -12,14 +12,14 @@ import type {
 const UNKNOWN_OFFERS: Record<string, NotificationActionOffer> = {
   OPEN_IN_TOOL: offer("OPEN_IN_TOOL", "SECONDARY"),
   VIEW_FILE: offer("VIEW_FILE", "SECONDARY"),
-  VIEW_IN_PROCESSOR: offer("VIEW_IN_PROCESSOR", "OVERFLOW"),
+  FUTURE_ACTION: offer("FUTURE_ACTION", "OVERFLOW"),
 };
 
 /** The offers as `FailureKind.INPUT_PASSWORD_PROTECTED` declares them. */
 const PASSWORD_OFFERS: Record<string, NotificationActionOffer> = {
   DECRYPT: offer("DECRYPT", "RESOLUTION"),
   VIEW_FILE: offer("VIEW_FILE", "SECONDARY"),
-  VIEW_IN_PROCESSOR: offer("VIEW_IN_PROCESSOR", "OVERFLOW"),
+  FUTURE_ACTION: offer("FUTURE_ACTION", "OVERFLOW"),
   OPEN_IN_TOOL: offer("OPEN_IN_TOOL", "OVERFLOW"),
 };
 
@@ -77,7 +77,7 @@ const RUNNABLE = new Set([
   "OPEN_IN_TOOL",
   "DECRYPT",
   "VIEW_FILE",
-  "VIEW_IN_PROCESSOR",
+  "FUTURE_ACTION",
 ]);
 
 /** The predicate the bell supplies: a known id, on a device that can act on it. */
@@ -103,7 +103,7 @@ function promoted(list: NotificationActionOffer[]) {
 
 describe("promoteActions", () => {
   it("gives the owner the retry, with their own document beside it", () => {
-    // No portal access, so the server never offered the processor link.
+    // The local workbench knows the owner actions it can resolve.
     expect(promoted(unknown("OPEN_IN_TOOL", "VIEW_FILE"))).toEqual({
       primary: "OPEN_IN_TOOL",
       secondary: "VIEW_FILE",
@@ -117,14 +117,14 @@ describe("promoteActions", () => {
     expect(
       promoted(
         refusing(
-          unknown("OPEN_IN_TOOL", "VIEW_FILE", "VIEW_IN_PROCESSOR"),
+          unknown("OPEN_IN_TOOL", "VIEW_FILE", "FUTURE_ACTION"),
           NO_DOCUMENT,
           "OPEN_IN_TOOL",
           "VIEW_FILE",
         ),
       ),
     ).toEqual({
-      primary: "VIEW_IN_PROCESSOR",
+      primary: "FUTURE_ACTION",
       secondary: null,
       overflow: [],
       withheldReasonKey: NO_DOCUMENT,
@@ -136,14 +136,14 @@ describe("promoteActions", () => {
     expect(
       promoted(
         refusing(
-          unknown("OPEN_IN_TOOL", "VIEW_FILE", "VIEW_IN_PROCESSOR"),
+          unknown("OPEN_IN_TOOL", "VIEW_FILE", "FUTURE_ACTION"),
           UNATTENDED,
           "OPEN_IN_TOOL",
           "VIEW_FILE",
         ),
       ),
     ).toEqual({
-      primary: "VIEW_IN_PROCESSOR",
+      primary: "FUTURE_ACTION",
       secondary: null,
       overflow: [],
       withheldReasonKey: UNATTENDED,
@@ -152,8 +152,8 @@ describe("promoteActions", () => {
 
   it("explains nothing on a colleague's failure, having taken nothing away", () => {
     // Nothing needing the bytes was offered, so there is no loss to account for.
-    expect(promoted(unknown("VIEW_IN_PROCESSOR"))).toEqual({
-      primary: "VIEW_IN_PROCESSOR",
+    expect(promoted(unknown("FUTURE_ACTION"))).toEqual({
+      primary: "FUTURE_ACTION",
       secondary: null,
       overflow: [],
       withheldReasonKey: null,
@@ -174,12 +174,12 @@ describe("promoteActions", () => {
     // The queue is a reviewer's route to the policy, not to this document: it stays in the menu.
     expect(
       promoted(
-        password("DECRYPT", "VIEW_FILE", "VIEW_IN_PROCESSOR", "OPEN_IN_TOOL"),
+        password("DECRYPT", "VIEW_FILE", "FUTURE_ACTION", "OPEN_IN_TOOL"),
       ),
     ).toEqual({
       primary: "DECRYPT",
       secondary: "VIEW_FILE",
-      overflow: ["VIEW_IN_PROCESSOR", "OPEN_IN_TOOL"],
+      overflow: ["FUTURE_ACTION", "OPEN_IN_TOOL"],
       withheldReasonKey: null,
     });
   });
@@ -204,23 +204,20 @@ describe("promoteActions", () => {
   });
 
   it("promotes past a resolution the shell cannot deliver", () => {
-    // Read from the processor, which has no FileContext, so the unlock reports itself unavailable.
-    const inProcessor = (action: NotificationActionOffer) =>
+    // The local workbench cannot unlock an item when it lacks its document bytes.
+    const withoutWorkbench = (action: NotificationActionOffer) =>
       action.id !== "DECRYPT" && canRun(action);
 
     const { primary, secondary, overflow } = promoteActions(
-      password("DECRYPT", "VIEW_FILE", "VIEW_IN_PROCESSOR", "OPEN_IN_TOOL"),
-      inProcessor,
+      password("DECRYPT", "VIEW_FILE", "OPEN_IN_TOOL"),
+      withoutWorkbench,
       knowsAction,
     );
 
     // The runner-up takes the row, and nothing is promoted into the secondary slot behind it.
     expect(primary?.id).toBe("VIEW_FILE");
     expect(secondary).toBeNull();
-    expect(overflow.map((action) => action.id)).toEqual([
-      "VIEW_IN_PROCESSOR",
-      "OPEN_IN_TOOL",
-    ]);
+    expect(overflow.map((action) => action.id)).toEqual(["OPEN_IN_TOOL"]);
   });
 
   it("drops a client action this device cannot perform, without inventing a reason", () => {
@@ -273,11 +270,11 @@ describe("promoteActions", () => {
         enabled: false,
         disabledReasonKey: NO_DOCUMENT,
       }),
-      ...unknown("VIEW_IN_PROCESSOR"),
+      ...unknown("FUTURE_ACTION"),
     ];
 
     expect(promoted(list)).toEqual({
-      primary: "VIEW_IN_PROCESSOR",
+      primary: "FUTURE_ACTION",
       secondary: null,
       overflow: [],
       withheldReasonKey: null,
@@ -295,7 +292,7 @@ describe("promoteActions", () => {
         enabled: false,
         disabledReasonKey: NO_DOCUMENT,
       }),
-      ...password("VIEW_IN_PROCESSOR"),
+      ...password("FUTURE_ACTION"),
     ];
 
     expect(promoted(list).withheldReasonKey).toBe(NO_DOCUMENT);

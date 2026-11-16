@@ -378,13 +378,10 @@ class NotificationProjectionTest {
         }
 
         @Test
-        void aColleaguesNotificationOffersTheReviewersActionsOnly() {
-            // A leader sees the team's failures, so audience filtering has to reach the bell too.
+        void aColleaguesNotificationHasNoDocumentActions() {
             given(FailureKind.INPUT_PASSWORD_PROTECTED, "colleague@example.com", "f-1");
 
-            assertThat(controller.list(null).notifications().getFirst().actions())
-                    .extracting(FileRunEventView.ActionView::id)
-                    .containsExactly("VIEW_IN_PROCESSOR");
+            assertThat(controller.list(null).notifications().getFirst().actions()).isEmpty();
         }
 
         @Test

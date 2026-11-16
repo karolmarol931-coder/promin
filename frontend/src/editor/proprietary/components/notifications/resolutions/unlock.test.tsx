@@ -347,7 +347,7 @@ describe("DECRYPT", () => {
     expect(retryWithPassword).not.toHaveBeenCalled();
     expect(outcome).toEqual({
       ok: false,
-      message: "This document can no longer be retried from this browser.",
+      message: "This document is no longer available in this workspace.",
     });
   });
 });

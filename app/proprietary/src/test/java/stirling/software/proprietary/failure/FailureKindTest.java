@@ -6,7 +6,6 @@ import static stirling.software.proprietary.failure.FailureActionSlot.RESOLUTION
 import static stirling.software.proprietary.failure.FailureActionSlot.SECONDARY;
 import static stirling.software.proprietary.failure.FailureAudience.ANYONE_WHO_SEES;
 import static stirling.software.proprietary.failure.FailureAudience.OWNER;
-import static stirling.software.proprietary.failure.FailureAudience.TEAM_REVIEWER;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -239,18 +238,12 @@ class FailureKindTest {
     class Unknown {
 
         @Test
-        void offersARetryToItsOwnerAndTheRunToWhoeverReviews() {
-            // No known fix, so the retry is the resolution: these are often one-offs. One offer
-            // wherever the document is; FileRunEventService says per row which side runs it.
+        void offersARetryToItsOwnerAndDismissToOtherReaders() {
+            // No known fix, so the retry is the resolution: these are often one-offs.
             assertThat(FailureKind.UNKNOWN.getOfferedActions())
                     .containsExactly(
                             offered(FailureActionId.OPEN_IN_TOOL, OWNER, RESOLUTION, "openInTool"),
                             offered(FailureActionId.VIEW_FILE, OWNER, SECONDARY, "viewFile"),
-                            offered(
-                                    FailureActionId.VIEW_IN_PROCESSOR,
-                                    TEAM_REVIEWER,
-                                    OVERFLOW,
-                                    "viewInProcessor"),
                             offered(FailureActionId.DISMISS, ANYONE_WHO_SEES, OVERFLOW, "dismiss"));
         }
 
@@ -414,17 +407,12 @@ class FailureKindTest {
         }
 
         @Test
-        void aKindWithSomethingToFixOffersTheFixToItsOwnerAndTheRunToItsReviewer() {
-            // Only the owner has the password, so a reviewer is offered the run and a dismiss.
+        void aKindWithSomethingToFixOffersTheFixToItsOwner() {
+            // The password and document belong to the owner, so other readers can only dismiss.
             assertThat(FailureKind.INPUT_PASSWORD_PROTECTED.getOfferedActions())
                     .containsExactly(
                             offered(FailureActionId.DECRYPT, OWNER, RESOLUTION, "decrypt"),
                             offered(FailureActionId.VIEW_FILE, OWNER, SECONDARY, "viewFile"),
-                            offered(
-                                    FailureActionId.VIEW_IN_PROCESSOR,
-                                    TEAM_REVIEWER,
-                                    OVERFLOW,
-                                    "viewInProcessor"),
                             offered(FailureActionId.OPEN_IN_TOOL, OWNER, OVERFLOW, "openInTool"),
                             offered(FailureActionId.DISMISS, ANYONE_WHO_SEES, OVERFLOW, "dismiss"));
         }
@@ -486,25 +474,14 @@ class FailureKindTest {
         void aMissingDocumentOffersNothingThatWouldOpenIt() {
             assertThat(FailureKind.INPUT_UNAVAILABLE.getOfferedActions())
                     .containsExactly(
-                            offered(
-                                    FailureActionId.VIEW_IN_PROCESSOR,
-                                    TEAM_REVIEWER,
-                                    OVERFLOW,
-                                    "viewInProcessor"),
                             offered(FailureActionId.DISMISS, ANYONE_WHO_SEES, OVERFLOW, "dismiss"));
         }
 
         @Test
         void aMissingBinaryIsARunnersProblemNotTheOwners() {
-            // No owner-facing offer at all: the document is fine and a retry fails identically
-            // until someone installs the binary, so the only useful reader is whoever triages.
+            // No recovery action can run until the required binary is installed.
             assertThat(FailureKind.TOOL_NOT_INSTALLED.getOfferedActions())
                     .containsExactly(
-                            offered(
-                                    FailureActionId.VIEW_IN_PROCESSOR,
-                                    TEAM_REVIEWER,
-                                    SECONDARY,
-                                    "viewInProcessor"),
                             offered(FailureActionId.DISMISS, ANYONE_WHO_SEES, OVERFLOW, "dismiss"));
         }
 

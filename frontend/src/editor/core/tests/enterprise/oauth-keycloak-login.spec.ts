@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { ensureCookieConsent } from "@editor/tests/helpers/login";
 import { bypassOnboarding } from "@editor/tests/helpers/api-stubs";
 
 /**
@@ -7,7 +6,7 @@ import { bypassOnboarding } from "@editor/tests/helpers/api-stubs";
  *
  * Requires the docker-compose-keycloak-oauth stack to be running:
  *   - Keycloak on http://localhost:9080 with realm `stirling-oauth`
- *   - Stirling-PDF on http://localhost:8080 with PREMIUM_KEY set
+ *   - Promin on http://localhost:8080 with PREMIUM_KEY set
  *
  * Validates:
  *   1. SSO redirect → IdP form → callback → dashboard rendering.
@@ -25,7 +24,6 @@ import { bypassOnboarding } from "@editor/tests/helpers/api-stubs";
 test.describe("Enterprise OAuth (Keycloak) — full SSO flow", () => {
   test.beforeEach(async ({ page }) => {
     await bypassOnboarding(page);
-    await ensureCookieConsent(page);
   });
 
   test("SSO redirect, identity in settings, real merge tool run", async ({
@@ -48,7 +46,7 @@ test.describe("Enterprise OAuth (Keycloak) — full SSO flow", () => {
     await page.locator("#password").fill("oauthpassword");
     await page.locator('input[type="submit"], button[type="submit"]').click();
 
-    // Back on Stirling-PDF, authenticated dashboard renders
+    // Back on Promin, authenticated dashboard renders
     await page.waitForURL((url) => !url.pathname.includes("/login"), {
       timeout: 30_000,
     });

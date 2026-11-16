@@ -18,7 +18,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-import stirling.software.proprietary.mcp.McpAnalytics;
 import stirling.software.proprietary.security.model.User;
 import stirling.software.proprietary.security.service.UserService;
 
@@ -94,7 +93,6 @@ public class McpUserBindingFilter extends OncePerRequestFilter {
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(bound);
             SecurityContextHolder.setContext(context);
-            request.setAttribute(McpAnalytics.AUTH_METHOD_ATTRIBUTE, "oauth");
         }
 
         filterChain.doFilter(request, response);

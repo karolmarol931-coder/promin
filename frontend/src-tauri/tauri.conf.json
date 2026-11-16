@@ -1,9 +1,9 @@
 {
   "$schema": "../../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Stirling PDF",
-  "mainBinaryName": "Stirling-PDF",
-  "version": "3.2.2",
-  "identifier": "stirling.pdf.dev",
+  "productName": "Promin",
+  "mainBinaryName": "Promin",
+  "version": "3.2.3",
+  "identifier": "com.promin.pdf",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:5173",
@@ -11,57 +11,52 @@
     "beforeBuildCommand": "npx vite build --mode desktop"
   },
   "app": {
-    "windows": []
+    "windows": [],
+    "security": {
+      "csp": "default-src 'self'; connect-src 'self' ipc: http://ipc.localhost http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:* blob:; img-src 'self' asset: http://asset.localhost blob: data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'; worker-src 'self' blob:; font-src 'self' data:; object-src 'none'; frame-src 'none'; base-uri 'self'; form-action 'self'"
+    }
   },
   "bundle": {
     "active": true,
-    "createUpdaterArtifacts": true,
-    "publisher": "Stirling PDF Inc.",
-    "targets": ["deb", "rpm", "appimage", "dmg", "app", "msi"],
+    "createUpdaterArtifacts": false,
+    "publisher": "Promin Partner",
+    "targets": [
+      "dmg",
+      "app"
+    ],
     "icon": [
-      "icons/windows/app.ico",
-      "icons/macos/app.icns",
+      "icons/macos/promin-app-icon.icns",
       "icons/macos/app-512.png"
     ],
-    "resources": ["libs/*.jar", "runtime/jre/**/*"],
+    "resources": [
+      "libs/*.jar",
+      "runtime/jre/**/*"
+    ],
     "fileAssociations": [
       {
-        "ext": ["pdf"],
+        "ext": [
+          "pdf"
+        ],
         "name": "PDF Document",
         "role": "Editor",
         "mimeType": "application/pdf"
       }
     ],
-    "linux": {
-      "deb": {
-        "desktopTemplate": "stirling-pdf.desktop"
-      },
-      "rpm": {
-        "desktopTemplate": "stirling-pdf.desktop",
-        "compression": { "type": "zstd", "level": 3 }
-      },
-      "appimage": {
-        "bundleMediaFramework": false
-      }
-    },
-    "windows": {
-      "certificateThumbprint": null,
-      "digestAlgorithm": "sha256",
-      "timestampUrl": "http://timestamp.digicert.com",
-      "wix": {
-        "upgradeCode": "3305fba9-7e5e-5c09-bc71-eca0a65f4fee",
-        "bannerPath": "windows/wix/banner.bmp",
-        "dialogImagePath": "windows/wix/dialog.bmp",
-        "fragmentPaths": ["windows/wix/provisioning.wxs"],
-        "componentGroupRefs": ["ProvisioningComponentGroup"]
-      }
-    },
     "macOS": {
       "dmg": {
         "background": "macos/dmg/background.png",
-        "windowSize": { "width": 660, "height": 400 },
-        "appPosition": { "x": 200, "y": 210 },
-        "applicationFolderPosition": { "x": 460, "y": 210 }
+        "windowSize": {
+          "width": 660,
+          "height": 400
+        },
+        "appPosition": {
+          "x": 200,
+          "y": 210
+        },
+        "applicationFolderPosition": {
+          "x": 460,
+          "y": 210
+        }
       },
       "minimumSystemVersion": "10.15",
       "signingIdentity": null,
@@ -71,26 +66,14 @@
     }
   },
   "plugins": {
-    "shell": {
-      "open": true
-    },
     "fs": {
       "requireLiteralLeadingDot": false
     },
-    "deep-link": {
-      "desktop": {
-        "schemes": ["stirlingpdf"]
-      }
-    },
     "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IERCNDhFNUE5Q0RBQUM5NTQKUldSVXlhck5xZVZJMnh1Sk9taDBXb2swaHlxMXJLcUtLNzg5NVFMVzliUEswRkx0dlR6dTFGTmYK",
       "endpoints": [
-        "https://github.com/Stirling-Tools/Stirling-PDF/releases/latest/download/latest.json"
-      ],
-      "dialog": false,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZEREM2QTgwNjdGNzdCOUQKUldTZGUvZG5nR3JjYmZ4TlZ3YVpHTVIzd2hBT2c4c000RDNIN2tLZENEblE4ZXFhU3J5V0lQanEK",
-      "windows": {
-        "installMode": "passive"
-      }
+        "https://github.com/karolmarol931-coder/promin/releases/latest/download/latest.json"
+      ]
     }
   }
 }

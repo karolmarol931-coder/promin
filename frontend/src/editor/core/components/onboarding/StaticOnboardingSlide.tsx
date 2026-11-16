@@ -21,14 +21,9 @@ interface StaticOnboardingSlideProps {
 }
 
 /**
- * Renders a single onboarding slide outside the normal step flow — the
- * "interrupt" modals (analytics consent, first-login, MFA, external license
- * notice). Each of these was previously an inline early-return in Onboarding
- * that duplicated the same createSlide + OnboardingModalSlide boilerplate.
- *
- * Rendered as its own component (keyed by slideId at the call site) so the
- * slide's internal hooks live in an isolated, stable scope rather than the
- * parent's, which avoids hook-order churn when the active interrupt changes.
+ * Renders first-login and required-MFA slides outside the normal step flow.
+ * Keeping each slide in its own component gives its hooks a stable scope as
+ * the active interrupt changes.
  */
 export default function StaticOnboardingSlide({
   slideId,
@@ -45,8 +40,6 @@ export default function StaticOnboardingSlide({
     : base;
 
   const slideContent = definition.createSlide({
-    osLabel: "",
-    osUrl: "",
     selectedRole: null,
     onRoleSelect: () => {},
     ...params,

@@ -3,7 +3,6 @@ package stirling.software.proprietary.service;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -43,12 +42,7 @@ class AiEngineConfigSyncTest {
         applicationProperties.getAiEngine().setPushConfigToEngine(true);
         aiEngineClient = mock(AiEngineClient.class);
         ObjectMapper objectMapper = JsonMapper.builder().build();
-        sync =
-                new AiEngineConfigSync(
-                        applicationProperties,
-                        aiEngineClient,
-                        objectMapper,
-                        AiEngineRouter.selfHosted(applicationProperties, null));
+        sync = new AiEngineConfigSync(applicationProperties, aiEngineClient, objectMapper);
     }
 
     @Test
@@ -253,17 +247,5 @@ class AiEngineConfigSyncTest {
         Map<String, Object> map = new HashMap<>();
         map.put(key, value);
         return map;
-    }
-
-    @Test
-    void startupPushSkippedInCloudMode() throws Exception {
-        applicationProperties
-                .getAiEngine()
-                .setMode(ApplicationProperties.AiEngine.AiEngineMode.CLOUD);
-
-        sync.pushConfigOnStartup();
-
-        // Stirling Cloud chooses its own models, and its gateway does not forward /api/v1/config.
-        verify(aiEngineClient, never()).post(eq("/api/v1/config"), anyString(), any());
     }
 }

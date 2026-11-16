@@ -6,9 +6,6 @@ name: AI Engine CI
 # by the shared check-generated-models workflow.
 on:
   workflow_call:
-  push:
-    branches: [main]
-
 permissions:
   contents: read
 

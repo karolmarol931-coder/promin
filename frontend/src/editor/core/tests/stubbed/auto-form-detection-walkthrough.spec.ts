@@ -75,7 +75,14 @@ async function stubStatus(page: Page, overrides: Record<string, unknown> = {}) {
   );
 }
 
-const DETECTIONS = [
+type Detection = {
+  type: "text" | "checkbox" | "radio" | "signature";
+  page: number;
+  rectInPdfPoints: { x: number; y: number; w: number; h: number };
+  confidence: number;
+};
+
+const DETECTIONS: Detection[] = [
   ...[0, 1, 2, 3, 4].map((i) => ({
     type: "text",
     page: 0,
@@ -104,7 +111,7 @@ const DETECTIONS = [
 
 async function stubDetect(
   page: Page,
-  opts: { delayMs?: number; detections?: unknown[] } = {},
+  opts: { delayMs?: number; detections?: Detection[] } = {},
 ) {
   const pdf = fs.readFileSync(SAMPLE_PDF);
   const detections = opts.detections ?? DETECTIONS;
@@ -112,9 +119,24 @@ async function stubDetect(
     if (opts.delayMs) await new Promise((res) => setTimeout(res, opts.delayMs));
     const body = r.request().postData() ?? "";
     if (body.includes("applyToPdf") && body.includes("true")) {
+      const byType = detections.reduce<Record<string, number>>(
+        (counts, field) => {
+          counts[field.type] = (counts[field.type] ?? 0) + 1;
+          return counts;
+        },
+        {},
+      );
       await r.fulfill({
         status: 200,
         contentType: "application/pdf",
+        headers: {
+          "X-Promin-Detected-Fields": JSON.stringify({
+            total: detections.length,
+            byType,
+            pagesWithFields: new Set(detections.map((field) => field.page))
+              .size,
+          }),
+        },
         body: pdf,
       });
     } else {

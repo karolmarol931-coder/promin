@@ -18,14 +18,10 @@ import org.springframework.web.server.ResponseStatusException;
 import lombok.extern.slf4j.Slf4j;
 
 import stirling.software.common.model.ApplicationProperties;
-import stirling.software.proprietary.billing.AiCallRecord;
 
 @Slf4j
 @Service
 public class AiEngineClient {
-
-    /** The one route that makes Stirling Cloud keep a document past the request. */
-    private static final String DOCUMENT_INGEST_PATH = "/api/v1/documents";
 
     private final ApplicationProperties applicationProperties;
     private final HttpClient httpClient;
@@ -52,20 +48,6 @@ public class AiEngineClient {
         this.router = router;
     }
 
-    // The cloud retention check lives here so every engine call, new ones included, passes it.
-    private AiEngineTarget resolveTarget(String path) {
-        AiEngineTarget target = router.resolve();
-        if (target.cloud()
-                && DOCUMENT_INGEST_PATH.equals(path)
-                && !router.documentIndexingAllowed()) {
-            throw new ResponseStatusException(
-                    HttpStatus.FORBIDDEN,
-                    "Storing documents on Stirling Cloud is turned off on this server, so"
-                            + " document questions are unavailable in cloud AI mode.");
-        }
-        return target;
-    }
-
     public String post(String path, String jsonBody, String userId) throws IOException {
         ApplicationProperties.AiEngine config = applicationProperties.getAiEngine();
         return postWithTimeout(
@@ -90,7 +72,7 @@ public class AiEngineClient {
                     HttpStatus.SERVICE_UNAVAILABLE, "AI engine is not enabled");
         }
 
-        AiEngineTarget target = resolveTarget(path);
+        AiEngineTarget target = router.resolve();
         String url = target.urlFor(path);
         log.debug("Proxying AI engine request to {} (timeout {}s)", url, timeout.toSeconds());
 
@@ -138,7 +120,7 @@ public class AiEngineClient {
                     HttpStatus.SERVICE_UNAVAILABLE, "AI engine is not enabled");
         }
 
-        AiEngineTarget target = resolveTarget(path);
+        AiEngineTarget target = router.resolve();
         String url = target.urlFor(path);
         Duration timeout = Duration.ofSeconds(config.getLongRunningTimeoutSeconds());
         log.debug(
@@ -160,7 +142,6 @@ public class AiEngineClient {
         HttpResponse<Stream<String>> response;
         try {
             response = httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
-            recordWhereItRan(target);
         } catch (HttpTimeoutException e) {
             throw new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, "AI engine timed out", e);
         } catch (IOException e) {
@@ -199,7 +180,7 @@ public class AiEngineClient {
                     HttpStatus.SERVICE_UNAVAILABLE, "AI engine is not enabled");
         }
 
-        AiEngineTarget target = resolveTarget(path);
+        AiEngineTarget target = router.resolve();
         String url = target.urlFor(path);
         log.debug("Proxying AI engine DELETE request to {}", url);
 
@@ -233,7 +214,7 @@ public class AiEngineClient {
                     HttpStatus.SERVICE_UNAVAILABLE, "AI engine is not enabled");
         }
 
-        AiEngineTarget target = resolveTarget(path);
+        AiEngineTarget target = router.resolve();
         String url = target.urlFor(path);
         log.debug("Proxying AI engine GET request to {}", url);
 
@@ -260,18 +241,10 @@ public class AiEngineClient {
                 : e.getClass().getSimpleName() + " (nothing listening on the configured URL?)";
     }
 
-    // Any answer counts, failures included: the meter skips failed requests on their status.
-    private static void recordWhereItRan(AiEngineTarget target) {
-        AiCallRecord.record(target.cloud() ? AiCallRecord.Where.REMOTE : AiCallRecord.Where.LOCAL);
-    }
-
     private HttpResponse<String> sendRequest(HttpRequest request, AiEngineTarget target)
             throws IOException {
         try {
-            HttpResponse<String> response =
-                    httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            recordWhereItRan(target);
-            return response;
+            return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (HttpTimeoutException e) {
             throw new ResponseStatusException(HttpStatus.GATEWAY_TIMEOUT, "AI engine timed out", e);
         } catch (IOException e) {

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,7 +26,6 @@ import stirling.software.common.model.enumeration.Role;
  * across every node. Refill is greedy, per that contract, not all-at-once every 24h.
  */
 @Component
-@Profile("!saas")
 @Slf4j
 public class UserBasedRateLimitingFilter extends OncePerRequestFilter {
 

@@ -13,11 +13,6 @@ import { useAllFiles, useFileActions } from "@editor/contexts/FileContext";
 import apiClient from "@editor/services/apiClient";
 import { getAiBaseUrl } from "@editor/services/aiBaseUrl";
 import { getAuthHeaders } from "@editor/services/apiClientSetup";
-import { dispatchPaygLimitReached } from "@editor/services/usageLimitBridge";
-import {
-  reportAccountLinkBlock,
-  reportFreeTierExhausted,
-} from "@editor/services/accountLinkBlock";
 import {
   createChildStub,
   generateProcessedFileMetadata,
@@ -165,7 +160,7 @@ type AiWorkflowOutcome =
   | "cannot_continue";
 
 interface AiWorkflowResultFile {
-  /** Stirling file ID — download with /api/v1/general/files/{fileId}. */
+  /** Promin file ID — download with /api/v1/general/files/{fileId}. */
   fileId: string;
   fileName: string;
   contentType: string;
@@ -193,25 +188,6 @@ interface AiWorkflowResponse {
   fileId?: string;
   fileName?: string;
   contentType?: string;
-  /**
-   * Structured error code when a tool call inside the workflow was blocked (e.g.
-   * PAYG_LIMIT_REACHED / FEATURE_DEGRADED). Present instead of a raw failure reason so the
-   * client can pop the usage-limit modal. See {@link isPaygLimitCode}.
-   */
-  errorCode?: string;
-  /** From the blocking 402: true → over spending cap, false/absent → free allowance spent. */
-  errorSubscribed?: boolean;
-}
-
-/**
- * Usage-limit sentinels the agent can surface (matching the saas EntitlementGuard / apiClient
- * interceptor). When one of these is the result's errorCode, we open the usage-limit modal rather
- * than render the failure as chat text.
- */
-const PAYG_LIMIT_CODES = new Set(["PAYG_LIMIT_REACHED", "FEATURE_DEGRADED"]);
-
-function isPaygLimitCode(code: string | null | undefined): boolean {
-  return code != null && PAYG_LIMIT_CODES.has(code);
 }
 
 interface ChatState {
@@ -426,7 +402,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const activeFileStubsRef = useRef(activeFileStubs);
   activeFileStubsRef.current = activeFileStubs;
 
-  // Download a File from the Stirling files endpoint.
+  // Download a File from the Promin files endpoint.
   const downloadFile = useCallback(
     async (descriptor: AiWorkflowResultFile): Promise<File> => {
       // AI result files live on the backend that ran the workflow (the connected
@@ -598,47 +574,17 @@ export function ChatProvider({ children }: { children: ReactNode }) {
 
         if (!response.ok) {
           let detail: string | undefined;
-          let limitHandled = false;
           try {
             const body = await response.json();
-            const code = typeof body?.error === "string" ? body.error : null;
-            // A 402 carrying a usage-limit sentinel means the agent call itself was gated.
-            // Fire the usage-limit modal (free → subscribe, subscribed → raise cap) and show a
-            // brief line below — not a generic "engine failed" error.
-            if (reportAccountLinkBlock({ status: response.status, body })) {
-              limitHandled = true;
-            } else if (response.status === 402 && isPaygLimitCode(code)) {
-              dispatchPaygLimitReached(
-                typeof body?.subscribed === "boolean" ? body.subscribed : null,
-              );
-              limitHandled = true;
-            } else {
-              detail =
-                body?.message ??
-                body?.detail ??
-                body?.error ??
-                (Array.isArray(body?.errors)
-                  ? body.errors[0]?.message
-                  : undefined);
-            }
+            detail =
+              body?.message ??
+              body?.detail ??
+              body?.error ??
+              (Array.isArray(body?.errors)
+                ? body.errors[0]?.message
+                : undefined);
           } catch {
             // non-JSON body — ignore
-          }
-          if (limitHandled) {
-            dispatch({ type: "SET_PROGRESS", progress: null });
-            dispatch({
-              type: "ADD_MESSAGE",
-              message: {
-                id: generateId(),
-                role: ChatRole.ASSISTANT,
-                content: t(
-                  "chat.responses.usage_limit_reached",
-                  "You've reached your usage limit. Check your plan options to keep going.",
-                ),
-                timestamp: Date.now(),
-              },
-            });
-            return;
           }
           throw new Error(
             detail ?? `AI engine request failed: ${response.status}`,
@@ -669,23 +615,7 @@ export function ChatProvider({ children }: { children: ReactNode }) {
           onResult: (data) => {
             receivedResult = true;
             dispatch({ type: "SET_PROGRESS", progress: null });
-            // The agent's tool calls run server-side, so a usage-limit 402 surfaces here on the
-            // result (not via the apiClient interceptor that pops the modal for direct calls).
-            // Fire the matching modal and replace the raw "tool failed: 402…" reason with a
-            // brief, non-alarming line.
-            const localLimit = data.errorCode === "FREE_TIER_EXHAUSTED";
-            const isLimit = localLimit || isPaygLimitCode(data.errorCode);
-            if (localLimit) {
-              reportFreeTierExhausted();
-            } else if (isLimit) {
-              dispatchPaygLimitReached(data.errorSubscribed ?? null);
-            }
-            const replyContent = isLimit
-              ? t(
-                  "chat.responses.usage_limit_reached",
-                  "You've reached your usage limit. Check your plan options to keep going.",
-                )
-              : formatWorkflowResponse(data, t);
+            const replyContent = formatWorkflowResponse(data, t);
             dispatch({
               type: "ADD_MESSAGE",
               message: {

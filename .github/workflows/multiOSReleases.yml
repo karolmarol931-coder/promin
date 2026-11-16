@@ -30,9 +30,6 @@ on:
         options:
           - "true"
           - "false"
-  release:
-    types: [created]
-
 permissions:
   contents: read
 

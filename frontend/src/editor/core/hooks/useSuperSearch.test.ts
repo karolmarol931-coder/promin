@@ -28,7 +28,6 @@ vi.mock("@editor/contexts/file/fileHooks", () => ({
 
 vi.mock("@editor/auth/UseSession", () => ({
   useAuth: vi.fn(() => ({
-    portalAccess: false,
     isAdmin: false,
     role: null,
   })),
@@ -96,30 +95,9 @@ vi.mock("@editor/data/settingsContentSearch", () => ({
   ),
 }));
 
-vi.mock("@editor/data/processorSearchIndex", () => ({
-  PROCESSOR_SEARCH_INDEX: [
-    {
-      id: "users",
-      labelKey: "superSearch.processor.users",
-      labelFallback: "Users",
-      path: "/users",
-      keywords: ["members"],
-    },
-    {
-      id: "docs",
-      labelKey: "superSearch.processor.docs",
-      labelFallback: "Docs",
-      path: "",
-      externalUrl: "https://example.com/docs",
-      keywords: ["manual"],
-    },
-  ],
-}));
-
 import type { TFunction } from "i18next";
 import {
   assembleSuperSearchGroups,
-  rankProcessorResults,
   rankSettingsResults,
 } from "@editor/hooks/useSuperSearch";
 
@@ -139,22 +117,13 @@ describe("useSuperSearch helpers", () => {
             onSelect: vi.fn(),
           },
         ],
-        processor: [
-          {
-            key: "processor:users",
-            group: "processor",
-            title: "Users",
-            score: 70,
-            onSelect: vi.fn(),
-          },
-        ],
       },
       t,
-      ["processor", "settings", "tools", "files"],
+      ["tools", "settings", "files"],
     );
 
-    expect(groups.map((group) => group.id)).toEqual(["processor", "tools"]);
-    expect(groups.map((group) => group.label)).toEqual(["Processor", "Tools"]);
+    expect(groups.map((group) => group.id)).toEqual(["tools"]);
+    expect(groups.map((group) => group.label)).toEqual(["Tools"]);
   });
 
   it("prefers row-level setting hits and skips duplicate content matches", () => {
@@ -235,7 +204,7 @@ describe("useSuperSearch helpers", () => {
       "setting-section:teams",
     ]);
 
-    // Hosts that omit the flag (portal, always signed-in) keep the section.
+    // A caller without session details keeps the section visible.
     const flagless = rankSettingsResults(
       "team",
       t,
@@ -245,43 +214,5 @@ describe("useSuperSearch helpers", () => {
     expect(flagless.map((result) => result.key)).toEqual([
       "setting-section:teams",
     ]);
-  });
-
-  it("keeps the Processor group closed until gates resolve, then opens it for single-user mode", () => {
-    const selectEntry = vi.fn();
-
-    expect(rankProcessorResults("members", t, null, selectEntry)).toEqual([]);
-
-    const results = rankProcessorResults(
-      "members",
-      t,
-      {
-        isAdmin: false,
-        loginEnabled: false,
-      },
-      selectEntry,
-    );
-
-    expect(results.map((result) => result.key)).toEqual(["processor:users"]);
-
-    void results[0]?.onSelect();
-    expect(selectEntry).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "users", path: "/users" }),
-    );
-  });
-
-  it("opens the Processor group for a user with explicit portal access", () => {
-    const results = rankProcessorResults(
-      "members",
-      t,
-      {
-        isAdmin: false,
-        loginEnabled: true,
-        portalAccessible: true,
-      },
-      vi.fn(),
-    );
-
-    expect(results.map((result) => result.key)).toEqual(["processor:users"]);
   });
 });

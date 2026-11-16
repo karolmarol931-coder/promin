@@ -330,6 +330,15 @@ class EndpointConfigurationGapTest {
             assertFalse(config.isEndpointEnabled("ebook-to-pdf"));
             assertFalse(config.isEndpointEnabled("pdf-to-epub"));
         }
+
+        @Test
+        @DisplayName("Markdown-to-PDF is disabled when WeasyPrint is unavailable")
+        void markdownToPdfRequiresWeasyPrint() {
+            EndpointConfiguration config = buildDefault();
+            config.disableGroup("Weasyprint", DisableReason.DEPENDENCY);
+
+            assertFalse(config.isEndpointEnabled("markdown-to-pdf"));
+        }
     }
 
     @Nested

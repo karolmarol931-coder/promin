@@ -11,10 +11,6 @@ export interface AiEngineStatusData {
   smartModel?: string | null;
   fastModel?: string | null;
   error?: string | null;
-  /** Cloud mode only: did the Stirling Cloud host answer its public status endpoint. */
-  cloudUp?: boolean | null;
-  /** Cloud mode only: does that deployment lend its AI to linked servers. */
-  cloudSharingEnabled?: boolean | null;
 }
 
 /** What the card paints. `degraded` is reachable-but-refusing, the case /health cannot see. */
@@ -92,34 +88,4 @@ export function formatAge(
   return t("admin.settings.ai.status.minutesAgo", "{{count}}m ago", {
     count: minutes,
   });
-}
-
-/**
- * Whether this server is linked to a Stirling account, which is what makes cloud AI selectable.
- * Its own hook rather than part of the status call: link state is a property of the server, not of
- * the engine, and the AI page is not the only thing that would want it.
- */
-export function useAccountLinked() {
-  const [linked, setLinked] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let live = true;
-    // /linked, not /status: status is owner-only, and any admin can open this page.
-    apiClient
-      .get<{ linked?: boolean }>("/api/v1/account-link/linked", {
-        suppressErrorToast: true,
-      })
-      .then((response) => {
-        if (live) setLinked(response.data?.linked ?? false);
-      })
-      // A build without account linking answers 404 here; that is "not linked", not an error.
-      .catch(() => {
-        if (live) setLinked(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, []);
-
-  return linked;
 }

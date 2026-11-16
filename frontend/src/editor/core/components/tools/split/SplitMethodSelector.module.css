@@ -1,0 +1,16 @@
+.primaryMethods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: var(--mantine-spacing-xs);
+  width: 100%;
+}
+
+.methodButton {
+  min-width: 0;
+}
+
+.methodButton :global(.mantine-Button-label) {
+  min-width: 0;
+  text-align: center;
+  white-space: normal;
+}

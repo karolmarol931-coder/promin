@@ -20,7 +20,7 @@ function rec(over: Partial<PolicyRunRecord>): PolicyRunRecord {
     fileId: "f1",
     fileName: "f.pdf",
     fileSize: 10,
-    target: "saas",
+    target: "local",
     status: "PENDING",
     outputs: [],
     error: null,

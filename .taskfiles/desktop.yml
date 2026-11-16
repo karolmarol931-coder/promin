@@ -15,40 +15,26 @@ vars:
   # fails at launch with UnsupportedClassVersionError. Enforced by jlink:verify.
   REQUIRED_JAVA: "25"
 
-  # Override via JPDFIUM_PLATFORMS env (csv of platform keys, or 'all').
   JPDFIUM_PLATFORMS:
     sh: |
-      if [ -n "${JPDFIUM_PLATFORMS:-}" ]; then
-          echo "$JPDFIUM_PLATFORMS"
-      else
-          case "{{OS}}-{{ARCH}}" in
-              darwin-arm64)  echo "darwin-arm64";;
-              darwin-amd64)  echo "darwin-x64";;
-              linux-amd64)   echo "linux-x64";;
-              linux-arm64)   echo "linux-arm64";;
-              windows-amd64) echo "windows-x64";;
-              windows-arm64) echo "none";;  # no JPDFium windows-arm64 natives published yet
-              *)             echo "all";;
-          esac
-      fi
+      case "{{OS}}-{{ARCH}}" in
+          darwin-arm64) echo "darwin-arm64";;
+          darwin-amd64) echo "darwin-x64";;
+          *) echo "unsupported";;
+      esac
 
 tasks:
   prepare:
     desc: "Prepare desktop build dependencies"
+    platforms: [darwin]
     deps:
       - jlink
       - task: ":frontend:prepare"
         vars: { MODE: desktop }
-      - provisioner
-
-  provisioner:
-    desc: "Build installer provisioner"
-    platforms: [windows]
-    cmds:
-      - node scripts/build-provisioner.mjs
 
   dev:
     desc: "Start Tauri desktop dev mode"
+    platforms: [darwin]
     deps: [prepare]
     ignore_error: true
     cmds:
@@ -57,36 +43,28 @@ tasks:
 
   build:
     desc: "Build Tauri desktop app (production)"
+    platforms: [darwin]
     deps: [prepare]
     cmds:
       - npx tauri build
 
   build:dev:
     desc: "Build Tauri desktop app (dev, no bundling)"
+    platforms: [darwin]
     deps: [prepare]
     cmds:
       - npx tauri build --no-bundle
 
   build:dev:mac:
     desc: "Build Tauri desktop .app bundle (macOS)"
+    platforms: [darwin]
     deps: [prepare]
     cmds:
       - npx tauri build --bundles app --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
-  build:dev:windows:
-    desc: "Build Tauri desktop NSIS installer (Windows)"
-    deps: [prepare]
-    cmds:
-      - npx tauri build --bundles nsis --config '{"bundle":{"createUpdaterArtifacts":false}}'
-
-  build:dev:linux:
-    desc: "Build Tauri desktop AppImage (Linux)"
-    deps: [prepare]
-    cmds:
-      - npx tauri build --bundles appimage --config '{"bundle":{"createUpdaterArtifacts":false}}'
-
   test:
     desc: "Run Tauri/Cargo tests"
+    platforms: [darwin]
     deps: [prepare]
     dir: src-tauri
     cmds:
@@ -94,6 +72,7 @@ tasks:
 
   clean:
     desc: "Clean Tauri/Cargo build artifacts"
+    platforms: [darwin]
     cmds:
       - task: jlink:clean
       - cd src-tauri && cargo clean
@@ -105,7 +84,7 @@ tasks:
 
   jlink:
     desc: "Build backend JAR and create JLink runtime for Tauri"
-    deps: [jlink:jar, jlink:runtime]
+    deps: ["jlink:jar", "jlink:runtime"]
     # Runs after the runtime is in place. Lives here (not in jlink:runtime's
     # cmds) so it still fires when jlink:runtime short-circuits on its `status:`
     # check and reuses an existing runtime/jre - that reuse path is exactly how
@@ -122,16 +101,14 @@ tasks:
 
   jlink:jar:
     desc: "Build backend JAR for Tauri bundling (host-OS natives only by default)"
+    platforms: [darwin]
     run: once
     dir: ..
     env:
       DISABLE_ADDITIONAL_FEATURES: "true"
     cmds:
       - echo "Building bootJar with JPDFium natives for {{.JPDFIUM_PLATFORMS}}"
-      - cmd: cmd /c gradlew.bat bootJar --no-daemon -PjpdfiumPlatforms={{.JPDFIUM_PLATFORMS}}
-        platforms: [windows]
-      - cmd: ./gradlew bootJar --no-daemon -PjpdfiumPlatforms={{.JPDFIUM_PLATFORMS}}
-        platforms: [linux, darwin]
+      - ./gradlew bootJar --no-daemon -PjpdfiumPlatforms={{.JPDFIUM_PLATFORMS}}
       # The bundle globs libs/*.jar, so an old jar left behind would ship too
       # (and could be selected as the backend). The script stages only the jar
       # this build just produced, replacing whatever the last build left there.
@@ -139,29 +116,12 @@ tasks:
 
   jlink:runtime:
     desc: "Create custom JRE with jlink"
-    deps: [jlink:jar]
+    platforms: [darwin]
+    deps: ["jlink:jar"]
     dir: src-tauri
     cmds:
       - rm -rf runtime/jre
       - mkdir -p runtime
-      # Pin jlink to JAVA_HOME so the bundled JRE matches the JDK the build
-      # uses. Bare `jlink` on PATH can resolve to an older system Java (the
-      # ubuntu runner ships Java 11), producing a runtime jlink:verify rejects.
-      #
-      # jdk.crypto.mscapi (the Windows certificate store / SunMSCAPI provider, used by
-      # hardware-backed cert signing) is a Windows-only module - it only exists in a Windows
-      # JDK's jmods, so it is added on Windows only or jlink fails to resolve it elsewhere.
-      - cmd: |
-          JLINK="${JAVA_HOME:+$JAVA_HOME/bin/}jlink"
-          JLINK_COMPRESS="$("$JLINK" --help 2>&1 | grep -q 'zip-\[0-9\]' && echo zip-6 || echo 2)"
-          "$JLINK" \
-            --add-modules {{.JLINK_MODULES}},jdk.crypto.mscapi \
-            --strip-debug \
-            --compress="$JLINK_COMPRESS" \
-            --no-header-files \
-            --no-man-pages \
-            --output runtime/jre
-        platforms: [windows]
       - cmd: |
           JLINK="${JAVA_HOME:+$JAVA_HOME/bin/}jlink"
           JLINK_COMPRESS="$("$JLINK" --help 2>&1 | grep -q 'zip-\[0-9\]' && echo zip-6 || echo 2)"
@@ -172,7 +132,6 @@ tasks:
             --no-header-files \
             --no-man-pages \
             --output runtime/jre
-        platforms: [linux, darwin]
       # jlink emits its files mode 444 (read-only). Tauri's build-script
       # resource copier preserves source permissions when staging
       # `runtime/jre/**/*` into `target/<profile>/runtime/jre/...`, so the
@@ -182,22 +141,7 @@ tasks:
       # the path, so the failure is opaque). Make the source writable here
       # so the staged destinations are writable and can be overwritten.
       #
-      # Trade-off: this task runs for both `task desktop:dev` and
-      # `task desktop:build`, so production bundles also ship mode-644
-      # JRE files instead of 444. Functionally harmless on POSIX (the
-      # `other` bit is `r--` either way, and on macOS code signing is the
-      # real integrity check) and on Windows the DOS read-only attribute
-      # isn't load-bearing for the bundled JDK. If we ever need strict
-      # 444 in production, split the chmod into a dev-only step and have
-      # `desktop:build` run `jlink:clean` first to force a fresh build.
-      - cmd: chmod -R u+w runtime/jre
-        platforms: [linux, darwin]
-      # Single-quoted so Task's shell leaves `$_` and `$false` alone. Double
-      # quotes let it expand them as its own variables, and since neither is
-      # set the command PowerShell actually received was
-      # `ForEach-Object { .IsReadOnly = }`, which fails on every file.
-      - cmd: powershell -NoProfile -Command 'Get-ChildItem -Recurse -File runtime/jre | ForEach-Object { $_.IsReadOnly = $false }'
-        platforms: [windows]
+      - chmod -R u+w runtime/jre
     status:
       - test -f runtime/jre/release
 
@@ -214,7 +158,7 @@ tasks:
   # X64_JAVA_HOME to point at matching JDK installations with jmods/.
   jlink:universal-mac:
     desc: "Create universal (arm64+x86_64) JRE for the macOS Tauri build"
-    deps: [jlink:jar]
+    deps: ["jlink:jar"]
     platforms: [darwin]
     env:
       JLINK_MODULES: "{{.JLINK_MODULES}}"

@@ -38,7 +38,7 @@ const Convert = ({ onPreviewFile, onComplete, onError }: BaseToolProps) => {
   };
 
   const convertParams = useConvertParameters();
-  const convertOperation = useConvertOperation(convertParams.parameters);
+  const convertOperation = useConvertOperation();
 
   const { enabled: endpointEnabled, loading: endpointLoading } =
     useEndpointEnabled(convertParams.getEndpointName());

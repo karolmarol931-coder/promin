@@ -4,6 +4,7 @@ import path from "path";
 import { readFile, writeFile } from "node:fs/promises";
 import { readPdfProtection } from "@editor/tests/helpers/pdf-protection";
 import { PDFDocument } from "@cantoo/pdf-lib";
+import { revealPickerTool } from "@editor/tests/helpers/ui-helpers";
 
 /** Coverage for two save/open safety features. */
 
@@ -42,10 +43,7 @@ test.describe("PDF text editor - encrypted PDF password prompt", () => {
       .fill(ENCRYPTED_PASSWORD);
     await page.getByRole("button", { name: "Open PDF", exact: true }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page
-      .getByRole("link", { name: "PDF Text Editor", exact: true })
-      .first()
-      .click();
+    await (await revealPickerTool(page, "pdfTextEditor")).click();
     await expect(page.getByTestId("pdf-editor-page-0")).toBeVisible({
       timeout: 30_000,
     });
@@ -112,10 +110,7 @@ test.describe("PDF text editor - encrypted PDF password prompt", () => {
       .fill(ENCRYPTED_PASSWORD);
     await page.getByRole("button", { name: "Open PDF", exact: true }).click();
     await expect(page.getByRole("dialog")).toHaveCount(0);
-    await page
-      .getByRole("link", { name: "PDF Text Editor", exact: true })
-      .first()
-      .click();
+    await (await revealPickerTool(page, "pdfTextEditor")).click();
     await expect(
       page.getByText(
         "This signed PDF can be viewed, but cannot be edited here.",

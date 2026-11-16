@@ -85,7 +85,7 @@ export const useConfigNavSections = (
         label: t("settings.developer.apiKeys", "API Keys"),
         description: t(
           "settings.developer.apiKeysDescription",
-          "Personal keys for calling the Stirling API from scripts and integrations.",
+          "Personal keys for calling the Promin API from scripts and integrations.",
         ),
         icon: "key",
         component: <ApiKeys />,
@@ -160,7 +160,7 @@ export const useConfigNavSections = (
             label: t("settings.ai.general", "AI Engine"),
             description: t(
               "admin.settings.ai.description",
-              "Connect Stirling to the Python AI engine, choose its models, and set the guardrails it runs under.",
+              "Connect Promin to the Python AI engine, choose its models, and set the guardrails it runs under.",
             ),
             icon: "bot",
             component: (

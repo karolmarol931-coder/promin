@@ -67,7 +67,6 @@ import {
 import { useFolders } from "@editor/contexts/FolderContext";
 import { useNewFolderFlow } from "@editor/hooks/useNewFolderFlow";
 import { NewFolderButton } from "@editor/components/filesPage/NewFolderButton";
-import MobileUploadModal from "@editor/components/shared/MobileUploadModal";
 import { useLibraryRefresh } from "@editor/hooks/useLibraryRefresh";
 import { useAuth } from "@editor/auth/UseSession";
 import { canPickDirectory } from "@editor/services/directoryPicker";
@@ -381,7 +380,7 @@ export default function HomePage() {
     )?.hideToolPanel ??
       false);
 
-  const brandAltText = t("home.mobile.brandAlt", "Stirling PDF logo");
+  const brandAltText = t("home.mobile.brandAlt", "Promin logo");
 
   const quickNavToolReasons = useMemo(() => {
     const reasons: QuickNavToolReasons = {};
@@ -557,7 +556,7 @@ export default function HomePage() {
   // all share the one `convert` tool, so prefer a per-URL SEO override when the
   // path has one - this keeps the hydrated title/description matching the
   // keyword-targeted copy that crawlers see in the prerendered HTML.
-  const appName = config?.appNameNavbar || "Stirling PDF";
+  const appName = "Promin";
   // The override copy is English-only (it mirrors the prerendered HTML), so
   // every other locale keeps its translated tool name and description.
   const isEnglish = (i18n.resolvedLanguage || i18n.language || "").startsWith(
@@ -694,7 +693,7 @@ export default function HomePage() {
   );
 
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="h-screen w-full min-w-0 overflow-hidden">
       <HomePageExtensions />
       {processingFolderCreation.dialog}
       {policiesEnabled && <PolicyAutoRunController />}
@@ -815,10 +814,15 @@ export default function HomePage() {
             gap={0}
             wrap="nowrap"
             h="100%"
+            w="100%"
             className="flex-nowrap flex"
             bg="var(--c-bg)"
             data-wings={wingsPhase ?? undefined}
-            style={{ flexDirection: isMobile ? "column" : "row" }}
+            style={{
+              flexDirection: isMobile ? "column" : "row",
+              width: "100%",
+              minWidth: 0,
+            }}
           >
             {/* Reading leaves the document and nothing beside it, so the wing goes
                 rather than shrinking to a rail. Everywhere else it is fixed open. */}
@@ -879,13 +883,6 @@ const MyFilesSidebarOverrides = forwardRef<HTMLDivElement, FileSidebarProps>(
     } = useNewFolderFlow();
     const { refreshing, refresh: refreshLibrary } = useLibraryRefresh();
     const { isAnonymous } = useAuth();
-    const { config: appConfig } = useAppConfig();
-    const [mobileUploadOpen, setMobileUploadOpen] = useState(false);
-    const isMobileViewport = useIsMobile();
-    // The scanner sends files from a phone to this screen, so it is a desktop
-    // affordance: on a phone you are already where the files are.
-    const mobileUploadAvailable =
-      Boolean(appConfig?.enableMobileScanner) && !isMobileViewport;
     const signInRequired = isAnonymous
       ? t("filesPage.signInRequired", "Sign in to use cloud storage.")
       : null;
@@ -896,7 +893,6 @@ const MyFilesSidebarOverrides = forwardRef<HTMLDivElement, FileSidebarProps>(
           ref={ref}
           {...props}
           onUploadFiles={handleUpload}
-          onPickGoogleDriveFiles={handleUpload}
           extraActions={[
             {
               icon: <Icon name="folder-plus" />,
@@ -933,27 +929,7 @@ const MyFilesSidebarOverrides = forwardRef<HTMLDivElement, FileSidebarProps>(
               disabledTooltip: signInRequired ?? undefined,
               testId: "files-rail-refresh",
             },
-            ...(mobileUploadAvailable
-              ? [
-                  {
-                    icon: <Icon name="qr-code" />,
-                    label: t(
-                      "filesPage.uploadFromMobile",
-                      "Upload from Mobile",
-                    ),
-                    onClick: () => setMobileUploadOpen(true),
-                    testId: "files-rail-mobile-upload",
-                  },
-                ]
-              : []),
           ]}
-        />
-        <MobileUploadModal
-          opened={mobileUploadOpen}
-          onClose={() => setMobileUploadOpen(false)}
-          onFilesReceived={(files) => {
-            if (files.length > 0) void handleUpload(files);
-          }}
         />
       </>
     );

@@ -40,7 +40,6 @@ export interface SecuritySettingsData {
 }
 
 export interface PrivacySettingsData {
-  enableAnalytics?: boolean;
   googleVisibility?: boolean;
   metricsEnabled?: boolean;
 }
@@ -95,13 +94,6 @@ export interface MailSettings {
   from?: string;
 }
 
-export interface GoogleDriveSettings {
-  enabled?: boolean;
-  clientId?: string;
-  apiKey?: string;
-  appId?: string;
-}
-
 export interface OAuth2GenericSettings {
   enabled?: boolean;
   provider?: string;
@@ -140,7 +132,6 @@ export interface OAuth2ClientSettings {
 export type ProviderSettings =
   | MailSettings
   | TelegramSettingsData
-  | GoogleDriveSettings
   | OAuth2GenericSettings
   | Saml2Settings
   | OAuth2ClientSettings;
@@ -162,13 +153,4 @@ export interface ConnectionsSettingsData {
   mail?: MailSettings;
   telegram?: TelegramSettingsData;
   ssoAutoLogin?: boolean;
-  enableMobileScanner?: boolean;
-  mobileScannerConvertToPdf?: boolean;
-  mobileScannerImageResolution?: string;
-  mobileScannerPageFormat?: string;
-  mobileScannerStretchToFit?: boolean;
-  googleDriveEnabled?: boolean;
-  googleDriveClientId?: string;
-  googleDriveApiKey?: string;
-  googleDriveAppId?: string;
 }

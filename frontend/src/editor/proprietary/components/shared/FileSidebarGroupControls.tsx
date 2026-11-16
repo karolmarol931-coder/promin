@@ -53,7 +53,7 @@ export function FileSidebarGroupControls({
     return counts;
   }, [stubs, categories]);
 
-  // Classification off (non-AI SaaS tenant) → no "customize groups" affordance,
+  // Classification off → no "customize groups" affordance,
   // matching the flat, ungrouped list. (All hooks above run unconditionally.)
   if (!enabled) return null;
 

@@ -26,7 +26,6 @@ import stirling.software.common.configuration.interfaces.ShowAdminInterface;
 import stirling.software.common.model.ApplicationProperties;
 import stirling.software.common.service.ServerCertificateServiceInterface;
 import stirling.software.common.service.UserServiceInterface;
-import stirling.software.common.util.GeneralUtils;
 
 @ConfigApi
 @Hidden
@@ -99,42 +98,11 @@ public class ConfigController {
     }
 
     /**
-     * Resolve the frontend URL the client should advertise to phones / share-link recipients.
-     * Priority: explicit system.frontendUrl, then the Host the user is already using to reach this
-     * server (works for Docker, reverse proxies, and bare-metal LANs), then a detected site-local
-     * IPv4, then empty.
-     */
-    // visible for testing
-    String resolveFrontendUrl(HttpServletRequest request, AppConfig appConfig) {
-        String configured = applicationProperties.getSystem().getFrontendUrl();
-        if (configured != null && !configured.isBlank()) {
-            return configured;
-        }
-        if (request != null) {
-            String host = request.getServerName();
-            if (host != null && !host.isBlank() && !isLoopbackHost(host)) {
-                String scheme = request.getScheme();
-                int port = request.getServerPort();
-                boolean defaultPort =
-                        ("http".equals(scheme) && port == 80)
-                                || ("https".equals(scheme) && port == 443);
-                return defaultPort ? scheme + "://" + host : scheme + "://" + host + ":" + port;
-            }
-        }
-        String localIp = GeneralUtils.getLocalNetworkIp();
-        if (localIp != null) {
-            String scheme = appConfig.getBackendUrl().startsWith("https") ? "https" : "http";
-            return scheme + "://" + localIp + ":" + resolveEffectiveServerPort(appConfig);
-        }
-        return "";
-    }
-
-    /**
      * The port the embedded server is actually listening on. With {@code server.port=0} (an
      * ephemeral port, which the desktop bundle uses to dodge port clashes) the configured value
      * stays {@code "0"} while Spring publishes the real bound port as {@code local.server.port}
-     * once the server is up. Advertised URLs (the mobile-scanner QR, share links) must carry the
-     * real port - a literal {@code :0} is unreachable and browsers reject it as ERR_UNSAFE_PORT.
+     * once the server is up. Advertised URLs (share links) must carry the real port - a literal
+     * {@code :0} is unreachable and browsers reject it as ERR_UNSAFE_PORT.
      */
     // visible for testing
     String resolveEffectiveServerPort(AppConfig appConfig) {
@@ -146,13 +114,6 @@ public class ConfigController {
             }
         }
         return configured;
-    }
-
-    private static boolean isLoopbackHost(String host) {
-        return "localhost".equalsIgnoreCase(host)
-                || "127.0.0.1".equals(host)
-                || "::1".equals(host)
-                || "0:0:0:0:0:0:0:1".equals(host);
     }
 
     /** Check if running Enterprise edition dynamically. */
@@ -187,32 +148,6 @@ public class ConfigController {
             configData.put("contextPath", appConfig.getContextPath());
             configData.put("serverPort", resolveEffectiveServerPort(appConfig));
 
-            String frontendUrl = applicationProperties.getSystem().getFrontendUrl();
-            configData.put("frontendUrl", resolveFrontendUrl(request, appConfig));
-
-            // Add mobile scanner settings
-            configData.put(
-                    "enableMobileScanner",
-                    applicationProperties.getSystem().isEnableMobileScanner());
-            configData.put(
-                    "enableMobileSignature",
-                    applicationProperties.getSystem().isEnableMobileSignature());
-            configData.put(
-                    "mobileScannerConvertToPdf",
-                    applicationProperties.getSystem().getMobileScannerSettings().isConvertToPdf());
-            configData.put(
-                    "mobileScannerImageResolution",
-                    applicationProperties
-                            .getSystem()
-                            .getMobileScannerSettings()
-                            .getImageResolution());
-            configData.put(
-                    "mobileScannerPageFormat",
-                    applicationProperties.getSystem().getMobileScannerSettings().getPageFormat());
-            configData.put(
-                    "mobileScannerStretchToFit",
-                    applicationProperties.getSystem().getMobileScannerSettings().isStretchToFit());
-
             // Extract values from ApplicationProperties
             configData.put("appNameNavbar", applicationProperties.getUi().getAppNameNavbar());
             configData.put("languages", applicationProperties.getUi().getLanguages());
@@ -230,24 +165,6 @@ public class ConfigController {
             configData.put(
                     "defaultHideUnavailableConversions",
                     applicationProperties.getUi().isDefaultHideUnavailableConversions());
-
-            // Hide disabled tools settings
-            configData.put(
-                    "hideDisabledToolsGoogleDrive",
-                    applicationProperties.getUi().getHideDisabledTools().isGoogleDrive());
-            configData.put(
-                    "hideDisabledToolsMobileQRScanner",
-                    applicationProperties.getUi().getHideDisabledTools().isMobileQRScanner());
-
-            // Google Drive backend settings (only if enabled)
-            ApplicationProperties.Premium.ProFeatures.GoogleDrive googleDrive =
-                    applicationProperties.getPremium().getProFeatures().getGoogleDrive();
-            if (googleDrive.isEnabled()) {
-                configData.put("googleDriveEnabled", true);
-                configData.put("googleDriveClientId", googleDrive.getClientId());
-                configData.put("googleDriveApiKey", googleDrive.getApiKey());
-                configData.put("googleDriveAppId", googleDrive.getAppId());
-            }
 
             // Security settings
             // enableLogin requires both the config flag AND proprietary features to be loaded
@@ -277,27 +194,6 @@ public class ConfigController {
             boolean smtpEnabled = applicationProperties.getMail().isEnabled();
             boolean invitesEnabled = applicationProperties.getMail().isEnableInvites();
             configData.put("enableEmailInvites", smtpEnabled && invitesEnabled);
-
-            // Storage settings
-            boolean storageEnabled = enableLogin && applicationProperties.getStorage().isEnabled();
-            boolean sharingEnabled =
-                    storageEnabled && applicationProperties.getStorage().getSharing().isEnabled();
-            boolean frontendUrlConfigured = frontendUrl != null && !frontendUrl.trim().isEmpty();
-            boolean shareLinksEnabled =
-                    sharingEnabled
-                            && applicationProperties.getStorage().getSharing().isLinkEnabled()
-                            && frontendUrlConfigured;
-            boolean shareEmailEnabled =
-                    sharingEnabled
-                            && applicationProperties.getStorage().getSharing().isEmailEnabled()
-                            && applicationProperties.getMail().isEnabled();
-            boolean groupSigningEnabled =
-                    storageEnabled && applicationProperties.getStorage().getSigning().isEnabled();
-            configData.put("storageEnabled", storageEnabled);
-            configData.put("storageSharingEnabled", sharingEnabled);
-            configData.put("storageShareLinksEnabled", shareLinksEnabled);
-            configData.put("storageShareEmailEnabled", shareEmailEnabled);
-            configData.put("storageGroupSigningEnabled", groupSigningEnabled);
 
             // Check if user is admin using UserServiceInterface
             boolean isAdmin = false;
@@ -338,10 +234,6 @@ public class ConfigController {
                             && (showAdmin == null || showAdmin.getShowUpdateOnlyAdmins());
             configData.put("shouldShowUpdate", shouldShowUpdate);
             configData.put(
-                    "enableAnalytics", applicationProperties.getSystem().getEnableAnalytics());
-            configData.put("enablePosthog", applicationProperties.getSystem().getEnablePosthog());
-            configData.put("enableScarf", applicationProperties.getSystem().getEnableScarf());
-            configData.put(
                     "enableDesktopInstallSlide",
                     applicationProperties.getSystem().getEnableDesktopInstallSlide());
             configData.put(
@@ -349,19 +241,6 @@ public class ConfigController {
 
             // Premium/Enterprise settings
             configData.put("premiumEnabled", Boolean.TRUE.equals(isRunningProOrHigher()));
-
-            // Whether this instance can link a Stirling (SaaS) account at all. The account-link
-            // beans live in :proprietary and are @ConditionalOnProperty on this same key, so when
-            // it is off they are absent and /api/v1/account-link/* returns 404. The frontend cannot
-            // tell that 404 apart from "not linked yet", so it needs this told to it explicitly
-            // before it can prompt anyone to link. Read from the environment rather than
-            // AccountLinkProperties because :core must not depend on :proprietary.
-            configData.put(
-                    "accountLinkAvailable",
-                    applicationContext
-                            .getEnvironment()
-                            .getProperty(
-                                    "stirling.billing.account-link.enabled", Boolean.class, false));
 
             // AI Engine settings
             ApplicationProperties.AiEngine aiEngineConfig = applicationProperties.getAiEngine();
@@ -390,16 +269,9 @@ public class ConfigController {
                     "serverCertificateEnabled",
                     serverCertificateService != null && serverCertificateService.isEnabled());
 
-            // Hardware-backed signing (Windows store / USB PKCS#11 tokens) is only viable on the
-            // desktop bundle, where the backend runs locally in the user's session. The Tauri
-            // bundle signals this via STIRLING_PDF_TAURI_MODE (machineType is Server-jar there);
-            // the bare-jar desktop launcher signals it via a Client-* machineType.
+            // Hardware-backed signing is available only in the local desktop bundle.
             boolean hardwareSigningAvailable =
                     Boolean.parseBoolean(System.getProperty("STIRLING_PDF_TAURI_MODE", "false"));
-            if (!hardwareSigningAvailable && applicationContext.containsBean("machineType")) {
-                String mt = applicationContext.getBean("machineType", String.class);
-                hardwareSigningAvailable = mt != null && mt.startsWith("Client-");
-            }
             configData.put("hardwareSigningAvailable", hardwareSigningAvailable);
 
             // Legal settings

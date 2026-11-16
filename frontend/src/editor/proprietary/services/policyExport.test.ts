@@ -9,8 +9,7 @@ vi.mock("@editor/services/policyStorage", () => ({
 }));
 
 const runStoredPolicy = vi.fn(
-  async (_id: string, _files: File[], _fileId?: string, _source?: string) =>
-    "run-1",
+  async (_id: string, _files: File[], _fileId?: string) => "run-1",
 );
 const output = { name: "doc.pdf", type: "application/pdf" };
 let serverExternalOutput = false;
@@ -91,22 +90,16 @@ describe("export-time policy selection", () => {
   });
   afterEach(() => vi.useRealTimers());
 
-  it("retains the failure warning for an optional export policy with insufficient credits", async () => {
+  it("retains the failure warning when an optional export policy fails", async () => {
     loadPolicies.mockReturnValue({
       security: exportPolicy({ runsOnEditor: true, required: false }),
     });
-    runStoredPolicy.mockRejectedValueOnce({
-      response: {
-        status: 402,
-        data: { error: "ACCOUNT_LINK_REQUIRED", reason: "FREE_TIER_EXHAUSTED" },
-      },
-    });
+    runStoredPolicy.mockRejectedValueOnce(new Error("offline"));
     await enforceExportPolicies([pdf()], ["file-1"]);
     expect(runStoredPolicy).toHaveBeenCalledWith(
       "backend-1",
       expect.any(Array),
       undefined,
-      "background",
     );
     expect(updateToast).toHaveBeenCalledWith(
       "toast-1",
@@ -137,16 +130,11 @@ describe("export-time policy selection", () => {
     );
   });
 
-  it("blocks export when a required policy has insufficient credits", async () => {
+  it("blocks export when a required policy fails", async () => {
     loadPolicies.mockReturnValue({
       security: exportPolicy({ runsOnEditor: true, required: true }),
     });
-    runStoredPolicy.mockRejectedValueOnce({
-      response: {
-        status: 402,
-        data: { error: "ACCOUNT_LINK_REQUIRED", reason: "FREE_TIER_EXHAUSTED" },
-      },
-    });
+    runStoredPolicy.mockRejectedValueOnce(new Error("offline"));
     await expect(enforceExportPolicies([pdf()], ["file-1"])).rejects.toThrow(
       "policy.exportBlocked",
     );
@@ -154,7 +142,6 @@ describe("export-time policy selection", () => {
       "backend-1",
       expect.any(Array),
       undefined,
-      "background",
     );
   });
 
@@ -296,7 +283,6 @@ describe("export-time policy selection", () => {
       "backend-editor",
       expect.anything(),
       undefined,
-      "background",
     );
   });
 
@@ -334,7 +320,6 @@ describe("export-time policy selection", () => {
       "backend-security",
       expect.anything(),
       undefined,
-      "background",
     );
   });
 

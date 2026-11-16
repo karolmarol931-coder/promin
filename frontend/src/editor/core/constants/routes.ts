@@ -3,7 +3,7 @@
  */
 
 /**
- * Routes where onboarding, cookie consent, and upgrade banners should not appear.
+ * Routes where onboarding and upgrade banners should not appear.
  * These are authentication-related pages where users are not yet logged in or
  * the main app chrome is not displayed.
  */

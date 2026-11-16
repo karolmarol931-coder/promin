@@ -12,11 +12,9 @@ import fs from "node:fs";
  * Dumps PNGs of every tool/admin state into SHOT_DIR (env). Not for CI.
  */
 
-test.skip(!!process.env.CI, "capture-only spec; not for CI");
+test.skip(!process.env.SHOT_DIR, "capture-only spec; set SHOT_DIR to run");
 
-const SHOT_DIR =
-  process.env.SHOT_DIR ??
-  path.join(import.meta.dirname, "../../../../screenshots/ui-review");
+const SHOT_DIR = process.env.SHOT_DIR ?? "";
 
 const SAMPLE_PDF = path.join(
   import.meta.dirname,

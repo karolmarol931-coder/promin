@@ -12,8 +12,6 @@
 
 import { dispatchPolicyFile } from "@editor/services/policyDispatch";
 import { loadPolicies } from "@editor/services/policyStorage";
-import { reportFreeTierExhausted } from "@editor/services/accountLinkBlock";
-import { policyCreditContext } from "@editor/services/policyCreditContext";
 import { assertFilesNotBlocked } from "@editor/services/policyFileGuard";
 import { loadPolicyCatalog } from "@editor/services/policyCatalog";
 import { editorTriggerOf } from "@editor/policies/runOn";
@@ -89,9 +87,7 @@ function activeExportPolicies(): ExportPolicy[] {
             labels.get(id) ??
             s.name ??
             i18n.t(
-              required
-                ? "portal.pipelines.type.policy"
-                : "portal.pipelines.type.pipeline",
+              required ? "policies.type.policy" : "policies.type.pipeline",
             ),
           outputMode: s.outputMode === "new_file" ? "new_file" : "new_version",
           required,
@@ -108,12 +104,7 @@ async function runToCompletion(
   file: File,
 ): Promise<PolicyRunResult> {
   const target = resolvePolicyRunTarget();
-  const runId = await runStoredPolicy(
-    backendId,
-    [file],
-    undefined,
-    "background",
-  );
+  const runId = await runStoredPolicy(backendId, [file], undefined);
   for (let i = 0; i < MAX_POLLS; i++) {
     await delay(POLL_MS);
     let view;
@@ -141,9 +132,6 @@ async function runToCompletion(
       return { file: enforced, runId, target, outputs: view.outputs ?? [] };
     }
     if (view.status === "FAILED" || view.status === "CANCELLED") {
-      if (view.errorCode === "FREE_TIER_EXHAUSTED") {
-        reportFreeTierExhausted(policyCreditContext(backendId));
-      }
       throw new Error(view.error || `policy run ${view.status.toLowerCase()}`);
     }
     if (view.status === "WAITING_FOR_INPUT") {

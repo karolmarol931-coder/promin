@@ -12,9 +12,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "Response containing a setting key and its current value")
 public class SettingValueResponse {
 
-    @Schema(
-            description = "The setting key in dot notation (e.g., 'system.enableAnalytics')",
-            example = "system.enableAnalytics")
+    @Schema(description = "The setting key in dot notation", example = "ui.appName")
     private String key;
 
     @Schema(description = "The current value of the setting", example = "true")

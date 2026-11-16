@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -44,15 +43,12 @@ import stirling.software.proprietary.audit.Audited;
 import stirling.software.proprietary.model.Team;
 import stirling.software.proprietary.security.database.repository.UserRepository;
 import stirling.software.proprietary.security.model.AuthenticationType;
-import stirling.software.proprietary.security.model.LoginLandingView;
 import stirling.software.proprietary.security.model.User;
-import stirling.software.proprietary.security.model.api.user.UpdateLoginLandingView;
 import stirling.software.proprietary.security.model.api.user.UsernameAndPass;
 import stirling.software.proprietary.security.repository.TeamRepository;
 import stirling.software.proprietary.security.saml2.CustomSaml2AuthenticatedPrincipal;
 import stirling.software.proprietary.security.service.EmailService;
 import stirling.software.proprietary.security.service.LoginAttemptService;
-import stirling.software.proprietary.security.service.LoginLandingService;
 import stirling.software.proprietary.security.service.SaveUserRequest;
 import stirling.software.proprietary.security.service.TeamMembershipService;
 import stirling.software.proprietary.security.service.TeamService;
@@ -76,8 +72,6 @@ public class UserController {
     private final LoginAttemptService loginAttemptService;
     private final TeamMembershipService teamMembershipService;
     private final stirling.software.proprietary.service.OrgOwnerService orgOwnerService;
-    private final LoginLandingService loginLandingService;
-    private final Environment environment;
 
     @PreAuthorize("!hasAuthority('ROLE_DEMO_USER')")
     @PostMapping("/register")
@@ -372,24 +366,6 @@ public class UserController {
         // Assuming you have a method in userService to update the settings for a user
         userService.updateUserSettings(principal.getName(), updates);
         return ResponseEntity.ok(Map.of("message", "Settings updated successfully"));
-    }
-
-    @PreAuthorize("!hasAuthority('ROLE_DEMO_USER')")
-    @PostMapping("/login-landing-view")
-    public ResponseEntity<?> updateLoginLandingView(
-            @RequestBody UpdateLoginLandingView request, Principal principal)
-            throws SQLException, UnsupportedProviderException {
-        if (principal == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "Not authenticated"));
-        }
-        Optional<LoginLandingView> view = LoginLandingView.parse(request.getLoginLandingView());
-        if (view.isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of("error", "loginLandingView must be one of: editor, processor"));
-        }
-        loginLandingService.setLandingView(principal.getName(), view.get());
-        return ResponseEntity.ok(Map.of("loginLandingView", view.get().value()));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -1020,7 +996,7 @@ public class UserController {
         }
     }
 
-    /** Lists enabled signing recipients; SaaS always restricts discovery to the caller's team. */
+    /** Lists enabled signing recipients for this installation. */
     @PreAuthorize("@principalPolicy.isHumanUser(authentication)")
     @GetMapping("/users")
     public ResponseEntity<List<UserSummaryDTO>> listUsers(Principal principal) {
@@ -1033,32 +1009,7 @@ public class UserController {
             return ResponseEntity.ok(List.of());
         }
 
-        // Anonymous (SaaS) accounts must never enumerate users, in any scope or team.
-        if (callerOpt.map(UserController::isAnonymousUser).orElse(false)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        if (environment.matchesProfiles("saas")) {
-            Team callerTeam = callerOpt.map(User::getTeam).orElse(null);
-            if (callerTeam == null || isSystemTeam(callerTeam)) {
-                return ResponseEntity.ok(List.of(toUserSummaryDTO(callerOpt.get())));
-            }
-            return ResponseEntity.ok(
-                    userRepository.findEnabledSigningUsersByTeamId(callerTeam.getId()));
-        }
         return ResponseEntity.ok(userRepository.findEnabledSigningUsers());
-    }
-
-    // SaaS anonymous accounts, which must not enumerate users.
-    private static boolean isAnonymousUser(User user) {
-        return AuthenticationType.ANONYMOUS.name().equalsIgnoreCase(user.getAuthenticationType());
-    }
-
-    // System teams (Default/Internal) are not enumerable through the signing picker.
-    private static boolean isSystemTeam(Team team) {
-        String name = team.getName();
-        return TeamService.DEFAULT_TEAM_NAME.equalsIgnoreCase(name)
-                || TeamService.INTERNAL_TEAM_NAME.equalsIgnoreCase(name);
     }
 
     private UserSummaryDTO toUserSummaryDTO(User user) {

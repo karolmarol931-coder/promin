@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@editor/ui";
 import { Icon } from "@editor/ui/Icon";
 // No brand webfont is loaded, so the wordmark must be this SVG rather than styled text.
-import wordmarkLight from "@editor/assets/brand/modern-logo/StirlingProcessorLogoBlackText.svg";
-import wordmarkDark from "@editor/assets/brand/modern-logo/StirlingProcessorLogoWhiteText.svg";
+import wordmarkLight from "@editor/assets/brand/promin/promin-partner-logo.svg";
+import wordmarkDark from "@editor/assets/brand/promin/promin-partner-logo-dark.svg";
 import "@editor/components/shared/StepModalHeader.css";
 
 /**
@@ -59,7 +59,7 @@ export function StepModalHeader({
           <div className="portal-stepmodal__brand">
             <img
               src={wordmarkLight}
-              alt="Stirling"
+              alt="Promin Partner"
               className="portal-stepmodal__wordmark wordmark"
             />
             <img

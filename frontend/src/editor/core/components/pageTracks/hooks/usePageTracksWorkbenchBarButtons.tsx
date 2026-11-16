@@ -50,6 +50,14 @@ export interface PageTracksBarParams {
   onSave: () => void;
 }
 
+function selectionTooltip(
+  label: string,
+  hasSelection: boolean,
+  selectionRequired: string,
+): string {
+  return hasSelection ? label : `${label} — ${selectionRequired}`;
+}
+
 export function usePageTracksWorkbenchBarButtons(params: PageTracksBarParams) {
   const {
     totalPages,
@@ -116,6 +124,10 @@ export function usePageTracksWorkbenchBarButtons(params: PageTracksBarParams) {
 
   const hasPages = totalPages > 0;
   const hasSelection = selectedCount > 0;
+  const selectionRequired = t(
+    "pageTracks.selectPagesFirst",
+    "Select pages to enable this action",
+  );
   const multipleSelected = selectedCount > 1;
   const allSelected = hasPages && selectedCount === totalPages;
   const selectAllLabel = allSelected ? labels.deselectAll : labels.selectAll;
@@ -187,8 +199,16 @@ export function usePageTracksWorkbenchBarButtons(params: PageTracksBarParams) {
       {
         id: "tracks-rotate-left",
         icon: <Icon name="rotate-ccw" size="1.25rem" />,
-        tooltip: labels.rotateLeft,
-        ariaLabel: labels.rotateLeft,
+        tooltip: selectionTooltip(
+          labels.rotateLeft,
+          hasSelection,
+          selectionRequired,
+        ),
+        ariaLabel: selectionTooltip(
+          labels.rotateLeft,
+          hasSelection,
+          selectionRequired,
+        ),
         section: "middle" as const,
         order: 10,
         disabled: !hasSelection,
@@ -198,8 +218,16 @@ export function usePageTracksWorkbenchBarButtons(params: PageTracksBarParams) {
       {
         id: "tracks-rotate-right",
         icon: <Icon name="rotate-cw" size="1.25rem" />,
-        tooltip: labels.rotateRight,
-        ariaLabel: labels.rotateRight,
+        tooltip: selectionTooltip(
+          labels.rotateRight,
+          hasSelection,
+          selectionRequired,
+        ),
+        ariaLabel: selectionTooltip(
+          labels.rotateRight,
+          hasSelection,
+          selectionRequired,
+        ),
         section: "middle" as const,
         order: 20,
         disabled: !hasSelection,
@@ -209,8 +237,16 @@ export function usePageTracksWorkbenchBarButtons(params: PageTracksBarParams) {
       {
         id: "tracks-insert-blank-after",
         icon: <Icon name="file-plus" size="1.25rem" />,
-        tooltip: labels.insertBlankAfter,
-        ariaLabel: labels.insertBlankAfter,
+        tooltip: selectionTooltip(
+          labels.insertBlankAfter,
+          hasSelection,
+          selectionRequired,
+        ),
+        ariaLabel: selectionTooltip(
+          labels.insertBlankAfter,
+          hasSelection,
+          selectionRequired,
+        ),
         section: "middle" as const,
         order: 25,
         disabled: !hasSelection,
@@ -220,8 +256,16 @@ export function usePageTracksWorkbenchBarButtons(params: PageTracksBarParams) {
       {
         id: "tracks-split-after",
         icon: <Icon name="scissors" size="1.25rem" />,
-        tooltip: labels.splitAfter,
-        ariaLabel: labels.splitAfter,
+        tooltip: selectionTooltip(
+          labels.splitAfter,
+          hasSelection,
+          selectionRequired,
+        ),
+        ariaLabel: selectionTooltip(
+          labels.splitAfter,
+          hasSelection,
+          selectionRequired,
+        ),
         section: "middle" as const,
         order: 27,
         disabled: !hasSelection,
@@ -231,8 +275,16 @@ export function usePageTracksWorkbenchBarButtons(params: PageTracksBarParams) {
       {
         id: "tracks-duplicate-selected",
         icon: <Icon name="copy-plus" size="1.25rem" />,
-        tooltip: labels.duplicate,
-        ariaLabel: labels.duplicate,
+        tooltip: selectionTooltip(
+          labels.duplicate,
+          hasSelection,
+          selectionRequired,
+        ),
+        ariaLabel: selectionTooltip(
+          labels.duplicate,
+          hasSelection,
+          selectionRequired,
+        ),
         section: "middle" as const,
         order: 28,
         disabled: !hasSelection,
@@ -242,8 +294,16 @@ export function usePageTracksWorkbenchBarButtons(params: PageTracksBarParams) {
       {
         id: "tracks-delete-selected",
         icon: <Icon name="trash" size="1.5rem" />,
-        tooltip: labels.deleteSelected,
-        ariaLabel: labels.deleteSelected,
+        tooltip: selectionTooltip(
+          labels.deleteSelected,
+          hasSelection,
+          selectionRequired,
+        ),
+        ariaLabel: selectionTooltip(
+          labels.deleteSelected,
+          hasSelection,
+          selectionRequired,
+        ),
         section: "middle" as const,
         order: 30,
         disabled: !hasSelection,
@@ -350,6 +410,7 @@ export function usePageTracksWorkbenchBarButtons(params: PageTracksBarParams) {
       labels.save,
       hasPages,
       hasSelection,
+      selectionRequired,
       canUndo,
       canRedo,
       isDirty,

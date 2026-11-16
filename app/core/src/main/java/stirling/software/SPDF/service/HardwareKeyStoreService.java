@@ -25,8 +25,6 @@ import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,12 +63,7 @@ public class HardwareKeyStoreService {
     /** Same as {@link #PKCS11_LIBRARIES_ENV} but as a JVM system property. */
     private static final String PKCS11_LIBRARIES_PROP = "stirling.pkcs11.libraries";
 
-    private final String machineType;
-
-    public HardwareKeyStoreService(
-            @Autowired(required = false) @Qualifier("machineType") String machineType) {
-        this.machineType = machineType;
-    }
+    public HardwareKeyStoreService() {}
 
     // ---------------------------------------------------------------------
     // Gating
@@ -78,15 +71,10 @@ public class HardwareKeyStoreService {
 
     /**
      * True when running as the desktop bundle (local sidecar in the user's session). The Tauri
-     * bundle sets {@code STIRLING_PDF_TAURI_MODE=true} (with {@code BROWSER_OPEN=false}, so
-     * machineType is {@code Server-jar} there); the bare-jar desktop launcher instead yields a
-     * {@code Client-*} machineType. Accept either.
+     * bundle sets {@code STIRLING_PDF_TAURI_MODE=true}.
      */
     public boolean isDesktop() {
-        if (Boolean.parseBoolean(System.getProperty("STIRLING_PDF_TAURI_MODE", "false"))) {
-            return true;
-        }
-        return machineType != null && machineType.startsWith("Client-");
+        return Boolean.parseBoolean(System.getProperty("STIRLING_PDF_TAURI_MODE", "false"));
     }
 
     public boolean isWindows() {
@@ -106,7 +94,7 @@ public class HardwareKeyStoreService {
         if (!isDesktop()) {
             throw ExceptionUtils.createIllegalArgumentException(
                     "error.hardwareSigningDesktopOnly",
-                    "Hardware-backed signing is only available in the Stirling PDF desktop app");
+                    "Hardware-backed signing is only available in the Promin desktop app");
         }
         if (request != null && !isLocalRequest(request.getRemoteAddr())) {
             throw ExceptionUtils.createIllegalArgumentException(

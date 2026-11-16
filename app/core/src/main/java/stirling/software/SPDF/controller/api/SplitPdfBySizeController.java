@@ -85,7 +85,9 @@ public class SplitPdfBySizeController {
                 }
 
                 try (PdfDocument sourceDocument = PdfDocument.open(sourceTempFile.getPath())) {
-                    List<int[]> ranges = computeRanges(request, sourceDocument);
+                    List<int[]> ranges =
+                            computeRanges(
+                                    request, sourceDocument, sourceTempFile.getFile(), hasForm);
 
                     int fileIndex = 1;
                     for (int[] range : ranges) {
@@ -112,12 +114,17 @@ public class SplitPdfBySizeController {
         }
     }
 
-    private List<int[]> computeRanges(SplitPdfBySizeOrCountRequest request, PdfDocument sourceDoc)
+    private List<int[]> computeRanges(
+            SplitPdfBySizeOrCountRequest request,
+            PdfDocument sourceDoc,
+            File sourceFile,
+            boolean hasForm)
             throws IOException {
         int type = request.getSplitType();
         String value = request.getSplitValue();
         if (type == 0) {
-            return computeSizeRanges(sourceDoc, GeneralUtils.convertSizeToBytes(value));
+            return computeSizeRanges(
+                    sourceDoc, GeneralUtils.convertSizeToBytes(value), sourceFile, hasForm);
         } else if (type == 1) {
             return computePageCountRanges(sourceDoc, Integer.parseInt(value));
         } else if (type == 2) {
@@ -156,6 +163,14 @@ public class SplitPdfBySizeController {
             String baseFilename,
             int fileIndex)
             throws IOException {
+        try (TempFile splitTemp = new TempFile(tempFileManager, ".pdf")) {
+            saveRangeViaPdfBox(sourceFile, range, splitTemp.getPath());
+            writeEntry(zipOut, baseFilename, fileIndex, splitTemp.getPath());
+        }
+    }
+
+    private void saveRangeViaPdfBox(File sourceFile, int[] range, Path outputPath)
+            throws IOException {
         Set<Integer> keep = new HashSet<>();
         for (int p : range) {
             keep.add(p);
@@ -167,9 +182,7 @@ public class SplitPdfBySizeController {
                 }
             }
             FormUtils.pruneOrphanedFormFields(doc);
-            zipOut.putNextEntry(new ZipEntry(baseFilename + "_" + fileIndex + ".pdf"));
-            doc.save(zipOut);
-            zipOut.closeEntry();
+            doc.save(outputPath.toFile());
         }
     }
 
@@ -191,7 +204,9 @@ public class SplitPdfBySizeController {
     }
 
     /** Returns contiguous page-index ranges fitting within {@code maxBytes}. */
-    private List<int[]> computeSizeRanges(PdfDocument sourceDoc, long maxBytes) throws IOException {
+    private List<int[]> computeSizeRanges(
+            PdfDocument sourceDoc, long maxBytes, File sourceFile, boolean hasForm)
+            throws IOException {
         List<int[]> ranges = new ArrayList<>();
         int totalPages = sourceDoc.pageCount();
         int baseCheckFrequency = 5;
@@ -209,12 +224,23 @@ public class SplitPdfBySizeController {
                 if (!shouldCheckSize) {
                     continue;
                 }
-                long actualSize = saveRange(sourceDoc, rangeStart, rangeEnd, probeFile);
+                long actualSize =
+                        saveRange(sourceDoc, rangeStart, rangeEnd, probeFile, sourceFile, hasForm);
 
                 if (actualSize > maxBytes) {
                     if (pageAdded > 1) {
-                        rangeEnd = pageIndex - 1;
-                        pageIndex--;
+                        while (rangeEnd > rangeStart && actualSize > maxBytes) {
+                            rangeEnd--;
+                            actualSize =
+                                    saveRange(
+                                            sourceDoc,
+                                            rangeStart,
+                                            rangeEnd,
+                                            probeFile,
+                                            sourceFile,
+                                            hasForm);
+                        }
+                        pageIndex = rangeEnd;
                     }
                     ranges.add(buildRange(rangeStart, rangeEnd));
                     rangeStart = rangeEnd + 1;
@@ -227,7 +253,9 @@ public class SplitPdfBySizeController {
                                     pageIndex,
                                     maxBytes,
                                     totalPages,
-                                    probeFile);
+                                    probeFile,
+                                    sourceFile,
+                                    hasForm);
                     pageIndex += extra;
                     rangeEnd = pageIndex;
                 }
@@ -239,10 +267,15 @@ public class SplitPdfBySizeController {
         return ranges;
     }
 
-    private long saveRange(PdfDocument sourceDoc, int from, int to, File output)
+    private long saveRange(
+            PdfDocument sourceDoc, int from, int to, File output, File sourceFile, boolean hasForm)
             throws IOException {
-        try (PdfDocument split = PdfSplit.extractPageRange(sourceDoc, from, to)) {
-            split.save(output.toPath());
+        if (hasForm) {
+            saveRangeViaPdfBox(sourceFile, buildRange(from, to), output.toPath());
+        } else {
+            try (PdfDocument split = PdfSplit.extractPageRange(sourceDoc, from, to)) {
+                split.save(output.toPath());
+            }
         }
         return output.length();
     }
@@ -253,13 +286,15 @@ public class SplitPdfBySizeController {
             int currentEnd,
             long maxBytes,
             int totalPages,
-            File probeFile)
+            File probeFile,
+            File sourceFile,
+            boolean hasForm)
             throws IOException {
         int pagesToLookAhead = Math.min(5, totalPages - currentEnd - 1);
         int extra = 0;
         for (int i = 0; i < pagesToLookAhead; i++) {
             int trialEnd = currentEnd + 1 + i;
-            long size = saveRange(sourceDoc, rangeStart, trialEnd, probeFile);
+            long size = saveRange(sourceDoc, rangeStart, trialEnd, probeFile, sourceFile, hasForm);
             if (size > maxBytes) {
                 break;
             }

@@ -83,7 +83,7 @@ export function McpCard({
                 <InfoTooltip
                   label={t(
                     "admin.settings.mcp.mode.description",
-                    "OAuth needs an external IdP. API key uses a Stirling per-user API key (X-API-KEY) - simplest for self-host.",
+                    "OAuth needs an external IdP. API key uses a Promin per-user API key (X-API-KEY) - simplest for self-host.",
                   )}
                 />
               </Group>
@@ -100,7 +100,7 @@ export function McpCard({
                 value: "apikey",
                 label: t(
                   "admin.settings.mcp.mode.apikey",
-                  "API key (Stirling per-user key)",
+                  "API key (Promin per-user key)",
                 ),
               },
             ]}
@@ -119,7 +119,7 @@ export function McpCard({
               <Text size="xs">
                 {t(
                   "admin.settings.mcp.apikeyNote",
-                  "Clients send a Stirling API key in the X-API-KEY header (or Authorization: Bearer <key>). The key maps to its owning Stirling user - only provisioned accounts get in, and actions are audited as that user. Manage keys under Account → API Keys.",
+                  "Clients send a Promin API key in the X-API-KEY header (or Authorization: Bearer <key>). The key maps to its owning Promin user - only provisioned accounts get in, and actions are audited as that user. Manage keys under Account → API Keys.",
                 )}
               </Text>
             </Alert>
@@ -262,12 +262,12 @@ export function McpCard({
                   <Text fw={500} size="sm">
                     {t(
                       "admin.settings.mcp.requireAccount.label",
-                      "Require an existing Stirling account",
+                      "Require an existing Promin account",
                     )}{" "}
                     <InfoTooltip
                       label={t(
                         "admin.settings.mcp.requireAccount.description",
-                        "Only let tokens through if their subject maps to a provisioned, enabled Stirling user.",
+                        "Only let tokens through if their subject maps to a provisioned, enabled Promin user.",
                       )}
                     />
                   </Text>
@@ -299,7 +299,7 @@ export function McpCard({
                     <InfoTooltip
                       label={t(
                         "admin.settings.mcp.usernameClaim.description",
-                        "JWT claim matched against a Stirling username (e.g. sub, email, preferred_username).",
+                        "JWT claim matched against a Promin username (e.g. sub, email, preferred_username).",
                       )}
                     />
                   </Group>
@@ -457,7 +457,7 @@ export function McpCard({
                 )
               : t(
                   "admin.settings.mcp.guide.tipApiKey",
-                  "Tip: API-key mode needs no external IdP - simplest for self-host. The key maps to its owning Stirling user.",
+                  "Tip: API-key mode needs no external IdP - simplest for self-host. The key maps to its owning Promin user.",
                 )}
           </Text>
         </Stack>

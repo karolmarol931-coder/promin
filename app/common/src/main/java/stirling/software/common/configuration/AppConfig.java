@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Locale;
 import java.util.Properties;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -14,8 +13,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
-import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ClassUtils;
@@ -31,8 +28,6 @@ import stirling.software.common.model.ApplicationProperties;
 @Configuration
 @RequiredArgsConstructor
 public class AppConfig {
-
-    private final Environment env;
 
     private final ApplicationProperties applicationProperties;
 
@@ -70,7 +65,7 @@ public class AppConfig {
 
     @Bean(name = "appName")
     public String appName() {
-        return "Stirling PDF";
+        return "Promin";
     }
 
     @Bean(name = "appVersion")
@@ -104,7 +99,7 @@ public class AppConfig {
     @Bean(name = "navBarText")
     public String navBarText() {
         String navBar = applicationProperties.getUi().getAppNameNavbar();
-        return (navBar != null) ? navBar : "Stirling PDF";
+        return (navBar != null) ? navBar : "Promin";
     }
 
     @Bean(name = "enableAlphaFunctionality")
@@ -186,22 +181,9 @@ public class AppConfig {
         return applicationProperties.getLegal().getAccessibilityStatement();
     }
 
-    @Bean(name = "analyticsPrompt")
-    @Scope("request")
-    public boolean analyticsPrompt() {
-        return applicationProperties.getSystem().getEnableAnalytics() == null;
-    }
-
-    @Bean(name = "analyticsEnabled")
-    @Scope("request")
-    public boolean analyticsEnabled() {
-        if (applicationProperties.getPremium().isEnabled()) return true;
-        return applicationProperties.getSystem().isAnalyticsEnabled();
-    }
-
     @Bean(name = "StirlingPDFLabel")
     public String stirlingPDFLabel() {
-        return "Stirling-PDF" + " v" + appVersion();
+        return "Promin" + " v" + appVersion();
     }
 
     @Bean(name = "UUID")
@@ -252,36 +234,20 @@ public class AppConfig {
         return "NORMAL";
     }
 
-    @Bean(name = "scarfEnabled")
-    public boolean scarfEnabled() {
-        return applicationProperties.getSystem().isScarfEnabled();
-    }
-
-    @Bean(name = "posthogEnabled")
-    public boolean posthogEnabled() {
-        return applicationProperties.getSystem().isPosthogEnabled();
-    }
-
     @Bean(name = "machineType")
     public String determineMachineType() {
         try {
             boolean isDocker = runningInDocker();
             boolean isKubernetes = System.getenv("KUBERNETES_SERVICE_HOST") != null;
-            boolean isBrowserOpen = "true".equalsIgnoreCase(env.getProperty("BROWSER_OPEN"));
+            boolean isDesktopApp =
+                    Boolean.parseBoolean(System.getProperty("STIRLING_PDF_TAURI_MODE", "false"));
 
-            if (isKubernetes) {
+            if (isDesktopApp) {
+                return "Desktop";
+            } else if (isKubernetes) {
                 return "Kubernetes";
             } else if (isDocker) {
                 return "Docker";
-            } else if (isBrowserOpen) {
-                String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
-                if (os.contains("win")) {
-                    return "Client-windows";
-                } else if (os.contains("mac")) {
-                    return "Client-mac";
-                } else {
-                    return "Client-unix";
-                }
             } else {
                 return "Server-jar";
             }

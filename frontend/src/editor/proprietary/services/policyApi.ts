@@ -8,8 +8,6 @@
 import apiClient from "@editor/services/apiClient";
 import { uploadableFile } from "@editor/utils/uploadableFile";
 import { getPolicyOutputBaseUrl } from "@editor/services/policyOutputBaseUrl";
-import type { AccountLinkBlockSource } from "@editor/services/accountLinkBlock";
-import { policyCreditContext } from "@editor/services/policyCreditContext";
 import type {
   BackendPolicy,
   PolicyExecutionTarget,
@@ -38,7 +36,6 @@ export async function runStoredPolicy(
   id: string,
   files: File[],
   fileId?: string,
-  source: AccountLinkBlockSource = "foreground",
 ): Promise<string> {
   const form = new FormData();
   for (const file of files) form.append("fileInput", uploadableFile(file));
@@ -51,7 +48,6 @@ export async function runStoredPolicy(
     form,
     {
       suppressErrorToast: true,
-      accountLinkBlockContext: policyCreditContext(id, source),
     },
   );
   return res.data.jobId;
@@ -61,13 +57,12 @@ export async function runStoredPolicy(
  * Where a policy run executes, and thus the backend that holds its outputs.
  */
 export function resolvePolicyRunTarget(): PolicyExecutionTarget {
-  return "saas";
+  return "local";
 }
 
 /**
  * Download a run's output file by id (via the shared general-files endpoint).
- * `target` is where the run executed: it selects the backend the file is fetched
- * from, so a SaaS run's output isn't looked for on the bundled local backend.
+ * `target` identifies the backend that owns the run output.
  */
 export async function downloadPolicyOutput(
   fileId: string,

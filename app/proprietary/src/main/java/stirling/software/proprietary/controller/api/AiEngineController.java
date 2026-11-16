@@ -41,10 +41,8 @@ import stirling.software.proprietary.model.api.ai.AiWorkflowResponse;
 import stirling.software.proprietary.model.api.ai.AiWorkflowResultFile;
 import stirling.software.proprietary.service.AiEngineClient;
 import stirling.software.proprietary.service.AiEngineEndpointResolver;
-import stirling.software.proprietary.service.AiEngineRouter;
 import stirling.software.proprietary.service.AiFeatureGate;
 import stirling.software.proprietary.service.AiWorkflowService;
-import stirling.software.proprietary.service.CloudStatusProbe;
 
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
@@ -72,8 +70,6 @@ public class AiEngineController {
     private final AiFeatureGate aiFeatureGate;
     private final UserServiceInterface userService;
     private final ApplicationProperties applicationProperties;
-    private final AiEngineRouter aiEngineRouter;
-    private final CloudStatusProbe cloudStatusProbe;
 
     /**
      * SSE emitter timeout (ms), long enough for multi-gigabyte PDF workflows without completing out
@@ -91,8 +87,6 @@ public class AiEngineController {
             AiEngineEndpointResolver endpointResolver,
             AiFeatureGate aiFeatureGate,
             ApplicationProperties applicationProperties,
-            AiEngineRouter aiEngineRouter,
-            CloudStatusProbe cloudStatusProbe,
             @Autowired(required = false) UserServiceInterface userService) {
         this.aiEngineClient = aiEngineClient;
         this.aiWorkflowService = aiWorkflowService;
@@ -104,8 +98,6 @@ public class AiEngineController {
         this.aiFeatureGate = aiFeatureGate;
         this.userService = userService;
         this.applicationProperties = applicationProperties;
-        this.aiEngineRouter = aiEngineRouter;
-        this.cloudStatusProbe = cloudStatusProbe;
         this.streamTimeoutMs =
                 applicationProperties.getAiEngine().getStreamTimeoutSeconds() * 1000L;
     }
@@ -143,25 +135,6 @@ public class AiEngineController {
         AiEngineStatus.AiEngineStatusBuilder status = AiEngineStatus.builder().enabled(true);
         String userId = currentUserId();
 
-        // Asked first: a cloud outage or sharing being off explains any failure that follows.
-        if (aiEngineRouter.isCloudMode()) {
-            boolean cloudUp = cloudStatusProbe.isUp();
-            status.cloudUp(cloudUp);
-            if (!cloudUp) {
-                return status.reachable(false)
-                        .cloudSharingEnabled(null)
-                        .error("Stirling Cloud is not responding.")
-                        .build();
-            }
-            Boolean sharing = probeCloudSharing(userId);
-            status.cloudSharingEnabled(sharing);
-            if (Boolean.FALSE.equals(sharing)) {
-                return status.reachable(false)
-                        .error("Stirling Cloud AI sharing is switched off for linked servers.")
-                        .build();
-            }
-        }
-
         long startedAt = System.nanoTime();
         String health;
         try {
@@ -185,21 +158,6 @@ public class AiEngineController {
     }
 
     /**
-     * @return false only when the gateway said so; null when it could not be asked
-     */
-    private Boolean probeCloudSharing(String userId) {
-        try {
-            JsonNode body =
-                    objectMapper.readTree(aiEngineClient.get("/status", userId, PROBE_TIMEOUT));
-            JsonNode enabled = body.path("sharingEnabled");
-            return enabled.isBoolean() ? enabled.asBoolean() : null;
-        } catch (IOException | RuntimeException e) {
-            log.debug("Cloud AI sharing probe failed", e);
-            return null;
-        }
-    }
-
-    /**
      * @return true if accepted, false if rejected, null if the probe failed for another reason
      */
     private Boolean probeAuthentication(
@@ -208,10 +166,7 @@ public class AiEngineController {
             aiEngineClient.get("/api/v1/agents/capabilities", userId, PROBE_TIMEOUT);
             return true;
         } catch (AiEngineClient.EngineRejectedCredentials e) {
-            status.error(
-                    aiEngineRouter.isCloudMode()
-                            ? "Stirling Cloud rejected this server's link credential."
-                            : "The engine rejected this server's shared secret.");
+            status.error("The engine rejected this server's shared secret.");
             return false;
         } catch (ResponseStatusException e) {
             int code = e.getStatusCode().value();
@@ -366,7 +321,7 @@ public class AiEngineController {
         } catch (IOException e) {
             // Surface the disconnect so the streaming pipeline unwinds: callers higher up close
             // the upstream engine connection, which lets the engine cancel its in-flight workflow.
-            // Without this, the engine would keep producing (and billing for) tokens whose results
+            // Without this, the engine would keep producing tokens whose results
             // nobody is reading.
             throw new ClientDisconnectedException("Client disconnected from SSE stream", e);
         }

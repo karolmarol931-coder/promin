@@ -137,17 +137,6 @@ class FailureClassifierTest {
             assertThat(classifier.classify(rawBody("{\"detail\":\"nope\"}")))
                     .isEqualTo(FailureKind.UNKNOWN);
         }
-
-        @Test
-        void entitlementSentinelIsNotMistakenForACodedFailure() {
-            // An entitlement 402 carries `error`, not `errorCode`. It must not be misclassified,
-            // and specifically must not be attributed to a file problem.
-            FailureKind kind =
-                    classifier.classify(
-                            rawBody("{\"error\":\"PAYG_LIMIT_REACHED\",\"subscribed\":false}"));
-            assertThat(kind).isEqualTo(FailureKind.UNKNOWN);
-            assertThat(kind).isNotEqualTo(FailureKind.INPUT_PASSWORD_PROTECTED);
-        }
     }
 
     @Nested

@@ -1,11 +1,9 @@
 package stirling.software.proprietary.security.service;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,26 +18,19 @@ import stirling.software.proprietary.security.repository.TeamRepository;
 
 /**
  * Keeps team_memberships in step with users.team_id on self-hosted admin flows and holds the
- * team-owner (LEADER role) mutations. SaaS owns membership lifecycle (seats, personal teams,
- * last-leader guards) via SaasTeamService, so these mutations no-op on the saas profile to avoid
- * corrupting its accounting.
+ * team-owner (LEADER role) mutations.
  */
 @Service
 @RequiredArgsConstructor
 public class TeamMembershipService {
 
     private final TeamMembershipRepository membershipRepository;
-    private final Environment environment;
     private final TeamRepository teamRepository;
-
-    private boolean isSaas() {
-        return Arrays.asList(environment.getActiveProfiles()).contains("saas");
-    }
 
     /** Preserves existing roles; the first member of a custom self-hosted team becomes its lead. */
     @Transactional
     public void syncMembership(User user) {
-        if (isSaas() || user == null || user.getId() == null) {
+        if (user == null || user.getId() == null) {
             return;
         }
         Long teamId = user.getTeam() != null ? user.getTeam().getId() : null;
@@ -67,9 +58,6 @@ public class TeamMembershipService {
     /** Promotes a member to team owner, creating the membership row if it is missing. */
     @Transactional
     public void setOwner(Team team, User user) {
-        if (isSaas()) {
-            return;
-        }
         Optional<TeamMembership> existing =
                 membershipRepository.findByTeamIdAndUserId(team.getId(), user.getId());
         if (existing.isPresent()) {
@@ -83,9 +71,6 @@ public class TeamMembershipService {
     /** Demotes a team owner back to member; keeps the membership row. */
     @Transactional
     public void removeOwner(Team team, User user) {
-        if (isSaas()) {
-            return;
-        }
         membershipRepository
                 .findByTeamIdAndUserId(team.getId(), user.getId())
                 .ifPresent(

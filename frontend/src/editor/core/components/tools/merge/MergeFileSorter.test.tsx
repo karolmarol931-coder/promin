@@ -1,200 +1,147 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
+import type { FileId } from "@editor/types/file";
 import MergeFileSorter from "@editor/components/tools/merge/MergeFileSorter";
 
-// Mock useTranslation with predictable return values
-const mockT = vi.fn((key: string) => `mock-${key}`);
+const mockT = vi.fn((key: string, options?: { fileName?: string }) =>
+  options?.fileName ? `mock-${key}-${options.fileName}` : `mock-${key}`,
+);
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: mockT }),
 }));
 
-// Wrapper component to provide Mantine context
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <MantineProvider>{children}</MantineProvider>
 );
 
 describe("MergeFileSorter", () => {
   const mockOnSortFiles = vi.fn();
+  const mockOnMoveFile = vi.fn();
+  const mockOnReorderFile = vi.fn();
+  const files = [
+    Object.assign(new File(["one"], "one.pdf"), {
+      fileId: "one" as FileId,
+      quickKey: "one.pdf|3|0",
+    }),
+    Object.assign(new File(["two"], "two.pdf"), {
+      fileId: "two" as FileId,
+      quickKey: "two.pdf|3|0",
+    }),
+    Object.assign(new File(["three"], "three.pdf"), {
+      fileId: "three" as FileId,
+      quickKey: "three.pdf|5|0",
+    }),
+  ];
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  test("should render sort options dropdown, direction toggle, and sort button", () => {
+  test("shows the merge order and accessible arrow controls", () => {
     render(
       <TestWrapper>
-        <MergeFileSorter onSortFiles={mockOnSortFiles} />
+        <MergeFileSorter
+          files={files}
+          onSortFiles={mockOnSortFiles}
+          onMoveFile={mockOnMoveFile}
+        />
       </TestWrapper>,
     );
 
-    // Should have a select dropdown (Mantine Select uses textbox role)
-    expect(screen.getByRole("textbox")).toBeInTheDocument();
+    const list = screen.getByRole("list", {
+      name: "mock-merge.sortBy.orderLabel",
+    });
+    expect(list.querySelectorAll("li")).toHaveLength(3);
+    expect(screen.getByText("one.pdf")).toBeInTheDocument();
+    expect(screen.getByText("two.pdf")).toBeInTheDocument();
+    expect(screen.getByText("three.pdf")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "mock-merge.sortBy.moveUp-one.pdf" }),
+    ).toBeDisabled();
 
-    // Should have direction toggle button
-    const buttons = screen.getAllByRole("button");
-    expect(buttons).toHaveLength(2); // ActionIcon + Sort Button
-
-    // Should have sort button with text
-    expect(screen.getByText("mock-merge.sortBy.sort")).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "mock-merge.sortBy.moveUp-two.pdf" }),
+    );
+    expect(mockOnMoveFile).toHaveBeenCalledWith("two", "up");
   });
 
-  test("should render description text", () => {
+  test("reorders files by dragging one onto another", () => {
     render(
       <TestWrapper>
-        <MergeFileSorter onSortFiles={mockOnSortFiles} />
+        <MergeFileSorter
+          files={files}
+          onSortFiles={mockOnSortFiles}
+          onReorderFile={mockOnReorderFile}
+        />
+      </TestWrapper>,
+    );
+
+    const source = screen.getByText("one.pdf").closest("li");
+    const target = screen.getByText("two.pdf").closest("li");
+    if (!source || !target) throw new Error("Expected both file rows");
+    const dataTransfer = { effectAllowed: "", setData: vi.fn() };
+
+    fireEvent.dragStart(source, { dataTransfer });
+    fireEvent.drop(target, { dataTransfer, clientY: 0 });
+
+    expect(mockOnReorderFile).toHaveBeenCalledWith("one", "two", false);
+  });
+
+  test("keeps automatic sorting collapsed under More options", () => {
+    render(
+      <TestWrapper>
+        <MergeFileSorter
+          files={files}
+          onSortFiles={mockOnSortFiles}
+          onReorderFile={mockOnReorderFile}
+        />
+      </TestWrapper>,
+    );
+
+    const optionsControl = screen.getByRole("button", {
+      name: "mock-merge.sortBy.advancedOptions",
+    });
+    expect(optionsControl).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(optionsControl);
+    expect(optionsControl).toHaveAttribute("aria-expanded", "true");
+  });
+
+  test("shows quick sorting with multiple files and applies only when requested", () => {
+    render(
+      <TestWrapper>
+        <MergeFileSorter files={files} onSortFiles={mockOnSortFiles} />
+      </TestWrapper>,
+    );
+
+    expect(mockOnSortFiles).not.toHaveBeenCalled();
+    fireEvent.click(
+      screen.getByRole("button", { name: "mock-merge.sortBy.sort" }),
+    );
+
+    expect(mockOnSortFiles).toHaveBeenCalledWith("filename", true);
+  });
+
+  test("disables file order controls while the merge operation is running", () => {
+    render(
+      <TestWrapper>
+        <MergeFileSorter
+          files={files}
+          onSortFiles={mockOnSortFiles}
+          onMoveFile={mockOnMoveFile}
+          disabled
+        />
       </TestWrapper>,
     );
 
     expect(
-      screen.getByText("mock-merge.sortBy.description"),
-    ).toBeInTheDocument();
-  });
-
-  test("should have filename selected by default", () => {
-    render(
-      <TestWrapper>
-        <MergeFileSorter onSortFiles={mockOnSortFiles} />
-      </TestWrapper>,
+      screen.getByRole("button", {
+        name: "mock-merge.sortBy.moveDown-one.pdf",
+      }),
+    ).toBeDisabled();
+    expect(screen.getByText("one.pdf").closest("li")).not.toHaveAttribute(
+      "draggable",
+      "true",
     );
-
-    const select = screen.getByRole("textbox");
-    expect(select).toHaveValue("mock-merge.sortBy.filename");
-  });
-
-  test("should show ascending direction by default", () => {
-    render(
-      <TestWrapper>
-        <MergeFileSorter onSortFiles={mockOnSortFiles} />
-      </TestWrapper>,
-    );
-
-    // Should show ascending arrow icon
-    const directionButton = screen.getAllByRole("button")[0];
-    expect(directionButton).toHaveAttribute(
-      "title",
-      "mock-merge.sortBy.ascending",
-    );
-  });
-
-  test("should toggle direction when direction button is clicked", () => {
-    render(
-      <TestWrapper>
-        <MergeFileSorter onSortFiles={mockOnSortFiles} />
-      </TestWrapper>,
-    );
-
-    const directionButton = screen.getAllByRole("button")[0];
-
-    // Initially ascending
-    expect(directionButton).toHaveAttribute(
-      "title",
-      "mock-merge.sortBy.ascending",
-    );
-
-    // Click to toggle to descending
-    fireEvent.click(directionButton);
-    expect(directionButton).toHaveAttribute(
-      "title",
-      "mock-merge.sortBy.descending",
-    );
-
-    // Click again to toggle back to ascending
-    fireEvent.click(directionButton);
-    expect(directionButton).toHaveAttribute(
-      "title",
-      "mock-merge.sortBy.ascending",
-    );
-  });
-
-  test("should call onSortFiles with correct parameters when sort button is clicked", () => {
-    render(
-      <TestWrapper>
-        <MergeFileSorter onSortFiles={mockOnSortFiles} />
-      </TestWrapper>,
-    );
-
-    const sortButton = screen.getByText("mock-merge.sortBy.sort");
-    fireEvent.click(sortButton);
-
-    // Should be called with default values (filename, ascending)
-    expect(mockOnSortFiles).toHaveBeenCalledWith("filename", true);
-  });
-
-  test("should call onSortFiles with dateModified when dropdown is changed", () => {
-    render(
-      <TestWrapper>
-        <MergeFileSorter onSortFiles={mockOnSortFiles} />
-      </TestWrapper>,
-    );
-
-    // Open the dropdown by clicking on the current selected value
-    const currentSelection = screen.getByText("mock-merge.sortBy.filename");
-    fireEvent.mouseDown(currentSelection);
-
-    // Click on the dateModified option
-    const dateModifiedOption = screen.getByText(
-      "mock-merge.sortBy.dateModified",
-    );
-    fireEvent.click(dateModifiedOption);
-
-    const sortButton = screen.getByText("mock-merge.sortBy.sort");
-    fireEvent.click(sortButton);
-
-    expect(mockOnSortFiles).toHaveBeenCalledWith("dateModified", true);
-  });
-
-  test("should call onSortFiles with descending direction when toggled", () => {
-    render(
-      <TestWrapper>
-        <MergeFileSorter onSortFiles={mockOnSortFiles} />
-      </TestWrapper>,
-    );
-
-    const directionButton = screen.getAllByRole("button")[0];
-    const sortButton = screen.getByText("mock-merge.sortBy.sort");
-
-    // Toggle to descending
-    fireEvent.click(directionButton);
-
-    // Click sort
-    fireEvent.click(sortButton);
-
-    expect(mockOnSortFiles).toHaveBeenCalledWith("filename", false);
-  });
-
-  test("should handle complex user interaction sequence", () => {
-    render(
-      <TestWrapper>
-        <MergeFileSorter onSortFiles={mockOnSortFiles} />
-      </TestWrapper>,
-    );
-
-    const directionButton = screen.getAllByRole("button")[0];
-    const sortButton = screen.getByText("mock-merge.sortBy.sort");
-
-    // 1. Change to dateModified
-    const currentSelection = screen.getByText("mock-merge.sortBy.filename");
-    fireEvent.mouseDown(currentSelection);
-    const dateModifiedOption = screen.getByText(
-      "mock-merge.sortBy.dateModified",
-    );
-    fireEvent.click(dateModifiedOption);
-
-    // 2. Toggle to descending
-    fireEvent.click(directionButton);
-
-    // 3. Click sort
-    fireEvent.click(sortButton);
-
-    expect(mockOnSortFiles).toHaveBeenCalledWith("dateModified", false);
-
-    // 4. Toggle back to ascending
-    fireEvent.click(directionButton);
-
-    // 5. Sort again
-    fireEvent.click(sortButton);
-
-    expect(mockOnSortFiles).toHaveBeenCalledWith("dateModified", true);
   });
 });

@@ -11,6 +11,12 @@ vi.mock("@tauri-apps/plugin-http", () => ({ fetch: fetchMock }));
 vi.mock("@editor/services/documentPrivacyService", () => ({
   enforceDocumentPrivacy: vi.fn().mockResolvedValue(false),
 }));
+vi.mock("@editor/services/tauriLocalProxy", () => ({
+  shouldUseFastLocalTransport: () => false,
+  fetchViaLocalProxy: vi.fn(),
+  markFastTransportUnavailable: vi.fn(),
+  materializeLocalFormData: async (formData: FormData) => formData,
+}));
 
 import { create } from "@editor/services/tauriHttpClient";
 
@@ -29,7 +35,7 @@ function lastFetchHeaders(): Record<string, string> {
   return (opts.headers ?? {}) as Record<string, string>;
 }
 
-describe("tauriHttpClient — native request origin", () => {
+describe("tauriHttpClient — local request policy", () => {
   beforeEach(() => {
     fetchMock.mockReset();
     fetchMock.mockResolvedValue(okJson());
@@ -38,29 +44,27 @@ describe("tauriHttpClient — native request origin", () => {
   afterEach(() => vi.unstubAllEnvs());
 
   test.each([true, false])(
-    "preserves auth and overrides Origin only in dev (DEV=%s)",
+    "omits credentials and overrides Origin only in dev (DEV=%s)",
     async (dev) => {
       vi.stubEnv("DEV", dev);
 
       const client = create({
-        baseURL: "https://api.test",
-        headers: { "X-Browser-Id": "desktop-test" },
+        baseURL: "http://127.0.0.1:62994",
       });
 
-      await client.get("/api/v1/policies", {
+      await client.get("/api/v1/misc/compress-pdf", {
         headers: { Authorization: "Bearer test-token" },
         withCredentials: true,
       });
 
       expect(fetchMock).toHaveBeenCalledWith(
-        "https://api.test/api/v1/policies",
+        "http://127.0.0.1:62994/api/v1/misc/compress-pdf",
         expect.objectContaining({
           method: "GET",
-          credentials: "include",
+          credentials: "omit",
           headers: {
+            "User-Agent": "Promin-Desktop/1.0 Tauri",
             ...(dev ? { Origin: "tauri://localhost" } : {}),
-            "X-Browser-Id": "desktop-test",
-            Authorization: "Bearer test-token",
           },
         }),
       );
@@ -75,7 +79,7 @@ describe("tauriHttpClient — Content-Type handling", () => {
   });
 
   test("sends URLSearchParams as an encoded form with repeated and empty values", async () => {
-    const client = create({ baseURL: "https://api.test" });
+    const client = create({ baseURL: "http://127.0.0.1:62994" });
     const params = new URLSearchParams([
       ["username", "Jörg + admin&"],
       ["role", "ROLE_USER"],
@@ -87,7 +91,7 @@ describe("tauriHttpClient — Content-Type handling", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.test/api/v1/user/admin/saveUser",
+      "http://127.0.0.1:62994/api/v1/user/admin/saveUser",
       expect.objectContaining({
         body: "username=J%C3%B6rg+%2B+admin%26&role=ROLE_USER&role=ROLE_ADMIN&empty=",
         headers: expect.objectContaining({
@@ -100,7 +104,7 @@ describe("tauriHttpClient — Content-Type handling", () => {
   test.each(["Content-Type", "content-type", "CONTENT-TYPE"])(
     "preserves an explicit %s header for URLSearchParams",
     async (header) => {
-      const client = create({ baseURL: "https://api.test" });
+      const client = create({ baseURL: "http://127.0.0.1:62994" });
       const contentType = "application/x-www-form-urlencoded";
 
       await client.post(
@@ -121,7 +125,7 @@ describe("tauriHttpClient — Content-Type handling", () => {
   );
 
   test("strips a caller-set Content-Type on FormData so the boundary is generated", async () => {
-    const client = create({ baseURL: "https://api.test" });
+    const client = create({ baseURL: "http://127.0.0.1:62994" });
     const form = new FormData();
     form.append("fileInput", new Blob(["x"]), "f.pdf");
 
@@ -136,7 +140,7 @@ describe("tauriHttpClient — Content-Type handling", () => {
   });
 
   test("keeps application/json for plain object bodies", async () => {
-    const client = create({ baseURL: "https://api.test" });
+    const client = create({ baseURL: "http://127.0.0.1:62994" });
     await client.post("/api/v1/x", { a: 1 });
 
     const ct = Object.entries(lastFetchHeaders()).find(

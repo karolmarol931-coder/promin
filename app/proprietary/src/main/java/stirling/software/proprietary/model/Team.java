@@ -38,8 +38,7 @@ public class Team implements Serializable {
     @Column(name = "team_id")
     private Long id;
 
-    // Not unique: SaaS personal teams all share the name "My Team". TeamController enforces
-    // uniqueness for admin-created teams.
+    // Team names are unique only within an organization, not across the installation.
     @Column(name = "name", nullable = false)
     private String name;
 

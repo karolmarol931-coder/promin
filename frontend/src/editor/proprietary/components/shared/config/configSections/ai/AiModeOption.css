@@ -1,6 +1,4 @@
-/* The mode chooser reads as three cards, so the whole card has to behave like the control it is:
-   hoverable, focusable, and obviously the selected one. A bare border colour change was not enough
-   to tell at a glance which mode a server was in. */
+/* The selected engine choice needs to stay visible beyond the radio control. */
 
 .ai-mode-option {
   cursor: pointer;
@@ -10,7 +8,7 @@
     box-shadow 0.12s ease;
 }
 
-.ai-mode-option:hover:not(.ai-mode-option--disabled) {
+.ai-mode-option:hover {
   border-color: var(--c-border-strong);
   background: var(--c-surface-raised);
 }
@@ -26,11 +24,6 @@
 .ai-mode-option:focus-within {
   box-shadow: 0 0 0 2px
     color-mix(in srgb, var(--c-accent-text) 45%, transparent);
-}
-
-.ai-mode-option--disabled {
-  cursor: default;
-  background: var(--c-surface);
 }
 
 /* Fields belonging to the selected mode, set apart from the choice itself. */

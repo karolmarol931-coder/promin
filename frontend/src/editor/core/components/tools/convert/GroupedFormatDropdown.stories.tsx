@@ -8,8 +8,8 @@ const documentOptions = [
   { value: "odt", label: "OpenDocument", group: "Document" },
   { value: "png", label: "PNG", group: "Image" },
   { value: "jpg", label: "JPEG", group: "Image" },
-  { value: "epub", label: "EPUB", group: "Ebook", usesCloud: true },
-  { value: "mobi", label: "MOBI", group: "Ebook", usesCloud: true },
+  { value: "epub", label: "EPUB", group: "Ebook" },
+  { value: "mobi", label: "MOBI", group: "Ebook" },
   { value: "cbr", label: "CBR", group: "Comic", enabled: false },
 ];
 

@@ -1,4 +1,5 @@
 import "fake-indexeddb/auto";
+import { useRef } from "react";
 import type { ReactNode } from "react";
 import {
   act,
@@ -12,7 +13,10 @@ import { MemoryRouter, useLocation, useNavigate } from "react-router-dom";
 import { AppProviders } from "@editor/components/AppProviders";
 import { useAppConfig } from "@editor/contexts/AppConfigContext";
 import { usePreferences } from "@editor/contexts/PreferencesContext";
-import { useToolWorkflow } from "@editor/contexts/ToolWorkflowContext";
+import {
+  useToolWorkflow,
+  useToolWorkflowActions,
+} from "@editor/contexts/ToolWorkflowContext";
 import { preferencesService } from "@editor/services/preferencesService";
 import apiClient from "@editor/services/apiClient";
 import type { AppConfig } from "@editor/types/appConfig";
@@ -40,6 +44,25 @@ function LaunchProbe() {
   );
 }
 
+function WorkflowRenderProbe() {
+  const workflow = useToolWorkflow();
+  const { toggleFavorite } = useToolWorkflowActions();
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+
+  return (
+    <>
+      <output data-testid="workflow-render-count">{renderCount.current}</output>
+      <output data-testid="workflow-reader-mode">
+        {String(workflow.readerMode)}
+      </output>
+      <button type="button" onClick={() => toggleFavorite("split")}>
+        Favorite split
+      </button>
+    </>
+  );
+}
+
 function GoHome() {
   const navigate = useNavigate();
   return (
@@ -52,7 +75,7 @@ function GoHome() {
   );
 }
 
-function renderLaunch(
+function renderWithProviders(
   ui: ReactNode,
   options: {
     config?: AppConfig | null;
@@ -74,6 +97,17 @@ function renderLaunch(
       </AppProviders>
     </MemoryRouter>,
   );
+}
+
+function renderLaunch(
+  ui: ReactNode,
+  options: {
+    config?: AppConfig | null;
+    path?: string;
+    autoFetch?: boolean;
+  } = {},
+) {
+  renderWithProviders(ui, options);
   return screen.getByTestId("launch");
 }
 
@@ -101,6 +135,22 @@ describe("server default reaches the launch view", () => {
     });
     // The server choice stays a default: it must not be written as the user's.
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
+  it("does not rerender workflow consumers when a tool is favorited", () => {
+    renderWithProviders(<WorkflowRenderProbe />);
+    const initialRenderCount = screen.getByTestId(
+      "workflow-render-count",
+    ).textContent;
+
+    fireEvent.click(screen.getByRole("button", { name: "Favorite split" }));
+
+    expect(screen.getByTestId("workflow-render-count")).toHaveTextContent(
+      initialRenderCount ?? "",
+    );
+    expect(localStorage.getItem("stirlingpdf.favoriteTools")).toBe(
+      JSON.stringify(["split"]),
+    );
   });
 
   it("keeps a stored launch view ahead of the server default", async () => {

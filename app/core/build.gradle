@@ -14,10 +14,6 @@ dependencies {
         implementation project(':proprietary')
     }
 
-    if (gradle.ext.enableSaas) {
-        implementation project(':saas')
-    }
-
     implementation project(':common')
     implementation 'org.springframework.boot:spring-boot-starter-jetty'
     implementation 'org.eclipse.jetty.compression:jetty-compression-server'
@@ -172,13 +168,11 @@ if (project.findProperty('buildWithPortal')?.toString() == 'true') {
 // future portal). Editor-specific paths (src, public, dist, tauri) live one
 // level deeper under frontend/.
 
-// Vite mode: -PfrontendMode > enableSaas > disableAdditional > proprietary.
+// Vite mode: -PfrontendMode > disableAdditional > proprietary.
 def frontendModeOverride = project.findProperty('frontendMode')?.toString()?.toLowerCase()
 def frontendMode
 if (frontendModeOverride) {
     frontendMode = frontendModeOverride
-} else if (gradle.ext.enableSaas) {
-    frontendMode = 'saas'
 } else if (gradle.ext.disableAdditional) {
     frontendMode = 'core'
 } else {
@@ -379,7 +373,4 @@ if (buildWithFrontend) {
 bootJar.dependsOn ':common:jar'
 if (!gradle.ext.disableAdditional) {
     bootJar.dependsOn ':proprietary:jar'
-}
-if (gradle.ext.enableSaas) {
-    bootJar.dependsOn ':saas:jar'
 }

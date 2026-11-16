@@ -288,7 +288,7 @@
   scrollbar-color: var(--c-border-strong) transparent;
 }
 
-/* --- Grouped list (SaaS: Recent + per-category groups). Inert when the
+/* --- Grouped list (Recent + per-category groups). Inert when the
    grouping seam returns no groups (OSS/desktop render the flat list). --- */
 .file-sidebar-group + .file-sidebar-group {
   margin-top: 2px;

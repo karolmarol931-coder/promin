@@ -15,6 +15,7 @@ vi.mock("@editor/hooks/useIsMobile", () => ({
 }));
 beforeEach(() => {
   viewport.mobile = false;
+  vi.setSystemTime(new Date("2026-10-01T12:00:00"));
 });
 
 vi.mock("react-i18next", () => ({

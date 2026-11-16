@@ -5,8 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import stirling.software.proprietary.billing.ContentHasher;
-
 /**
  * The folder backend's identity and version scheme, shared by {@code FolderInputSource} and {@code
  * FolderOutputSink} so outputs are recorded under exactly the identity the next scan derives.

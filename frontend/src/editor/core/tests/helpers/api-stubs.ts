@@ -1,7 +1,7 @@
 import type { BrowserContext, Page, Route } from "@playwright/test";
 
 /**
- * Shared Playwright API stubs for Stirling-PDF E2E tests.
+ * Shared Playwright API stubs for Promin E2E tests.
  *
  * Import `mockAppApis(page)` from this module in any spec that doesn't need
  * a real backend. The helper installs `page.route()` handlers for the
@@ -121,8 +121,6 @@ export interface MockAppApiOptions {
   enableLogin?: boolean;
   /** Override `isAdmin` in app-config. Default `false`. */
   isAdmin?: boolean;
-  /** Null leaves the server analytics choice unconfigured. */
-  enableAnalytics?: boolean | null;
   /** Override the logged-in user returned by `/auth/me`. */
   user?: {
     id?: number;
@@ -132,7 +130,6 @@ export interface MockAppApiOptions {
     /** Spring role string (e.g. "ROLE_ADMIN") — drives `isAdmin` in the auth seam. */
     role?: string;
     /** Portal (Processor) access flag — gates the super search's Processor lanes. */
-    portalAccess?: boolean;
     orgOwner?: boolean;
   } | null;
   /** Languages advertised by `/config/app-config`. */
@@ -173,7 +170,6 @@ export async function mockAppApis(
   const {
     enableLogin = false,
     isAdmin = false,
-    enableAnalytics = false,
     user = {
       id: 1,
       username: "testuser",
@@ -197,7 +193,6 @@ export async function mockAppApis(
       json: {
         enableLogin,
         isAdmin,
-        enableAnalytics,
         languages,
         defaultLocale,
       },
@@ -215,7 +210,7 @@ export async function mockAppApis(
 
   // The signed-in user's teams. Unstubbed this 401s, and the API client reads a
   // 401 here as an expired session: refresh, fail, bounce to /login - so any
-  // page that asks (the login-landing setting, the account tab) logs out.
+  // page that asks for the current user's team logs out.
   await page.route("**/api/v1/team/my", (route: Route) =>
     route.fulfill({ json: [] }),
   );
@@ -307,11 +302,6 @@ export async function mockAppApis(
     route.fulfill({ json: { languages: [] } }),
   );
 
-  // Info sub-resources
-  await page.route("**/api/v1/info/wau", (route: Route) =>
-    route.fulfill({ json: { count: 0 } }),
-  );
-
   // Policies (proprietary): the reconcile fires GET /api/v1/policies on app
   // load. Return an empty list so the stubbed (backend-free) env stays clean —
   // no failed request polluting the console, and the auto-run controller has
@@ -375,28 +365,6 @@ export async function bypassOnboarding(page: Page): Promise<void> {
       /* sessionStorage may be unavailable in some contexts — ignore */
     }
   });
-}
-
-/**
- * Seed the cookie-consent cookie so the banner (#cc-main) never renders.
- * The banner overlays the viewport and intercepts clicks on firefox/webkit.
- */
-export async function seedCookieConsent(page: Page): Promise<void> {
-  await page.context().addCookies([
-    {
-      name: "cc_cookie",
-      value: JSON.stringify({
-        categories: ["necessary"],
-        revision: 0,
-        data: null,
-        rfc_cookie: false,
-        consentTimestamp: new Date().toISOString(),
-        consentId: "playwright-test",
-      }),
-      domain: "localhost",
-      path: "/",
-    },
-  ]);
 }
 
 /**

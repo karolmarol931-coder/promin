@@ -16,7 +16,6 @@ export function useFileActionTerminology() {
       "Drop files here or click the upload button",
     ),
     addFiles: t("landing.addFiles", "Add Files"),
-    mobileUpload: t("landing.mobileUpload", "Upload from Mobile"),
     uploadFromComputer: t("landing.uploadFromComputer", "Upload from computer"),
     download: t("download", "Download"),
     downloadAll: t("workbenchBar.downloadAll", "Download All"),

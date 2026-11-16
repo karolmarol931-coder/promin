@@ -56,7 +56,7 @@ loading = "Ładowanie..."
 loginAgreementAccept = "Akceptuj"
 loginAgreementDecline = "Odrzuć"
 loginAgreementLoadFailed = "Nie udało się wczytać umowy logowania."
-loginAgreementProvider = "Ten komunikat pochodzi od Twojego administratora, a nie od Stirling PDF Inc."
+loginAgreementProvider = "Ten komunikat pochodzi od Twojego administratora, a nie od Promin Inc."
 loginAgreementRetry = "Ponów"
 loginAgreementTitle = "Umowa logowania"
 logOut = "Wyloguj się"
@@ -663,8 +663,8 @@ description = "Maksymalny czas wykonania"
 label = "Limit czasu (minuty)"
 
 [admin.settings.advanced.stirlingOfficeConversion]
-description = "Stirling Office Convert jest w wersji beta. Oferuje lepsze i szybsze konwersje przy mniejszym zużyciu pamięci niż LibreOffice."
-label = "Użyj nowej konwersji Stirling Office"
+description = "Promin Office Convert jest w wersji beta. Oferuje lepsze i szybsze konwersje przy mniejszym zużyciu pamięci niż LibreOffice."
+label = "Użyj nowej konwersji Promin Office"
 
 [admin.settings.advanced.tempFileManagement]
 description = "Skonfiguruj przechowywanie plików tymczasowych i ich czyszczenie"
@@ -731,9 +731,9 @@ permissionNotice = "Ścieżka tessdata nie jest zapisywalna. Pobrania zostaną o
 
 [admin.settings.ai]
 customProvider = "Niestandardowy (zgodny z OpenAI)"
-description = "Połącz Stirling z silnikiem Python AI, wybierz jego modele i ustaw ograniczenia, w których działa."
-managedByCloud = "Zarządzane przez Stirling Cloud w tym trybie."
-managedByCloudShort = "Zarządzane przez Stirling Cloud"
+description = "Połącz Promin z silnikiem Python AI, wybierz jego modele i ustaw ograniczenia, w których działa."
+managedByCloud = "Zarządzane przez Promin Cloud w tym trybie."
+managedByCloudShort = "Zarządzane przez Promin Cloud"
 
 [admin.settings.ai.documents]
 description = "Skonfiguruj model embeddingów i ustawienia pobierania używane do odpowiadania na pytania dotyczące dokumentów. Po zapisaniu stosowane do silnika AI."
@@ -784,16 +784,16 @@ description = "Włącz lub wyłącz poszczególne funkcje AI. Wyłączone funkcj
 title = "Możliwości"
 
 [admin.settings.ai.general.cloud]
-note = "Modele i klucze dostawców są zarządzane przez Stirling Cloud, więc te ustawienia nie mają zastosowania w tym trybie."
+note = "Modele i klucze dostawców są zarządzane przez Promin Cloud, więc te ustawienia nie mają zastosowania w tym trybie."
 
 [admin.settings.ai.general.cloud.indexing]
-description = "Każde narzędzie AI wysyła tekst strony, którego potrzebuje do odpowiedzi. To ustawienie decyduje, czy Stirling Cloud może również zachować ten tekst w formie zaindeksowanej, aby późniejsze pytania mogły przeszukiwać dokument."
+description = "Każde narzędzie AI wysyła tekst strony, którego potrzebuje do odpowiedzi. To ustawienie decyduje, czy Promin Cloud może również zachować ten tekst w formie zaindeksowanej, aby późniejsze pytania mogły przeszukiwać dokument."
 help = "Wyłączenie oznacza, że pytania dotyczące dokumentów są niedostępne. Nie blokuje wysyłania tekstu — jedynie jego przechowywanie."
-label = "Zezwól Stirling Cloud na przechowywanie zaindeksowanych dokumentów"
+label = "Zezwól Promin Cloud na przechowywanie zaindeksowanych dokumentów"
 
 [admin.settings.ai.general.cloudNote]
-body = "Wnioskowanie działa na infrastrukturze Stirling i jest rozliczane na koncie, z którym połączony jest ten serwer. Nie ma tu kontenera do uruchomienia ani klucza dostawcy do przechowywania. Wszystko, co odczyta AI, jest przetwarzane przez Stirling Cloud, a nie na Twoim własnym sprzęcie."
-title = "O Stirling Cloud AI"
+body = "Wnioskowanie działa na infrastrukturze Promin i jest rozliczane na koncie, z którym połączony jest ten serwer. Nie ma tu kontenera do uruchomienia ani klucza dostawcy do przechowywania. Wszystko, co odczyta AI, jest przetwarzane przez Promin Cloud, a nie na Twoim własnym sprzęcie."
+title = "O Promin Cloud AI"
 
 [admin.settings.ai.general.enabled]
 description = "Przełącznik główny. Gdy jest wyłączony, żadne narzędzia AI, agenci ani wywołania silnika nie są dostępne."
@@ -831,11 +831,11 @@ label = "Limit czasu długich operacji (sekundy)"
 label = "Gdzie działa AI"
 
 [admin.settings.ai.general.mode.cloud]
-description = "Bez kontenera, bez klucza dostawcy, bez wyboru modelu — praca odbywa się w Stirling Cloud i jest rozliczana na koncie, z którym połączony jest ten serwer."
-linkCta = "Połącz ten serwer z kontem Stirling"
+description = "Bez kontenera, bez klucza dostawcy, bez wyboru modelu — praca odbywa się w Promin Cloud i jest rozliczana na koncie, z którym połączony jest ten serwer."
+linkCta = "Połącz ten serwer z kontem Promin"
 notLinked = "Najpierw połącz konto"
-ownerOnly = "Tylko właściciel organizacji może połączyć ten serwer z kontem Stirling."
-title = "Użyj Stirling Cloud AI"
+ownerOnly = "Tylko właściciel organizacji może połączyć ten serwer z kontem Promin."
+title = "Użyj Promin Cloud AI"
 
 [admin.settings.ai.general.mode.off]
 description = "Brak narzędzi AI w całej aplikacji i nic nie opuszcza tego serwera."
@@ -847,7 +847,7 @@ title = "Uruchom własny silnik"
 
 [admin.settings.ai.general.note]
 docs = "Przewodnik konfiguracji"
-intro = "Oddzielny kontener, który uruchamiasz obok Stirling. Wykonuje wnioskowanie; Stirling nadal samodzielnie wykonuje wszystkie operacje na stronach. Wymaga tego samego"
+intro = "Oddzielny kontener, który uruchamiasz obok Promin. Wykonuje wnioskowanie; Promin nadal samodzielnie wykonuje wszystkie operacje na stronach. Wymaga tego samego"
 outro = "w obu kontenerach oraz klucza dostawcy modeli. Wszystko, co odczyta AI, jest wysyłane do wybranego przez Ciebie dostawcy — hostowany przez Ciebie Ollama zachowuje każdą stronę u Ciebie."
 title = "O silniku AI"
 
@@ -949,24 +949,24 @@ url = "URL silnika"
 
 [admin.settings.ai.status.cloud]
 hostDown = "Niedostępny"
-hostLabel = "Stirling.com"
+hostLabel = "Promin.com"
 hostUp = "Dostępny"
-name = "Stirling Cloud"
+name = "Promin Cloud"
 sharingLabel = "Udostępnianie AI"
 sharingOff = "Wyłączone"
 sharingOn = "Włączone"
 
 [admin.settings.ai.status.cloud.degraded]
-body = "Stirling Cloud odpowiedział, ale odrzucił ten serwer. Połączenie konta mogło zostać cofnięte."
-title = "Stirling Cloud odrzuca ten serwer"
+body = "Promin Cloud odpowiedział, ale odrzucił ten serwer. Połączenie konta mogło zostać cofnięte."
+title = "Promin Cloud odrzuca ten serwer"
 
 [admin.settings.ai.status.cloud.down]
-body = "Ten serwer nie mógł połączyć się ze Stirling Cloud. Sprawdź połączenie konta oraz czy ten serwer ma dostęp do internetu."
-title = "Stirling Cloud jest nieosiągalny"
+body = "Ten serwer nie mógł połączyć się ze Promin Cloud. Sprawdź połączenie konta oraz czy ten serwer ma dostęp do internetu."
+title = "Promin Cloud jest nieosiągalny"
 
 [admin.settings.ai.status.cloud.ok]
-body = "Stirling Cloud zaakceptował ten serwer. Nie trzeba tu nic uruchamiać ani aktualizować."
-title = "Działa w Stirling Cloud"
+body = "Promin Cloud zaakceptował ten serwer. Nie trzeba tu nic uruchamiać ani aktualizować."
+title = "Działa w Promin Cloud"
 
 [admin.settings.ai.status.degraded]
 body = "Odpowiedział na kontrolę kondycji, ale odrzucił rzeczywiste żądanie. Obie strony używają różnych wspólnych sekretów."
@@ -1118,7 +1118,7 @@ confirmCodeLabel = "Wprowadź kod potwierdzający, aby kontynuować"
 confirmImport = "Potwierdź import"
 confirmImportTitle = "Potwierdź import bazy danych"
 connection = "Połączenie"
-connectionDescription = "Skieruj Stirling na zewnętrzną bazę danych zamiast wbudowanej."
+connectionDescription = "Skieruj Promin na zewnętrzną bazę danych zamiast wbudowanej."
 createBackup = "Utwórz kopię zapasową"
 created = "Utworzono"
 delete = "Usuń"
@@ -1219,11 +1219,11 @@ description = "Skonfiguruj opcjonalne funkcje i funkcjonalność."
 title = "Funkcje"
 
 [admin.settings.features.serverCertificate]
-description = "Wygeneruj certyfikat obsługujący funkcję podpisywania „Podpisz za pomocą Stirling-PDF”."
+description = "Wygeneruj certyfikat obsługujący funkcję podpisywania „Podpisz za pomocą Promin”."
 label = "Podpisywanie certyfikatem"
 
 [admin.settings.features.serverCertificate.enabled]
-description = "Udostępnij „Podpisz za pomocą Stirling-PDF” przy użyciu certyfikatu generowanego przez ten serwer"
+description = "Udostępnij „Podpisz za pomocą Promin” przy użyciu certyfikatu generowanego przez ten serwer"
 label = "Włącz podpisywanie certyfikatem"
 
 [admin.settings.features.serverCertificate.organizationName]
@@ -1240,11 +1240,11 @@ label = "Ważność certyfikatu (dni)"
 
 [admin.settings.folderAccess]
 description = "Katalogi, z których źródła folderów i wyjścia folderów mogą czytać oraz do których mogą zapisywać. To granica bezpieczeństwa: automatyzacje nigdy nie mogą wskazywać ścieżki serwera spoza tej listy."
-securityNote = "Pozostaw puste, aby całkowicie wyłączyć źródła folderów i wyjścia. Własny katalog konfiguracji Stirling jest zawsze niedostępny."
+securityNote = "Pozostaw puste, aby całkowicie wyłączyć źródła folderów i wyjścia. Własny katalog konfiguracji Promin jest zawsze niedostępny."
 title = "Dostęp do folderów"
 
 [admin.settings.folderAccess.implied]
-description = "Te katalogi zarządzane przez Stirling są zawsze dozwolone i nie można ich tutaj zmienić."
+description = "Te katalogi zarządzane przez Promin są zawsze dozwolone i nie można ich tutaj zmienić."
 serverStorage = "Przechowywanie plików na serwerze"
 title = "Zawsze dozwolone"
 watchedFolder = "Folder obserwowany potoku"
@@ -1385,7 +1385,7 @@ description = "URL lub nazwa pliku do polityki plików cookie"
 label = "Polityka plików cookie"
 
 [admin.settings.legal.disclaimer]
-message = "Dostosowując te dokumenty prawne, bierzesz pełną odpowiedzialność za zapewnienie zgodności ze wszystkimi obowiązującymi przepisami i regulacjami, w tym między innymi z RODO i innymi wymogami UE dotyczącymi ochrony danych. Modyfikuj te ustawienia tylko, jeśli: (1) prowadzisz prywatną/prywatną instancję, (2) znajdujesz się poza jurysdykcją UE i rozumiesz swoje lokalne obowiązki prawne lub (3) uzyskałeś odpowiednią poradę prawną i akceptujesz wyłączną odpowiedzialność za wszystkie dane użytkowników i zgodność prawną. Stirling-PDF i jego deweloperzy nie ponoszą odpowiedzialności za Twoje zobowiązania prawne."
+message = "Dostosowując te dokumenty prawne, bierzesz pełną odpowiedzialność za zapewnienie zgodności ze wszystkimi obowiązującymi przepisami i regulacjami, w tym między innymi z RODO i innymi wymogami UE dotyczącymi ochrony danych. Modyfikuj te ustawienia tylko, jeśli: (1) prowadzisz prywatną/prywatną instancję, (2) znajdujesz się poza jurysdykcją UE i rozumiesz swoje lokalne obowiązki prawne lub (3) uzyskałeś odpowiednią poradę prawną i akceptujesz wyłączną odpowiedzialność za wszystkie dane użytkowników i zgodność prawną. Promin i jego deweloperzy nie ponoszą odpowiedzialności za Twoje zobowiązania prawne."
 title = "Ostrzeżenie o odpowiedzialności prawnej"
 
 [admin.settings.legal.impressum]
@@ -1473,8 +1473,8 @@ description = "Nazwa użytkownika do uwierzytelniania SMTP"
 label = "Nazwa użytkownika SMTP"
 
 [admin.settings.mcp]
-apikeyNote = "Klienci wysyłają klucz Stirling API w nagłówku X-API-KEY (lub Authorization: Bearer <key>). Klucz jest mapowany na właściciela konta użytkownika Stirling — dostęp mają tylko skonfigurowane konta, a działania są audytowane jako ten użytkownik. Zarządzaj kluczami w Konto > Klucze API."
-description = "Udostępnij narzędzia PDF i agentów AI Stirling klientom MCP przez endpoint chroniony OAuth."
+apikeyNote = "Klienci wysyłają klucz Promin API w nagłówku X-API-KEY (lub Authorization: Bearer <key>). Klucz jest mapowany na właściciela konta użytkownika Promin — dostęp mają tylko skonfigurowane konta, a działania są audytowane jako ten użytkownik. Zarządzaj kluczami w Konto > Klucze API."
+description = "Udostępnij narzędzia PDF i agentów AI Promin klientom MCP przez endpoint chroniony OAuth."
 title = "Serwer MCP"
 
 [admin.settings.mcp.acceptedAudiences]
@@ -1504,7 +1504,7 @@ step3ApiKeyb = "(lub Authorization: Bearer <key>). OAuth ani wykrywanie metadany
 step4 = "Zatwierdź logowanie; klient ponowi próbę z tokenem. Narzędzia pojawią się pogrupowane: convert, pages, misc, security, ai."
 step4ApiKey = "Narzędzia pojawią się pogrupowane: convert, pages, misc, security, ai — a każde wywołanie jest audytowane jako właściciel klucza."
 tip = "Wskazówka: zarejestruj resource ID jako dozwolonego odbiorcę w swoim IdP. Przetestowano z MCP Inspector i Claude Desktop."
-tipApiKey = "Wskazówka: tryb klucza API nie wymaga zewnętrznego IdP — najprostszy dla self-host. Klucz jest mapowany na właściciela konta użytkownika Stirling."
+tipApiKey = "Wskazówka: tryb klucza API nie wymaga zewnętrznego IdP — najprostszy dla self-host. Klucz jest mapowany na właściciela konta użytkownika Promin."
 title = "Połącz klienta MCP"
 
 [admin.settings.mcp.issuerUri]
@@ -1517,14 +1517,14 @@ label = "URL JWKS (opcjonalnie)"
 placeholder = "Automatycznie wykryte z wystawcy"
 
 [admin.settings.mcp.mode]
-apikey = "Klucz API (klucz Stirling dla użytkownika)"
-description = "OAuth wymaga zewnętrznego IdP. Klucz API używa klucza API Stirling dla użytkownika (X-API-KEY) — najprostsze dla self-host."
+apikey = "Klucz API (klucz Promin dla użytkownika)"
+description = "OAuth wymaga zewnętrznego IdP. Klucz API używa klucza API Promin dla użytkownika (X-API-KEY) — najprostsze dla self-host."
 label = "Tryb uwierzytelniania"
 oauth = "OAuth 2.1 (zewnętrzny IdP)"
 
 [admin.settings.mcp.requireAccount]
-description = "Przepuszczaj tokeny tylko wtedy, gdy ich subject mapuje się na skonfigurowanego, włączonego użytkownika Stirling."
-label = "Wymagaj istniejącego konta Stirling"
+description = "Przepuszczaj tokeny tylko wtedy, gdy ich subject mapuje się na skonfigurowanego, włączonego użytkownika Promin."
+label = "Wymagaj istniejącego konta Promin"
 
 [admin.settings.mcp.resourceId]
 description = "Publiczny URL /mcp tego serwera. Tokeny muszą zawierać go w swoim audience (RFC 8707), w przeciwnym razie zostaną odrzucone."
@@ -1535,7 +1535,7 @@ description = "Wymagaj mcp.tools.read dla operacji odczytu oraz mcp.tools.write 
 label = "Wymuszaj zakresy OAuth"
 
 [admin.settings.mcp.usernameClaim]
-description = "JWT claim dopasowywany do nazwy użytkownika Stirling (np. sub, email, preferred_username)."
+description = "JWT claim dopasowywany do nazwy użytkownika Promin (np. sub, email, preferred_username)."
 label = "Claim nazwy użytkownika"
 
 [admin.settings.plan.noData]
@@ -1860,7 +1860,7 @@ description = "Po włączeniu tylko wymienione ID użytkowników mogą używać 
 label = "Zezwalaj na określone ID użytkowników"
 
 [admin.settings.telegram.enabled]
-description = "Pozwól użytkownikom korzystać ze Stirling PDF przez skonfigurowanego bota Telegram."
+description = "Pozwól użytkownikom korzystać ze Promin przez skonfigurowanego bota Telegram."
 label = "Włącz bota Telegram"
 
 [admin.settings.telegram.feedback]
@@ -1933,7 +1933,7 @@ settingsOverview = "To jest <strong>Panel ustawień</strong>. Ustawienia adminis
 systemCustomization = "Mamy szerokie możliwości dostosowania UI: <strong>Ustawienia systemu</strong> pozwalają zmienić nazwę aplikacji i języki, <strong>Funkcje</strong> umożliwiają zarządzanie certyfikatami serwera, a <strong>Endpointy</strong> pozwalają włączać lub wyłączać konkretne narzędzia dla użytkowników."
 teamsAndUsers = "Zarządzaj tutaj <strong>Zespołami</strong> i poszczególnymi użytkownikami. Możesz zapraszać nowych użytkowników e‑mailem, udostępnianymi linkami lub samodzielnie tworzyć im konta."
 welcome = "Witamy w <strong>Przewodniku administratora</strong>! Poznajmy zaawansowane funkcje i ustawienia dostępne dla administratorów systemu."
-wrapUp = "To koniec wycieczki administratora! Poznałeś funkcje enterprise, dzięki którym Stirling PDF jest wydajnym, konfigurowalnym rozwiązaniem dla organizacji. Możesz ją odtworzyć w dowolnym momencie — po prostu otwórz <strong>Ustawienia</strong> i znajdź ją tutaj w sekcji <strong>Wycieczki</strong> w Pomocy."
+wrapUp = "To koniec wycieczki administratora! Poznałeś funkcje enterprise, dzięki którym Promin jest wydajnym, konfigurowalnym rozwiązaniem dla organizacji. Możesz ją odtworzyć w dowolnym momencie — po prostu otwórz <strong>Ustawienia</strong> i znajdź ją tutaj w sekcji <strong>Wycieczki</strong> w Pomocy."
 
 [adminUserSettings]
 admin = "Administrator"
@@ -1949,9 +1949,9 @@ thai = "Tajski"
 
 [analytics]
 learnMore = "Dowiedz się więcej o naszej analityce"
-paragraph1 = "Stirling PDF ma opcjonalną analitykę, która pomaga nam ulepszać produkt. Nie śledzimy żadnych informacji osobowych ani zawartości plików."
-paragraph2 = "Rozważ włączenie funkcji analitycznych, które pomogą w rozwoju Stirling-PDF i pozwolą nam lepiej zrozumieć naszych użytkowników."
-title = "Czy chcesz pomóc ulepszać Stirling PDF?"
+paragraph1 = "Promin ma opcjonalną analitykę, która pomaga nam ulepszać produkt. Nie śledzimy żadnych informacji osobowych ani zawartości plików."
+paragraph2 = "Rozważ włączenie funkcji analitycznych, które pomogą w rozwoju Promin i pozwolą nam lepiej zrozumieć naszych użytkowników."
+title = "Czy chcesz pomóc ulepszać Promin?"
 
 [annotate]
 tags = "adnotacje,podświetl,rysuj,znaczniki,komentarz,notatki,recenzja,korekta,opinia,narzędzia znaczników,karteczki,skształty,strzałki,pole tekstowe,odręcznie"
@@ -2479,7 +2479,7 @@ title = "Obróć strony o niskiej pewności, aby pasowały"
 tags = "pdf, dzielenie, dokument, organizacja"
 
 [autoSplitPDF]
-dividerDownload2 = "Pobierz 'Auto Splitter Divider (with instructions).pdf'"
+dividerDownload2 = "Pobierz arkusz rozdzielający do druku (PDF)"
 duplexMode = "Skanowanie dwustronne"
 tags = "Oparty na QR, rozdzielanie, skanowanie, organizowanie"
 title = "Automatycznie podziel PDF"
@@ -2900,9 +2900,9 @@ typeSignature = "Wpisz swoje imię i nazwisko, aby utworzyć podpis"
 uploadCert = "Prześlij certyfikat"
 uploadCertDesc = "Użyj własnego certyfikatu PKCS12, PFX, PEM lub JKS."
 uploadSignature = "Prześlij obraz swojego podpisu"
-usePersonalCert = "Stirling Sign · Osobisty"
+usePersonalCert = "Promin Sign · Osobisty"
 usePersonalCertDesc = "Podpisz certyfikatem utworzonym dla Twojego konta."
-useServerCert = "Stirling Sign · Organizacja"
+useServerCert = "Promin Sign · Organizacja"
 useServerCertDesc = "Podpisz współdzielonym certyfikatem organizacji tego serwera."
 useSignature = "Użyj podpisu"
 
@@ -3221,8 +3221,8 @@ copy = "Kopiuj wiadomość"
 
 [chat.dock]
 collapse = "Zwiń czat"
-placeholder = "Zapytaj Stirling Agent"
-title = "Stirling Agent"
+placeholder = "Zapytaj Promin Agent"
+title = "Promin Agent"
 
 [chat.header]
 clearChat = "Wyczyść czat"
@@ -3575,9 +3575,9 @@ label = "Dokumenty według typu: {{summary}}"
 noTypes = "Te dokumenty nie pasują do znanego typu."
 
 [classificationDemo.defaultApp]
-body = "Ustaw Stirling jako domyślną aplikację PDF. Każdy PDF otwierany z emaila, przeglądarki lub pulpitu trafi tutaj, gotowy do czytania lub edycji. Możesz to zmienić w dowolnym momencie w Ustawieniach."
-cta = "Ustaw Stirling jako domyślny"
-title = "Otwieraj każdy PDF w Stirling"
+body = "Ustaw Promin jako domyślną aplikację PDF. Każdy PDF otwierany z emaila, przeglądarki lub pulpitu trafi tutaj, gotowy do czytania lub edycji. Możesz to zmienić w dowolnym momencie w Ustawieniach."
+cta = "Ustaw Promin jako domyślny"
+title = "Otwieraj każdy PDF w Promin"
 
 [classificationDemo.followUp]
 background = "To działa w tle. Pierścień po lewej pokazuje postęp."
@@ -3592,7 +3592,7 @@ other = "Inne"
 body = "Klasyfikuj i organizuj {{count}} najnowszych plików PDF w folderze Pobrane według typu."
 cta = "Przetwórz mój folder Pobrane"
 privacy = "Twoje PDF pozostają na tym urządzeniu. Połączony serwer rejestruje użycie przetwarzania."
-title = "Zobacz, co Stirling potrafi zrobić z całym folderem"
+title = "Zobacz, co Promin potrafi zrobić z całym folderem"
 
 [classificationDemo.phase]
 finishing = "Kończenie..."
@@ -3606,10 +3606,10 @@ counts = "z {{total}} przetworzonych plików PDF"
 [classificationDemo.results]
 documentCount_one = "{{count}} PDF"
 documentCount_other = "{{count}} PDF"
-failedBody = "Stirling nie mógł odczytać folderu Pobrane. Nic na komputerze nie zostało zmienione."
+failedBody = "Promin nie mógł odczytać folderu Pobrane. Nic na komputerze nie zostało zmienione."
 failedTitle = "Nie udało się ukończyć"
 heading = "Twoje Pobrane, posortowane"
-summary = "Stirling odczytał {{documents}} i posortował je na {{types}}."
+summary = "Promin odczytał {{documents}} i posortował je na {{types}}."
 typeCount_one = "{{count}} typ"
 typeCount_other = "{{count}} typów"
 
@@ -3809,10 +3809,10 @@ submit = "Kompresuj"
 tags = "zmniejsz,redukuj,optymalizuj,kompresuj,mniejszy,pomniejsz,rozmiar pliku,zmniejsz rozmiar,minimalizuj,zrób mniejszy,obniż rozmiar,zoptymalizuj rozmiar"
 title = "Kompresuj"
 
+[compress.advanced]
+title = "Ustawienia zaawansowane"
+
 [compress.compressionLevel]
-range1to3 = "Niższe wartości zachowują jakość, ale skutkują większymi plikami"
-range4to6 = "Średnia kompresja z umiarkowaną utratą jakości"
-range7to9 = "Wyższe wartości znacznie zmniejszają rozmiar pliku, ale mogą zmniejszyć klarowność obrazu"
 
 [compress.error]
 failed = "Wystąpił błąd podczas kompresowania PDF."
@@ -3849,6 +3849,15 @@ desiredSize = "Docelowy rozmiar pliku"
 desiredSizePlaceholder = "Wprowadź rozmiar"
 desiredSizeUnit = "Jednostka rozmiaru"
 title = "Ustawienia"
+
+[compress.simplePreset]
+balanced = "Zrównoważona"
+balancedDescription = "Dobry wybór do codziennych dokumentów."
+label = "Wybierz równowagę między jakością a rozmiarem pliku"
+quality = "Zachowaj jakość"
+qualityDescription = "Lepiej zachowuje szczegóły, ale plik może pozostać większy."
+smallest = "Mniejszy plik"
+smallestDescription = "Mocniej zmniejsza plik, ale skany mogą być mniej wyraźne."
 
 [compress.tooltip.description]
 text = "Kompresja to prosty sposób na zmniejszenie rozmiaru pliku. Wybierz File Size, aby podać docelowy rozmiar, a my dostosujemy jakość za Ciebie. Wybierz Quality, aby ręcznie ustawić siłę kompresji."
@@ -3943,14 +3952,14 @@ upgradeButton = "Uaktualnij konto"
 
 [config.apiKeys]
 copyKeyAriaLabel = "Kopiuj klucz API"
-description = "Twój klucz API do zestawu narzędzi PDF Stirling. Skopiuj go do projektu lub odśwież, aby wygenerować nowy."
-docsDescription = "Dowiedz się więcej o integracji ze Stirling PDF:"
+description = "Twój klucz API do zestawu narzędzi PDF Promin. Skopiuj go do projektu lub odśwież, aby wygenerować nowy."
+docsDescription = "Dowiedz się więcej o integracji ze Promin:"
 docsLink = "Dokumentacja API"
 docsTitle = "Dokumentacja API"
 generateError = "Nie udało się wygenerować klucza API."
 goToAccount = "Przejdź do konta"
 guestInfo = "Użytkownicy gościnni nie otrzymują kluczy API. Utwórz konto, aby uzyskać klucz API do użycia w swoich aplikacjach."
-intro = "Użyj swojego klucza API, aby programowo korzystać z możliwości przetwarzania Stirling PDF."
+intro = "Użyj swojego klucza API, aby programowo korzystać z możliwości przetwarzania Promin."
 label = "Klucz API"
 publicKeyAriaLabel = "Publiczny klucz API"
 refreshAriaLabel = "Odśwież klucz API"
@@ -3974,10 +3983,10 @@ title = "Odśwież klucze API"
 warning = "⚠️ Ostrzeżenie: Ta operacja wygeneruje nowe klucze API i unieważni poprzednie."
 
 [config.mcp]
-description = "Model Context Protocol (MCP) pozwala asystentom AI, takim jak Claude, używać bezpośrednio Twoich narzędzi Stirling PDF. Połącz klienta raz, a Twój asystent będzie mógł konwertować, edytować, zabezpieczać i przetwarzać dokumenty w Twoim imieniu."
-guestInfo = "Użytkownicy goście nie mogą łączyć klientów MCP. Utwórz konto, aby używać serwera MCP i pozwolić asystentowi AI uruchamiać narzędzia Stirling PDF w Twoim imieniu."
+description = "Model Context Protocol (MCP) pozwala asystentom AI, takim jak Claude, używać bezpośrednio Twoich narzędzi Promin. Połącz klienta raz, a Twój asystent będzie mógł konwertować, edytować, zabezpieczać i przetwarzać dokumenty w Twoim imieniu."
+guestInfo = "Użytkownicy goście nie mogą łączyć klientów MCP. Utwórz konto, aby używać serwera MCP i pozwolić asystentowi AI uruchamiać narzędzia Promin w Twoim imieniu."
 navLabel = "Serwer MCP"
-tip = "Every action your assistant runs is performed as your account and counts towards your usage, just like using Stirling PDF directly."
+tip = "Every action your assistant runs is performed as your account and counts towards your usage, just like using Promin directly."
 viewApiKeys = "Wyświetl klucze API"
 
 [config.mcp.copy]
@@ -3993,7 +4002,7 @@ label = "Twój endpoint MCP"
 
 [config.mcp.setup]
 addTo = "Dodaj do"
-hint = "Wybierz klienta, wklej fragment do wskazanego pliku, a następnie uruchom go ponownie. Przy pierwszym użyciu zalogujesz się na swoje konto Stirling — bez kopiowania kluczy."
+hint = "Wybierz klienta, wklej fragment do wskazanego pliku, a następnie uruchom go ponownie. Przy pierwszym użyciu zalogujesz się na swoje konto Promin — bez kopiowania kluczy."
 title = "Połącz swojego asystenta AI"
 
 [config.overview]
@@ -4017,10 +4026,10 @@ step = "Krok {{current}} z {{total}}"
 [connect.confirm]
 acknowledge = "Rozpoznaję ten adres i chcę połączyć go z moim zespołem"
 approve = "Połącz serwer"
-cannotDecide = "Tylko właściciel zespołu może zatwierdzić lub odrzucić to połączenie. Użyj innego konta lub zamknij ten monit, aby dalej korzystać ze Stirling."
+cannotDecide = "Tylko właściciel zespołu może zatwierdzić lub odrzucić to połączenie. Użyj innego konta lub zamknij ten monit, aby dalej korzystać ze Promin."
 deny = "Odrzuć"
 dismiss = "Zamknij"
-lead = "Serwer Stirling prosi o połączenie z Twoim zespołem. Przed zatwierdzeniem sprawdź, czy poniższy adres należy do Ciebie."
+lead = "Serwer Promin prosi o połączenie z Twoim zespołem. Przed zatwierdzeniem sprawdź, czy poniższy adres należy do Ciebie."
 originLabel = "Adres"
 signedInAs = "Zalogowano jako"
 switchAccount = "Użyj innego konta"
@@ -4086,6 +4095,8 @@ fileToPdf = "Office/Dokument → PDF"
 fillPage = "Wypełnij stronę"
 fitDocumentToPage = "Dopasuj dokument do strony"
 fitOption = "Opcja dopasowania"
+formatSearchNoResults = "Nie znaleziono formatów."
+formatSearchPlaceholder = "Szukaj formatów..."
 grayscale = "Odcień szarości"
 imageOptions = "Opcje obrazu"
 includeAllRecipients = "Uwzględnij adresatów DW i UDW w nagłówku"
@@ -4126,7 +4137,7 @@ selectSourceFormatFirst = "Najpierw wybierz format źródłowy"
 settings = "Ustawienia"
 single = "Pojedynczy"
 sourceFormatPlaceholder = "Format źródłowy"
-stirlingOfficeConvert = "Użyj Stirling Office Convert (beta)"
+stirlingOfficeConvert = "Użyj Promin Office Convert (beta)"
 stirlingOfficeConvertDescription = "Lepsze i szybsze konwersje przy mniejszym zużyciu pamięci. Wyłącz, aby użyć standardowego konwertera."
 strictMode = "Tryb ścisły"
 strictModeDesc = "Błąd, jeśli konwersja nie jest perfekcyjna (używa weryfikacji VeraPDF)"
@@ -4184,7 +4195,7 @@ showPreferencesBtn = "Zarządzaj preferencjami"
 title = "Jak używamy plików cookie"
 
 [cookieBanner.popUp.description]
-1 = "Używamy cookies i innych technologii, aby Stirling PDF działał dla Ciebie lepiej — pomagają nam ulepszać narzędzia i nadal tworzyć funkcje, które polubisz."
+1 = "Używamy cookies i innych technologii, aby Promin działał dla Ciebie lepiej — pomagają nam ulepszać narzędzia i nadal tworzyć funkcje, które polubisz."
 2 = "Jeśli wolisz nie, kliknięcie „Nie, dziękuję” włączy tylko niezbędne cookies potrzebne do sprawnego działania."
 
 [cookieBanner.preferencesModal]
@@ -4197,12 +4208,12 @@ subtitle = "Użycie plików cookie"
 title = "Centrum preferencji zgód"
 
 [cookieBanner.preferencesModal.analytics]
-description = "Te cookies pomagają nam zrozumieć, jak używane są nasze narzędzia, abyśmy mogli skupić się na tworzeniu funkcji najbardziej cenionych przez naszą społeczność. Zapewniamy — Stirling PDF nie może i nigdy nie będzie śledzić treści dokumentów, z którymi pracujesz."
+description = "Te cookies pomagają nam zrozumieć, jak używane są nasze narzędzia, abyśmy mogli skupić się na tworzeniu funkcji najbardziej cenionych przez naszą społeczność. Zapewniamy — Promin nie może i nigdy nie będzie śledzić treści dokumentów, z którymi pracujesz."
 title = "Analityka"
 
 [cookieBanner.preferencesModal.description]
-1 = "Stirling PDF używa plików cookie i podobnych technologii, aby poprawić Twoje wrażenia i zrozumieć, jak używane są nasze narzędzia. Pomaga nam to poprawiać wydajność, rozwijać funkcje, na których zależy naszej społeczności, i zapewniać bieżące wsparcie użytkownikom."
-2 = "Stirling PDF nie może — i nigdy nie będzie — śledzić ani uzyskiwać dostępu do treści używanych przez Ciebie dokumentów."
+1 = "Promin używa plików cookie i podobnych technologii, aby poprawić Twoje wrażenia i zrozumieć, jak używane są nasze narzędzia. Pomaga nam to poprawiać wydajność, rozwijać funkcje, na których zależy naszej społeczności, i zapewniać bieżące wsparcie użytkownikom."
+2 = "Promin nie może — i nigdy nie będzie — śledzić ani uzyskiwać dostępu do treści używanych przez Ciebie dokumentów."
 3 = "Twoja prywatność i zaufanie są w centrum tego, co robimy."
 
 [cookieBanner.preferencesModal.necessary]
@@ -4311,11 +4322,11 @@ message = "Nie udało się ustawić domyślnej obsługi PDF"
 title = "Błąd"
 
 [defaultApp.settingsOpened]
-message = "W Ustawieniach Windows wyszukaj „PDF” i wybierz Stirling PDF jako domyślną aplikację"
+message = "W Ustawieniach Windows wyszukaj „PDF” i wybierz Promin jako domyślną aplikację"
 title = "Otworzono ustawienia"
 
 [defaultApp.success]
-message = "Stirling PDF jest teraz domyślnym edytorem PDF"
+message = "Promin jest teraz domyślnym edytorem PDF"
 title = "Ustawiono domyślną aplikację"
 
 [desktop.fileSave]
@@ -4332,7 +4343,7 @@ minimize = "Minimalizuj"
 restore = "Przywróć"
 
 [desktopBilling]
-description = "Zarządzaj użyciem i rozliczeniami w przeglądarce. Zaloguj się tym samym kontem Stirling, którego używasz tutaj."
+description = "Zarządzaj użyciem i rozliczeniami w przeglądarce. Zaloguj się tym samym kontem Promin, którego używasz tutaj."
 open = "Otwórz użycie i rozliczenia w przeglądarce"
 openFailed = "Nie udało się otworzyć użycia i rozliczeń. Sprawdź połączenie i spróbuj ponownie."
 selfHostedDescription = "Zarządzaj użyciem i rozliczeniami na połączonym serwerze w przeglądarce. Zaloguj się kontem właściciela serwera."
@@ -4384,7 +4395,7 @@ updateFailedMessage = "Nie udało się pobrać lub zainstalować aktualizacji."
 
 [desktopUpdate.blocked]
 docsLink = "Zobacz dokumentację instalacji"
-message = "Stirling-PDF nie ma uprawnień do samodzielnej aktualizacji na tym komputerze."
+message = "Promin nie ma uprawnień do samodzielnej aktualizacji na tym komputerze."
 title = "Wymagane uprawnienia administratora"
 
 [devAirgapped]
@@ -4840,13 +4851,13 @@ save = "Zmień nazwę"
 title = "Zmień nazwę pliku"
 
 [filesPage]
-addedToLibrary = "Dodano do biblioteki Stirling"
-addingToLibrary = "Dodawanie do biblioteki Stirling…"
-addToLibrary = "Dodaj do biblioteki Stirling…"
+addedToLibrary = "Dodano do biblioteki Promin"
+addingToLibrary = "Dodawanie do biblioteki Promin…"
+addToLibrary = "Dodaj do biblioteki Promin…"
 addToLibraryFailed = "Nie udało się dodać niektórych plików"
 addToWorkspace = "Dodaj do przestrzeni roboczej"
 addToWorkspaceCount = "Dodaj {{count}} do przestrzeni roboczej"
-allFiles = "Biblioteka Stirling"
+allFiles = "Biblioteka Promin"
 back = "Wstecz"
 backToFolder = "Wróć do {{folder}}"
 backToMyFiles = "Wróć do biblioteki plików"
@@ -4874,7 +4885,7 @@ deleteFolderContents_one = "Usuń także {{count}} plik w folderze"
 deleteFolderContents_other = "Usuń także {{count}} plików w folderze"
 deleteFolderContentsWarning = "Pliki zostaną trwale usunięte i nie będzie można ich odzyskać."
 deleteFolderError = "Nie udało się usunąć folderu. Spróbuj ponownie."
-deleteFolderKeepHint = "Pliki znajdujące się w środku zostaną przeniesione do biblioteki Stirling."
+deleteFolderKeepHint = "Pliki znajdujące się w środku zostaną przeniesione do biblioteki Promin."
 deleteFolderTitle = "Usunąć folder?"
 deselectAll = "Wyczyść zaznaczenie"
 details = "Szczegóły"
@@ -4912,7 +4923,7 @@ moveSkippedRemote_other = "Nie udało się przenieść {{count}} plików na serw
 moveTo = "Przenieś do…"
 newFolder = "Nowy folder"
 newFolderStorageDisabled = "Przechowywanie folderów na serwerze nie jest włączone."
-newFolderTabUnavailable = "Przełącz na bibliotekę Stirling, aby tworzyć foldery."
+newFolderTabUnavailable = "Przełącz na bibliotekę Promin, aby tworzyć foldery."
 offlineNoFolderEdits = "Synchronizacja folderów z serwerem jest niedostępna – zmiany folderów są wyłączone. Sprawdź logowanie i konfigurację pamięci."
 open = "Otwórz"
 openVersionInWorkspace = "Otwórz w przestrzeni roboczej"
@@ -4921,7 +4932,7 @@ recentFiles = "Ostatnie"
 refresh = "Odśwież"
 refreshNeedsConnection = "Zaloguj się, aby odświeżyć dane z serwera."
 remove = "Usuń"
-removeLocalFolder = "Odłącz od Stirling"
+removeLocalFolder = "Odłącz od Promin"
 removeVersion = "Usuń tę wersję"
 rename = "Zmień nazwę"
 renamed = "Zmieniono nazwę"
@@ -4933,7 +4944,7 @@ selectAll = "Zaznacz wszystko"
 selectedCount = "Wybrano: {{count}}"
 selectedFile = "{{name}}, wybrano"
 selectFile = "Wybierz plik {{name}}"
-serverFolderNeedsConnection = "Zaloguj się do Stirling Cloud lub połącz serwer self-hosted, aby używać folderów serwera."
+serverFolderNeedsConnection = "Zaloguj się do Promin Cloud lub połącz serwer self-hosted, aby używać folderów serwera."
 shareDisabledHint = "Udostępnianie plików nie jest włączone na tym serwerze. Poproś administratora, aby je włączył."
 shareManage = "Zarządzaj udostępnianiem"
 showDetails = "Pokaż szczegóły"
@@ -4943,7 +4954,7 @@ summary_other = "{{count}} elementów"
 tree = "Foldery"
 unmount = "Odłącz"
 unmountFolderBody = "Odłączyć \"{{name}}\"? Folder i jego pliki pozostaną na dysku."
-unmountFolderTitle = "Odłączyć od Stirling?"
+unmountFolderTitle = "Odłączyć od Promin?"
 upload = "Prześlij"
 uploadFromMobile = "Prześlij z telefonu"
 versionActions = "Akcje wersji"
@@ -4986,7 +4997,7 @@ orphaned = "Brak na dysku"
 orphanedHint = "Oryginał w {{path}} zniknął. Ta kopia jest tylko tutaj — zapisanie poprosi o nową lokalizację."
 unavailable = "Niedostępne"
 unavailableHintOffline = "Dysk lub udział, na którym znajduje się ten plik, nie jest podłączony. Podłącz go ponownie, aby znów odbierać zmiany."
-unavailableHintPermission = "Stirling nie ma uprawnień do odczytu tej lokalizacji. Przyznaj dostęp w ustawieniach systemu, aby znów odbierać zmiany."
+unavailableHintPermission = "Promin nie ma uprawnień do odczytu tej lokalizacji. Przyznaj dostęp w ustawieniach systemu, aby znów odbierać zmiany."
 unavailableHintUnknown = "Ten plik jest teraz niedostępny. Kopia tutaj pozostaje bez zmian."
 
 [filesPage.diskState]
@@ -5101,7 +5112,7 @@ placeholder = "Nazwa folderu"
 
 [filesPage.folderOrigin]
 diskHint = "Folder zamontowany z katalogu na Twoim dysku"
-serverHint = "Folder przechowywany na serwerze Stirling"
+serverHint = "Folder przechowywany na serwerze Promin"
 virtualHint = "Folder istniejący tylko w tej przeglądarce"
 
 [filesPage.moveDialog]
@@ -5125,7 +5136,7 @@ serverHint = "Synchronizowany z Twoim kontem, dostępny wszędzie tam, gdzie si�
 [filesPage.origin]
 all = "Wszystkie źródła"
 cloud = "Chmura"
-cloudHint = "Przechowywane na serwerze Stirling"
+cloudHint = "Przechowywane na serwerze Promin"
 diskFileHint = "Przechowywany na Twoim komputerze"
 diskHint = "Plik w zamontowanym folderze na Twoim dysku"
 local = "Lokalne"
@@ -5135,7 +5146,7 @@ sharedHint = "Udostępnione Tobie przez link"
 
 [filesPage.processing]
 active = "Przetwarzanie folderu"
-blockedNeedsConnection = "Zaloguj się do Stirling Cloud lub połącz serwer self-hosted, aby przetwarzać foldery."
+blockedNeedsConnection = "Zaloguj się do Promin Cloud lub połącz serwer self-hosted, aby przetwarzać foldery."
 edit = "Edytuj przetwarzanie..."
 nothingToRestore = "Brak oryginałów do przywrócenia — te pliki są już swoimi oryginałami."
 paused = "Przetwarzanie wstrzymane"
@@ -5537,7 +5548,7 @@ invisible = "Niewidoczne (tylko metadane)"
 location = "Lokalizacja:"
 logo = "Logo:"
 logoHidden = "Bez logo"
-logoShown = "Wyświetlane logo Stirling PDF"
+logoShown = "Wyświetlane logo Promin"
 participantCount_one = "Wybrano {{count}} uczestnika"
 participantCount_other = "Wybrano {{count}} uczestników"
 participants = "Uczestnicy"
@@ -5588,7 +5599,7 @@ title = "Podpisywanie w dowolnej kolejności"
 dismiss = "Zamknij baner"
 message = "Utwórz bezpłatne konto, aby zapisywać pracę, uzyskać dostęp do większej liczby funkcji i wesprzeć projekt."
 signUp = "Zarejestruj się za darmo"
-title = "Używasz Stirling PDF jako gość!"
+title = "Używasz Promin jako gość!"
 
 [home.addAttachments]
 desc = "Wyświetlaj, dodawaj, wyodrębniaj, zmieniaj nazwy lub usuwaj osadzone załączniki PDF"
@@ -5767,7 +5778,7 @@ tags = "połącz,złącz,scal,scal,scal PDF,połącz PDF,złącz PDF,konkatenacj
 title = "Połącz"
 
 [home.mobile]
-brandAlt = "Logo Stirling PDF"
+brandAlt = "Logo Promin"
 openFiles = "Otwórz pliki"
 swipeHint = "Przesuń w lewo lub prawo, aby zmieniać widoki"
 tools = "Narzędzia"
@@ -5801,7 +5812,7 @@ tags = "organizuj,przestaw,zmień kolejność,rozmieść strony,sortuj,przenieś
 title = "Uporządkuj"
 
 [home.pdfTextEditor]
-desc = "Przeglądaj i edytuj eksporty JSON z Stirling PDF z grupową edycją tekstu i ponowną generacją PDF"
+desc = "Przeglądaj i edytuj eksporty JSON z Promin z grupową edycją tekstu i ponowną generacją PDF"
 tags = "edytuj tekst,modyfikuj tekst,zmień tekst,edytuj treść,aktualizuj tekst,przepisz,popraw,koryguj,korekta,rewiduj,edytor tekstu,edytor treści"
 title = "Edytor tekstu PDF"
 
@@ -5979,7 +5990,7 @@ passwordRequired = "Hasło jest wymagane"
 signIn = "Zaloguj się"
 validating = "Weryfikowanie zaproszenia..."
 validationError = "Nie udało się zweryfikować linku zaproszenia"
-welcome = "Witamy w Stirling PDF"
+welcome = "Witamy w Promin"
 welcomeSubtitle = "Dokończ konfigurację konta, aby rozpocząć"
 welcomeTitle = "Zaproszono Cię!"
 
@@ -6026,8 +6037,8 @@ terms = "Zasady i Postanowienia"
 title = "Licencje stron trzecich"
 
 [localMode]
-automationUnavailable = "Zaloguj się do Stirling Cloud lub serwera self-hosted, aby używać folderów przetwarzania i potoków."
-toolUnavailable = "To narzędzie wymaga konta. Zaloguj się do Stirling Cloud lub połącz z serwerem self-hosted, aby z niego skorzystać."
+automationUnavailable = "Zaloguj się do Promin Cloud lub serwera self-hosted, aby używać folderów przetwarzania i potoków."
+toolUnavailable = "To narzędzie wymaga konta. Zaloguj się do Promin Cloud lub połącz z serwerem self-hosted, aby z niego skorzystać."
 
 [localMode.toolPicker]
 message = "Zaloguj się, aby odblokować wszystkie narzędzia."
@@ -6099,14 +6110,16 @@ viewerModeHint = "Scalanie wymaga co najmniej 2 plików. Przejdź do edytora pli
 failed = "Wystąpił błąd podczas scalania plików PDF."
 
 [merge.generateTableOfContents]
-label = "Wygenerować spis treści w scalonym pliku?"
+description = "Dodaje klikalny spis treści z nazwami plików źródłowych i numerami stron."
+label = "Utwórz spis treści"
 
 [merge.generateTableOfContents.tooltip]
 description = "Automatycznie tworzy klikalny spis treści w scalonym PDF na podstawie oryginalnych nazw plików i numerów stron."
 title = "Wygeneruj spis treści"
 
 [merge.removeDigitalSignature]
-label = "Usunąć podpis cyfrowy w scalonym pliku?"
+description = "Łączenie unieważnia podpisy cyfrowe. Włącz tę opcję, aby usunąć je z wyniku."
+label = "Usuń podpisy cyfrowe z połączonego pliku"
 
 [merge.removeDigitalSignature.tooltip]
 description = "Podpisy cyfrowe zostaną unieważnione podczas scalania plików. Zaznacz to, aby usunąć je z końcowego scalonego PDF."
@@ -6119,9 +6132,12 @@ title = "Ustawienia"
 ascending = "Rosnąco"
 dateModified = "Data modyfikacji"
 descending = "Malejąco"
-description = "Pliki zostaną scalone w pokazanej kolejności. Przeciągnij, aby zmienić kolejność, lub posortuj poniżej."
+description = "Pliki zostaną scalone w pokazanej kolejności. Zmieniaj ją strzałkami lub posortuj listę poniżej."
 filename = "Nazwa pliku"
 label = "Sortuj według"
+moveDown = "Przenieś „{{fileName}}” w dół"
+moveUp = "Przenieś „{{fileName}}” w górę"
+orderLabel = "Kolejność łączenia"
 sort = "Sortuj"
 
 [merge.sortFiles]
@@ -6267,7 +6283,7 @@ message = "Uwierzytelnienie nie zakończyło się pomyślnie. Możesz zamknąć 
 title = "Uwierzytelnienie nie powiodło się"
 
 [oauth.success]
-message = "Możesz zamknąć to okno i wrócić do Stirling PDF."
+message = "Możesz zamknąć to okno i wrócić do Promin."
 title = "Uwierzytelnienie powiodło się"
 
 [oauthConsent]
@@ -6280,17 +6296,17 @@ loadFailed = "This authorisation request is invalid or has expired. Close this t
 loading = "Loading authorisation request..."
 missingId = "Missing authorisation request. Start the connection from your app and try again."
 redirecting = "Powrót do aplikacji..."
-requesting = "{{app}} chce uzyskać dostęp do Twojego konta Stirling PDF"
+requesting = "{{app}} chce uzyskać dostęp do Twojego konta Promin"
 scopesIntro = "To pozwoli {{app}} na:"
 signedInAs = "Zalogowano jako {{name}}"
 signInButton = "Zaloguj się, aby kontynuować"
-signInPrompt = "Zaloguj się na swoje konto Stirling PDF, aby kontynuować łączenie aplikacji."
+signInPrompt = "Zaloguj się na swoje konto Promin, aby kontynuować łączenie aplikacji."
 title = "Authorise access"
 unknownApp = "Aplikacja innej firmy"
 
 [oauthConsent.access]
 actAsYou = "Działać jako Ty — wszystko, co robi {{app}}, odbywa się na Twoim koncie i liczy się do Twojego użycia"
-tools = "Używać narzędzi Stirling PDF w Twoim imieniu — konwertować, edytować, podpisywać, zabezpieczać i przetwarzać Twoje dokumenty"
+tools = "Używać narzędzi Promin w Twoim imieniu — konwertować, edytować, podpisywać, zabezpieczać i przetwarzać Twoje dokumenty"
 
 [oauthConsent.scope]
 email = "Wyświetlać Twój adres email"
@@ -6310,9 +6326,12 @@ title = "Zaawansowane"
 failed = "Operacja OCR nie powiodła się"
 
 [ocr.languagePicker]
-additionalLanguages = "Szukasz dodatkowych języków?"
+additionalLanguages = "Dostępne są języki zainstalowane w tej wersji programu."
+loadFailed = "Nie udało się załadować lokalnie zainstalowanych języków OCR."
 loading = "Ładowanie dostępnych języków..."
-viewSetupGuide = "Zobacz przewodnik konfiguracji →"
+noLanguages = "W tej lokalnej wersji Promin nie zainstalowano języków OCR."
+retry = "Spróbuj ponownie"
+suggestedLanguage = "Zaproponowano język interfejsu. Sprawdź, czy odpowiada językowi pliku PDF."
 
 [ocr.operation]
 submit = "Uruchom OCR i przejrzyj"
@@ -6420,26 +6439,26 @@ skipTheTour = "Pomiń przewodnik"
 
 [onboarding.checklist]
 dismiss = "Odrzuć"
-title = "Skonfiguruj Stirling PDF"
+title = "Skonfiguruj Promin"
 
 [onboarding.checklist.downloadDesktop]
-description = "Uruchom Stirling natywnie na swoim komputerze"
-title = "Pobierz Stirling dla komputerów"
+description = "Uruchom Promin natywnie na swoim komputerze"
+title = "Pobierz Promin dla komputerów"
 
 [onboarding.checklist.inviteTeam]
 description = "Współpracuj ze swoim zespołem"
 title = "Zaproś członków zespołu"
 
 [onboarding.checklist.setDefaultApp]
-description = "Otwieraj pliki PDF w Stirling PDF"
-title = "Ustaw Stirling jako domyślny"
+description = "Otwieraj pliki PDF w Promin"
+title = "Ustaw Promin jako domyślny"
 
 [onboarding.checklist.takeTour]
-description = "Zobacz, jak działa Stirling w krótkim przewodniku"
+description = "Zobacz, jak działa Promin w krótkim przewodniku"
 title = "Rozpocznij prezentację"
 
 [onboarding.desktopInstall]
-body = "Stirling najlepiej działa jako aplikacja desktopowa. Możesz używać go offline, szybciej otwierać dokumenty i wprowadzać zmiany lokalnie na komputerze."
+body = "Promin najlepiej działa jako aplikacja desktopowa. Możesz używać go offline, szybciej otwierać dokumenty i wprowadzać zmiany lokalnie na komputerze."
 selectOs = "Wybierz system operacyjny"
 title = "Pobierz"
 titleWithOs = "Pobierz dla {{osLabel}}"
@@ -6447,7 +6466,7 @@ titleWithOs = "Pobierz dla {{osLabel}}"
 [onboarding.desktopWelcome]
 body = "Jest mnóstwo nowych zmian do odkrycia, w tym <strong>Agent Chat</strong>, automatyczna <strong>klasyfikacja</strong> dokumentów i nie tylko."
 freeLine = "Edytor jest teraz <free>całkowicie darmowy</free>."
-title = "Witamy w Stirling <product>Desktop</product>"
+title = "Witamy w Promin <product>Desktop</product>"
 
 [onboarding.mfa]
 authenticationCode = "Kod uwierzytelniający"
@@ -6468,21 +6487,21 @@ success = "MFA zostało włączone. Możesz teraz kontynuować."
 title = "Konfiguracja uwierzytelniania wieloskładnikowego"
 
 [onboarding.planOverview]
-adminBodyLoginDisabled = "Po włączeniu trybu logowania możesz zarządzać użytkownikami, konfigurować ustawienia i monitorować kondycję serwera. Pierwsze <strong>{{freeTierLimit}}</strong> osób na Twoim serwerze korzysta ze Stirling bez opłat."
-adminBodyLoginEnabled = "Jako administrator możesz zarządzać użytkownikami, konfigurować ustawienia i monitorować kondycję serwera. Pierwsze <strong>{{freeTierLimit}}</strong> osób na Twoim serwerze korzysta ze Stirling bez opłat."
+adminBodyLoginDisabled = "Po włączeniu trybu logowania możesz zarządzać użytkownikami, konfigurować ustawienia i monitorować kondycję serwera. Pierwsze <strong>{{freeTierLimit}}</strong> osób na Twoim serwerze korzysta ze Promin bez opłat."
+adminBodyLoginEnabled = "Jako administrator możesz zarządzać użytkownikami, konfigurować ustawienia i monitorować kondycję serwera. Pierwsze <strong>{{freeTierLimit}}</strong> osób na Twoim serwerze korzysta ze Promin bez opłat."
 adminTitle = "Przegląd dla administratora"
 userBody = "Zapraszaj członków zespołu, przypisuj role i utrzymuj porządek w dokumentach w jednym bezpiecznym miejscu pracy. Włącz tryb logowania, gdy będziesz gotów wyjść poza użycie solo."
 userTitle = "Przegląd planu"
 
 [onboarding.processorIntro]
-body = "Stirling uruchamia teraz <strong>Zasady</strong> — automatyczne reguły, które klasyfikują, zabezpieczają i przetwarzają każdy dokument po jego nadejściu. Skonfiguruj je i monitoruj uruchomienia w <strong>Processor</strong>."
+body = "Promin uruchamia teraz <strong>Zasady</strong> — automatyczne reguły, które klasyfikują, zabezpieczają i przetwarzają każdy dokument po jego nadejściu. Skonfiguruj je i monitoruj uruchomienia w <strong>Processor</strong>."
 cta = "Sprawdź Processor"
-title = "Sprawdź Stirling Processor"
+title = "Sprawdź Promin Processor"
 
 [onboarding.saas.freeEditor]
 freeLine = "Edytor jest teraz <free>całkowicie darmowy</free>."
 premium = "Dodaliśmy mnóstwo nowych funkcji, w tym <strong>Polityki</strong> i <strong>Agent Chat</strong>."
-title = "Witamy w Stirling"
+title = "Witamy w Promin"
 
 [onboarding.saas.team]
 addButton = "Dodaj"
@@ -6503,20 +6522,20 @@ roleUser = "Użytkownik"
 title = "Kontrola bezpieczeństwa"
 
 [onboarding.serverLicense]
-freeBody = "Nasza licencja <strong>Open-Core</strong> obejmuje <strong>OAuth SSO</strong> i maksymalnie <strong>{{freeTierLimit}}</strong> użytkowników bez opłat. Aby rozwijać się bez przerw, polecamy plan Stirling Team — <strong>100 użytkowników</strong> za 99 USD/miesiąc."
+freeBody = "Nasza licencja <strong>Open-Core</strong> obejmuje <strong>OAuth SSO</strong> i maksymalnie <strong>{{freeTierLimit}}</strong> użytkowników bez opłat. Aby rozwijać się bez przerw, polecamy plan Promin Team — <strong>100 użytkowników</strong> za 99 USD/miesiąc."
 freeTitle = "Plan Team"
-overLimitBody = "Nasza licencja pozwala na maksymalnie <strong>{{freeTierLimit}}</strong> użytkowników za darmo. Masz <strong>{{overLimitUserCopy}}</strong> użytkowników Stirling. Aby kontynuować bez przerw, przejdź na plan Stirling Team — <strong>100 użytkowników</strong>, edycja tekstu PDF i pełna kontrola administracyjna za 99 USD/mies."
+overLimitBody = "Nasza licencja pozwala na maksymalnie <strong>{{freeTierLimit}}</strong> użytkowników za darmo. Masz <strong>{{overLimitUserCopy}}</strong> użytkowników Promin. Aby kontynuować bez przerw, przejdź na plan Promin Team — <strong>100 użytkowników</strong>, edycja tekstu PDF i pełna kontrola administracyjna za 99 USD/mies."
 overLimitTitle = "Wymagany plan Team"
 seePlans = "Zobacz plany →"
 upgrade = "Ulepsz teraz →"
 
 [onboarding.tourOverview]
-body = "Stirling PDF V2 zawiera dziesiątki narzędzi i odświeżony układ. Zrób szybki przegląd, aby zobaczyć, co się zmieniło i gdzie znaleźć potrzebne funkcje."
+body = "Promin V2 zawiera dziesiątki narzędzi i odświeżony układ. Zrób szybki przegląd, aby zobaczyć, co się zmieniło i gdzie znaleźć potrzebne funkcje."
 title = "Przegląd przewodnika"
 
 [onboarding.welcomeSlide]
-body = "Stirling PDF jest teraz gotowy dla zespołów każdej wielkości. Ta aktualizacja obejmuje nowy układ, potężne możliwości administracyjne oraz naszą najczęściej żądaną funkcję – <strong>Edytuj tekst</strong>."
-title = "Witamy w Stirling"
+body = "Promin jest teraz gotowy dla zespołów każdej wielkości. Ta aktualizacja obejmuje nowy układ, potężne możliwości administracyjne oraz naszą najczęściej żądaną funkcję – <strong>Edytuj tekst</strong>."
+title = "Witamy w Promin"
 
 [onboarding.whatsNew]
 activeFilesView = "Użyj Aktywnych plików, aby zobaczyć wszystko, co masz otwarte, i wybrać, nad czym pracować."
@@ -6603,7 +6622,7 @@ check = "Sprawdź ponownie"
 checkAccount = "Sprawdź konto"
 chooseEmail = "Wybierz ich konto w {{team}} lub wpisz adres e-mail, aby ich zaprosić."
 close = "Zamknij okno transferu"
-cloudAccount = "Konto Stirling"
+cloudAccount = "Konto Promin"
 cloudScopeStyled = "<user>{{name}}</user> będzie zarządzać zespołem {{team}}, jego członkami i rozliczeniami."
 cloudTargetChanged = "Wybierz innego członka zespołu w chmurze. To konto nie kwalifikuje się już do przekazania."
 confirm = "Rozumiem zmiany dostępu i własności."
@@ -6618,7 +6637,7 @@ inviteAddress = "Zaproś <account>{{email}}</account> do {{team}}."
 inviteBlocked = "Nie udało się wysłać zaproszenia. Sprawdź dostępne miejsca w zespole i czy odbiorca ma już płatną subskrypcję."
 linkChanged = "Połączenie serwera z chmurą uległo zmianie. Poproś operatora serwera o przywrócenie pierwotnego połączenia przed wznowieniem."
 linkedServerCount = "{{count}} połączonych serwerów"
-linkRevoked = "Połączenie tego serwera z chmurą nie jest już ważne. Anuluj transfer, a następnie ponownie połącz swoje konto Stirling w ustawieniach. Własność nie zostanie zmieniona."
+linkRevoked = "Połączenie tego serwera z chmurą nie jest już ważne. Anuluj transfer, a następnie ponownie połącz swoje konto Promin w ustawieniach. Własność nie zostanie zmieniona."
 localScope = "Będą właścicielem tego serwera oraz będą zarządzać rozliczeniami i połączeniami z chmurą. Zachowasz dostęp administratora, ale utracisz dostęp do tych ustawień."
 membershipDetails = "Szczegóły członkostwa w zespole"
 membershipFirst = "Muszą dołączyć do zespołu, zanim potwierdzisz transfer."
@@ -6946,7 +6965,7 @@ benefit1Body = "łącz narzędzia, planuj uruchomienia, przetwarzaj wsadowo"
 benefit1Title = "Pipeline automatyzacji"
 benefit2Body = "summarise, classify, redact, AI-OCR"
 benefit2Title = "Narzędzia AI"
-benefit3Body = "wywołuj dowolny endpoint Stirling programowo"
+benefit3Body = "wywołuj dowolny endpoint Promin programowo"
 benefit3Title = "Dostęp API"
 button = "Włącz Processor →"
 reassurance = "Bez minimum · Ustaw limit 0 USD, aby testować · Anuluj w dowolnym momencie"
@@ -7036,7 +7055,7 @@ editorLabel = "Edytor PDF"
 login = "Zaloguj się"
 manualToolsPromo = "Nieograniczone darmowe ręczne narzędzia PDF"
 processorLabel = "Procesor PDF"
-processorTitle = "Utwórz konto, aby odblokować to, co najlepsze w Stirling"
+processorTitle = "Utwórz konto, aby odblokować to, co najlepsze w Promin"
 readerLabel = "Czytnik PDF"
 
 [payg.spendCapMeter]
@@ -7076,7 +7095,7 @@ usdNote = "Szacowane w USD. Możesz dostosować limit w dowolnym momencie po sub
 [payg.upgrade.checkout]
 capValue = "{{symbol}}{{amount}} / miesiąc"
 edit = "Edytuj"
-help = "Stripe obsługuje dane Twojej karty. Stirling nigdy ich nie widzi."
+help = "Stripe obsługuje dane Twojej karty. Promin nigdy ich nie widzi."
 loading = "Ładowanie checkout…"
 noCap = "Bez limitu"
 title = "Dodaj metodę płatności"
@@ -7084,7 +7103,7 @@ title = "Dodaj metodę płatności"
 [payg.upgrade.help]
 aiBody = "summarise, classify, redact, AI-OCR"
 aiTitle = "Narzędzia AI"
-apiBody = "programowy dostęp do dowolnego endpoint Stirling"
+apiBody = "programowy dostęp do dowolnego endpoint Promin"
 apiTitle = "Wywołania API"
 automationBody = "połączone narzędzia lub zaplanowane uruchomienia, które nie wymagają kliknięć"
 automationTitle = "Pipeline automatyzacji"
@@ -7917,35 +7936,35 @@ pdfa-3b = "PDF/A-3b"
 ownerRequired = "Tylko właściciel organizacji może połączyć lub odłączyć ten serwer."
 
 [portal.accountLink.card]
-billingNote = "Ten serwer współdzieli przydział przetwarzania Twojego zespołu w Stirling Cloud."
-connectDescription = "Połącz ten serwer, aby używać limitu przetwarzania swojego zespołu w Stirling Cloud."
-disconnectBody = "Ten serwer przestanie używać limitu przetwarzania Twojego zespołu w Stirling Cloud. Twoje pliki lokalne pozostaną na tym serwerze. Aby połączyć ponownie, wykonaj pierwotne kroki połączenia."
+billingNote = "Ten serwer współdzieli przydział przetwarzania Twojego zespołu w Promin Cloud."
+connectDescription = "Połącz ten serwer, aby używać limitu przetwarzania swojego zespołu w Promin Cloud."
+disconnectBody = "Ten serwer przestanie używać limitu przetwarzania Twojego zespołu w Promin Cloud. Twoje pliki lokalne pozostaną na tym serwerze. Aby połączyć ponownie, wykonaj pierwotne kroki połączenia."
 disconnectTitle = "Odłączyć tę instancję?"
 eyebrow = "Ta instancja"
-linkButton = "Połącz swoje konto Stirling"
+linkButton = "Połącz swoje konto Promin"
 loading = "Sprawdzanie połączenia z kontem"
 notLinked = "Nie połączono"
-signedInAs = "Zalogowano do Stirling Cloud jako"
+signedInAs = "Zalogowano do Promin Cloud jako"
 statusError = "Nie udało się sprawdzić połączenia z kontem"
-title = "Stirling Cloud"
+title = "Promin Cloud"
 unlink = "Odłącz tę instancję"
 
 [portal.accountLink.card.error]
 title = "Nie udało się zaktualizować połączenia"
 
 [portal.accountLink.card.loginNotConfigured]
-description = "Poproś administratora serwera o włączenie połączenia ze Stirling Cloud."
+description = "Poproś administratora serwera o włączenie połączenia ze Promin Cloud."
 title = "Połączenie konta niedostępne"
 
 [portal.accountLink.connect]
-adminRequired = "Poproś administratora serwera o otwarcie Użycie i rozliczenia oraz połączenie konta Stirling, aby uzyskać więcej miesięcznych kredytów. Ręczne narzędzia PDF są nadal dostępne."
+adminRequired = "Poproś administratora serwera o otwarcie Użycie i rozliczenia oraz połączenie konta Promin, aby uzyskać więcej miesięcznych kredytów. Ręczne narzędzia PDF są nadal dostępne."
 adminTitle = "Poproś administratora serwera"
 close = "Zamknij"
 copied = "Skopiowano"
 copyAdminMessage = "Kopiuj wiadomość dla administratora"
-exhaustedLede = "Ten serwer wykorzystał darmowe kredyty na ten miesiąc. Połącz nowe lub istniejące konto Stirling, aby uzyskać dostęp do miesięcznego limitu swojego zespołu."
+exhaustedLede = "Ten serwer wykorzystał darmowe kredyty na ten miesiąc. Połącz nowe lub istniejące konto Promin, aby uzyskać dostęp do miesięcznego limitu swojego zespołu."
 notNow = "Nie teraz"
-start = "Połącz konto Stirling"
+start = "Połącz konto Promin"
 step = "Krok {{current}} z {{total}}"
 
 [portal.accountLink.connect.benefits]
@@ -7959,9 +7978,9 @@ teamsDetail = "Dodaj więcej użytkowników dzięki płatnemu planowi Team"
 teamsLabel = "Większe zespoły"
 
 [portal.accountLink.connect.callback]
-linkedNotSignedIn = "Nie jesteś zalogowany do Stirling w tej przeglądarce, więc użycie i rozliczenia poproszą Cię o zalogowanie."
+linkedNotSignedIn = "Nie jesteś zalogowany do Promin w tej przeglądarce, więc użycie i rozliczenia poproszą Cię o zalogowanie."
 retry = "Spróbuj ponownie"
-signedInAnyway = "Jesteś zalogowany do Stirling, więc rozliczenia i użycie się załadują. Tylko połączenie z serwerem jest niekompletne."
+signedInAnyway = "Jesteś zalogowany do Promin, więc rozliczenia i użycie się załadują. Tylko połączenie z serwerem jest niekompletne."
 working = "Kończenie połączenia."
 
 [portal.accountLink.connect.callback.expired]
@@ -7977,7 +7996,7 @@ body = "To żądanie zostało odrzucone lub już użyte. Rozpocznij kolejne, je�
 title = "Połączenie nie zostało ukończone"
 
 [portal.accountLink.connect.callback.unfinished]
-body = "Stirling nie potwierdził połączenia. Zwykle jest to tymczasowe."
+body = "Promin nie potwierdził połączenia. Zwykle jest to tymczasowe."
 title = "Jeszcze nie zakończono"
 
 [portal.accountLink.connect.done]
@@ -7988,23 +8007,23 @@ creditsBarLabel = "Pozostałe darmowe kredyty"
 creditsSuffix = "z {{allowance}} darmowych kredytów pozostałych"
 cta = "Gotowe"
 inviteTeam = "Zaproś swój zespół"
-lede = "Ten serwer działa teraz z Twoim kontem Stirling."
+lede = "Ten serwer działa teraz z Twoim kontem Promin."
 pendingTitle = "Prawie gotowe"
 switchOnProcessor = "Włącz Processor"
 title = "Połączono"
 
 [portal.accountLink.connect.handoff]
-opening = "Otwieranie logowania Stirling..."
-reauthLede = "Twoja sesja Stirling wygasła. Ponowne zalogowanie zapewnia widoczność użycia i rozliczeń. Ten serwer pozostaje połączony niezależnie od tego."
+opening = "Otwieranie logowania Promin..."
+reauthLede = "Twoja sesja Promin wygasła. Ponowne zalogowanie zapewnia widoczność użycia i rozliczeń. Ten serwer pozostaje połączony niezależnie od tego."
 title = "Łączenie"
 
 [portal.accountLink.connectionNotice]
-expiredBody = "Ten serwer nie połączył się ze Stirling Cloud w ramach dozwolonego czasu offline. Funkcje Team wspierane przez chmurę i praca Processor są wstrzymane. Istniejące dane i prawa zainstalowanej licencji są zachowane. Dostęp wróci automatycznie po pomyślnym połączeniu, które potwierdzi Twój plan."
+expiredBody = "Ten serwer nie połączył się ze Promin Cloud w ramach dozwolonego czasu offline. Funkcje Team wspierane przez chmurę i praca Processor są wstrzymane. Istniejące dane i prawa zainstalowanej licencji są zachowane. Dostęp wróci automatycznie po pomyślnym połączeniu, które potwierdzi Twój plan."
 expiredTitle = "Dostęp do chmury wstrzymany"
 offlineBody = "Ostatnio potwierdzony plan pozostaje dostępny do {{deadline}}. Przywróć połączenie tego serwera przed tym terminem, aby uniknąć wstrzymania funkcji i przetwarzania wspieranych przez chmurę."
-offlineTitle = "Stirling Cloud jest niedostępny"
+offlineTitle = "Promin Cloud jest niedostępny"
 retry = "Sprawdź połączenie"
-revokedBody = "Stirling Cloud odrzucił to połączenie konta. Połącz konto ponownie w Ustawieniach, aby przywrócić kwalifikujące się funkcje wspierane przez chmurę."
+revokedBody = "Promin Cloud odrzucił to połączenie konta. Połącz konto ponownie w Ustawieniach, aby przywrócić kwalifikujące się funkcje wspierane przez chmurę."
 revokedTitle = "Połączenie konta cofnięte"
 
 [portal.accountLink.failure]
@@ -8033,17 +8052,17 @@ callbackMismatch = "Skonfigurowany adres frontend tego serwera nie pasuje do adr
 cancel = "Anuluj"
 continueReauth = "Zaloguj się ponownie"
 exhaustedTitle = "Utrzymaj działanie swoich przepływów pracy"
-identity = "Konto Stirling"
-linkTitle = "Połącz swoje konto Stirling"
-noAuthorizeUrl = "Stirling nie zwrócił miejsca do kontynuacji. Spróbuj ponownie za chwilę."
-startFailed = "Nie udało się połączyć ze Stirling, aby rozpocząć połączenie. Sprawdź dostęp tego serwera do sieci wychodzącej, a następnie spróbuj ponownie."
+identity = "Konto Promin"
+linkTitle = "Połącz swoje konto Promin"
+noAuthorizeUrl = "Promin nie zwrócił miejsca do kontynuacji. Spróbuj ponownie za chwilę."
+startFailed = "Nie udało się połączyć ze Promin, aby rozpocząć połączenie. Sprawdź dostęp tego serwera do sieci wychodzącej, a następnie spróbuj ponownie."
 transferPending = "Oczekuje transfer własności. Przejdź do Ustawienia → Użytkownicy, aby go zakończyć lub anulować, a następnie spróbuj połączyć ponownie."
 
 [portal.accountLink.modal.loginNotConfigured]
 after = "aby ten serwer mógł dokończyć połączenie po Twoim powrocie."
 and = "oraz"
 before = "Ustaw"
-title = "Połączenie Stirling nie jest skonfigurowane"
+title = "Połączenie Promin nie jest skonfigurowane"
 
 [portal.accountLink.notice]
 loadFailed = "Nie udało się wczytać okna dialogowego łączenia konta."
@@ -8053,11 +8072,11 @@ openFailed = "Nie udało się otworzyć przeglądarki. Otwórz Użycie i rozlicz
 instancesSub = "Self-hosted serwery połączone z tym samym zespołem."
 instancesTitle = "Połączone instancje"
 manageCloud = "Zarządzaj na stirling.com"
-otherInstancesSub = "Inne samodzielnie hostowane serwery połączone z tym samym zespołem w Stirling Cloud."
+otherInstancesSub = "Inne samodzielnie hostowane serwery połączone z tym samym zespołem w Promin Cloud."
 otherInstancesTitle = "Inne połączone instancje"
 revokeError = "Nie udało się unieważnić instancji"
 sessionRequired = "Połączone instancje pojawią się po odnowieniu dostępu do rozliczeń."
-sub = "Zarządzaj połączeniem tego serwera z kontem Stirling Cloud."
+sub = "Zarządzaj połączeniem tego serwera z kontem Promin Cloud."
 
 [portal.accountLink.panel.loadError]
 forbidden = "Tylko właściciel zespołu może zarządzać połączonymi instancjami."
@@ -8080,7 +8099,7 @@ viewAll = "Wyświetl wszystkie potoki"
 
 [portal.accountLink.rail]
 adminCta = "Jak uzyskać więcej kredytów"
-adminSub = "Poproś administratora serwera o połączenie konta Stirling, aby uzyskać więcej kredytów. Ręczne narzędzia PDF są nadal dostępne."
+adminSub = "Poproś administratora serwera o połączenie konta Promin, aby uzyskać więcej kredytów. Ręczne narzędzia PDF są nadal dostępne."
 exhaustedCta = "Połącz konto, aby uzyskać więcej kredytów"
 exhaustedSub = "Połącz, aby otrzymywać miesięczne kredyty, wspólne rozliczenia i możliwość rozwoju z planem Team."
 exhaustedTitle = "Darmowe kredyty tego serwera zostały wykorzystane"
@@ -8094,9 +8113,9 @@ malformed = "Nie udało się zweryfikować tej odpowiedzi logowania. Zacznij pon
 malformedTitle = "Nie udało się zweryfikować logowania"
 rejected = "To żądanie logowania zostało odrzucone albo zostało już użyte. Spróbuj ponownie, aby odnowić dostęp do rozliczeń."
 rejectedTitle = "Logowanie nieukończone"
-retry = "Stirling nie mógł zakończyć odnawiania dostępu do rozliczeń. Spróbuj ponownie za chwilę; Twój serwer nadal jest połączony."
+retry = "Promin nie mógł zakończyć odnawiania dostępu do rozliczeń. Spróbuj ponownie za chwilę; Twój serwer nadal jest połączony."
 retryTitle = "Dostęp do rozliczeń nie został przywrócony"
-success = "Twój dostęp do rozliczeń został odnowiony. Ten serwer nadal jest połączony z tym samym kontem Stirling."
+success = "Twój dostęp do rozliczeń został odnowiony. Ten serwer nadal jest połączony z tym samym kontem Promin."
 title = "Odnów dostęp do rozliczeń"
 working = "Przywracanie dostępu do rozliczeń."
 
@@ -8110,7 +8129,7 @@ close = "Zamknij asystenta"
 error = "Nie udało się połączyć z asystentem."
 errorWithDetail = "Nie udało się połączyć z asystentem: {{detail}}"
 inputAriaLabel = "Zapytaj asystenta"
-inputPlaceholder = "Zapytaj o Stirling…"
+inputPlaceholder = "Zapytaj o Promin…"
 open = "Otwórz asystenta"
 send = "Wyślij"
 title = "Asystent"
@@ -8155,7 +8174,7 @@ title = "Ustaw limit wydatków"
 [portal.billing.checkout.card]
 fields = "Numer karty · MM / RR · CVC · ZIP"
 label = "Dane karty"
-note = "Dane karty są zbierane przez Stripe. Stirling nigdy nie przechowuje PAN ani CVC."
+note = "Dane karty są zbierane przez Stripe. Promin nigdy nie przechowuje PAN ani CVC."
 
 [portal.billing.checkout.error]
 title = "Nie udało się rozpocząć finalizacji zakupu"
@@ -8239,7 +8258,7 @@ pdfsUsed_one = "Przetworzono {{count}} PDF"
 pdfsUsed_other = "Przetworzono {{count}} plików PDF"
 period = "Okres umowy: {{start}} – {{end}}"
 sub = "Wdrożenie air-gapped, SCIM, rezydencja danych, SLA dostępności i odpowiednia umowa."
-title = "Uruchamiasz Stirling w środowisku regulowanym?"
+title = "Uruchamiasz Promin w środowisku regulowanym?"
 trial = "{{days}}-dniowy okres próbny · kończy się {{date}}"
 usersAgreed = "{{used}} / {{agreed}} uzgodnionych użytkowników"
 usersOver_one = "{{count}} użytkownik ponad uzgodnioną liczbę"
@@ -8389,7 +8408,7 @@ spendAgainstLimit = "{{spend}} z {{cap}} mierzone w tym cyklu"
 [portal.billing.seats]
 awaitingSync = "Oczekiwanie na codzienną synchronizację; jeszcze nie uwzględniono w łącznej liczbie floty."
 breakdown = "Gdzie liczeni są użytkownicy"
-cloud = "Stirling Cloud"
+cloud = "Promin Cloud"
 deployment = "Połączony serwer"
 lastReported = "Zgłoszono {{date}}"
 live = "Liczba użytkowników na żywo"
@@ -8521,7 +8540,7 @@ description = "Gdzie trafiają przetworzone dokumenty — bucket, dysk, zgłosze
 label = "Plik i załącznik"
 
 [portal.connections.commonFields.accessToken]
-helperText = "Stirling przechowuje to zaszyfrowane i nigdy więcej tego nie pokazuje."
+helperText = "Promin przechowuje to zaszyfrowane i nigdy więcej tego nie pokazuje."
 label = "Token dostępu"
 
 [portal.connections.commonFields.apiKey]
@@ -9065,7 +9084,7 @@ retry = "Spróbuj ponownie"
 title = "Coś poszło nie tak na tej stronie"
 
 [portal.failures]
-closedBySystem = "Stirling"
+closedBySystem = "Promin"
 noMatches = "Nic nie pasuje do bieżących filtrów"
 occurrences = "{{count}} wystąpień"
 searchPlaceholder = "Szukaj problemów, użytkowników i błędów"
@@ -9169,7 +9188,7 @@ description = "Na tym serwerze brakuje oprogramowania potrzebnego temu krokowi, 
 title = "Oprogramowanie nie jest zainstalowane"
 
 [portal.failures.kind.unknown]
-description = "Coś poszło nie tak, czego Stirling jeszcze nie rozpoznaje."
+description = "Coś poszło nie tak, czego Promin jeszcze nie rozpoznaje."
 title = "Nierozpoznany problem"
 
 [portal.failures.log]
@@ -9207,7 +9226,7 @@ guide = "Otwórz przewodnik {{name}}"
 openInBrowser = "Otwórz w przeglądarce zamiast tego"
 sectionDesktop = "Aplikacja desktopowa"
 sectionSelfHosted = "Samodzielnie hostowane"
-title = "Zainstaluj Stirling PDF Editor"
+title = "Zainstaluj Promin Editor"
 
 [portal.home.download.docker]
 detailBody = "Uruchom oficjalny obraz na swoim serwerze."
@@ -9289,7 +9308,7 @@ usageMonth = "Użycie w tym miesiącu"
 usageToday = "Użycie dzisiaj"
 
 [portal.infrastructure.apiKeys.empty]
-description = "Utwórz klucz, aby zacząć wywoływać Stirling API."
+description = "Utwórz klucz, aby zacząć wywoływać Promin API."
 title = "Brak kluczy API"
 
 [portal.infrastructure.apiKeys.error]
@@ -9379,7 +9398,7 @@ done = "Gotowe"
 keyNameLabel = "Nazwa klucza"
 keyNamePlaceholder = "np. Import produkcyjny"
 secretKeyCaption = "Tajny klucz"
-secretWarning = "Przechowuj to w menedżerze sekretów. Stirling przechowuje wyłącznie hash, więc nie ma możliwości późniejszego odzyskania tego klucza."
+secretWarning = "Przechowuj to w menedżerze sekretów. Promin przechowuje wyłącznie hash, więc nie ma możliwości późniejszego odzyskania tego klucza."
 subtitle = "Nadaj kluczowi nazwę, aby można było go później rozpoznać. Możesz go cofnąć w dowolnym momencie."
 subtitleCreated = "Skopiuj ten sekret teraz — nie zostanie pokazany ponownie."
 title = "Utwórz klucz API"
@@ -9563,7 +9582,7 @@ connectionCount_one = "{{count}} połączenie"
 connectionCount_other = "{{count}} połączeń"
 customApi = "Niestandardowe API"
 searchPlaceholder = "Szukaj integracji"
-subtitle = "Wszystko, z czym Stirling może się komunikować. Dane uwierzytelniające są tworzone raz tutaj, a następnie używane przez źródła, zasady i potoki."
+subtitle = "Wszystko, z czym Promin może się komunikować. Dane uwierzytelniające są tworzone raz tutaj, a następnie używane przez źródła, zasady i potoki."
 title = "Integracje"
 typedName = "Nazwa {{tool}}"
 
@@ -10248,8 +10267,8 @@ saveFailed = "Nie udało się zapisać potoku. Spróbuj ponownie."
 
 [portal.policies.wizard.locations]
 aiSettings = "Otwórz ustawienia AI"
-builtin = "Baza wiedzy Stirling"
-builtinHelp = "Indeksuje fragmenty możliwe do wyszukiwania w Stirling i zwraca przetworzony PDF do miejsca docelowego poniżej. Dostawca osadzeń musi być skonfigurowany w ustawieniach AI."
+builtin = "Baza wiedzy Promin"
+builtinHelp = "Indeksuje fragmenty możliwe do wyszukiwania w Promin i zwraca przetworzony PDF do miejsca docelowego poniżej. Dostawca osadzeń musi być skonfigurowany w ustawieniach AI."
 checking = "Sprawdzanie dostępności ingestii..."
 chooseOutput = "Wybierz włączone wyjściowe miejsce docelowe przed zapisaniem."
 chooseSource = "Wybierz, skąd pochodzą dokumenty"
@@ -10341,7 +10360,7 @@ title = "Brak przepływu"
 
 [portal.processorFlow.sources]
 comingSoonTag = "Połącz"
-editor = "Edytor Stirling PDF"
+editor = "Edytor Promin"
 heading = "Źródła"
 perDay = "{{n}} / 24h"
 
@@ -10358,7 +10377,7 @@ title = "Zakupy"
 agreeCta = "Podpisz umowę"
 confidential = "Poufne"
 confirm = "Przeczytałem(-am) i akceptuję niniejszą Umowę oraz oświadczam, że jestem upoważniony(-a) do podpisania jej w imieniu organizacji wskazanej powyżej."
-docName = "Umowa Stirling Enterprise"
+docName = "Umowa Promin Enterprise"
 docSub = "MSA, Order Form, EULA i DPA połączone w jeden podpis."
 download = "Pobierz"
 downloadDraftError = "Nie udało się wygenerować PDF umowy — renderer dokumentów jest niedostępny. Spróbuj ponownie wkrótce lub skontaktuj się z pomocą techniczną."
@@ -10394,7 +10413,7 @@ contactName = "Imię i nazwisko osoby kontaktowej"
 contactNamePlaceholder = "Jane Doe"
 continue = "Kontynuuj"
 done = "Gotowe"
-eula = "Przeczytałem(-am) i akceptuję Stirling Enterprise EULA. Reguluje ona umowę wygenerowaną na podstawie tej wyceny."
+eula = "Przeczytałem(-am) i akceptuję Promin Enterprise EULA. Reguluje ona umowę wygenerowaną na podstawie tej wyceny."
 generate = "Wygeneruj wycenę"
 indemnification = "Rozszerzona ochrona IP"
 indemnificationSub = "Rozszerza naszą ochronę IP na roszczenia patentowe. Podstawowe zabezpieczenie dotyczące praw autorskich, znaków towarowych i tajemnicy handlowej jest zawarte bezpłatnie."
@@ -10492,7 +10511,7 @@ eyebrowCompany = "{{company}} Enterprise"
 inviteTeammates = "Zaproś członków zespołu"
 licenseKey = "Klucz licencji"
 liveSub = "Twoja organizacja została przygotowana, a licencja jest aktywna."
-liveTitle = "Działasz już na Stirling Enterprise"
+liveTitle = "Działasz już na Promin Enterprise"
 next = "Dalej: {{stage}}"
 open = "Otwórz zakupy"
 scheduleCall = "Zaplanuj rozmowę"
@@ -10528,7 +10547,7 @@ gatingAction = "Zaakceptuj wycenę"
 label = "Wycena"
 
 [portal.procurement.journeySteps.trial]
-blurb = "Oceń Stirling na swoich dokumentach i przepływach pracy."
+blurb = "Oceń Promin na swoich dokumentach i przepływach pracy."
 gatingAction = "Utwórz wycenę"
 label = "Wersja próbna"
 
@@ -10545,14 +10564,14 @@ trialFileHint = "To jest plik licencji próbnej. Gdy umowa będzie gotowa, wró�
 
 [portal.procurement.link]
 cta = "Połącz konto"
-description = "Zakupy działają na połączonym koncie Stirling: tak przygotowujemy wersję próbną, wyceniamy ofertę i rozpoczynamy rozliczenia. Połącz konto, aby zacząć."
+description = "Zakupy działają na połączonym koncie Promin: tak przygotowujemy wersję próbną, wyceniamy ofertę i rozpoczynamy rozliczenia. Połącz konto, aby zacząć."
 eyebrow = "Enterprise"
 title = "Połącz swoje konto, aby rozpocząć"
 
 [portal.procurement.live]
 description = "Twoja subskrypcja jest aktywna, a licencja została wydana. Twój zespół jest przygotowany, a rozliczanie rozpoczęte."
 eyebrow = "Na żywo"
-title = "Działasz już na Stirling Enterprise"
+title = "Działasz już na Promin Enterprise"
 
 [portal.procurement.milestone]
 downloadError = "Nie udało się jeszcze pobrać PDF z wyceną — spróbuj ponownie za chwilę."
@@ -10587,11 +10606,11 @@ airgapSub = "Odizolowane, bez połączeń wychodzących"
 back = "Wstecz"
 businessName = "Nazwa firmy"
 businessNamePlaceholder = "Acme Corp"
-cloud = "Stirling Cloud"
+cloud = "Promin Cloud"
 cloudSub = "Zarządzane, najszybszy start"
 continue = "Kontynuuj"
 deployment = "Gdzie wdrożyć?"
-eula = "Akceptuję Stirling EULA i warunki komercyjne."
+eula = "Akceptuję Promin EULA i warunki komercyjne."
 fullName = "Imię i nazwisko"
 fullNamePlaceholder = "Twoje imię i nazwisko"
 invites = "Zaproś członków zespołu · opcjonalnie"
@@ -10630,7 +10649,7 @@ account-link = "Połączenie konta"
 [portal.shell.sidebar]
 appEditor = "Edytor"
 appProcessor = "Procesor"
-linkAccount = "Połącz konto Stirling"
+linkAccount = "Połącz konto Promin"
 primaryNav = "Nawigacja główna"
 
 [portal.shell.topbar]
@@ -10640,7 +10659,7 @@ search = "Szukaj"
 
 [portal.sources]
 processingModeHelp = "Tryb śledzenia zachowuje oryginały i przetwarza każdą wersję raz. Migawka zachowuje oryginały i przetwarza je przy każdym uruchomieniu. Konsumowanie usuwa oryginały po pomyślnym dostarczeniu."
-subtitle = "Wielokrotnego użytku połączenia wejściowe, które dostarczają dokumenty do Stirling. Skonfiguruj źródło raz, a następnie odwołuj się do niego z dowolnej liczby potoków."
+subtitle = "Wielokrotnego użytku połączenia wejściowe, które dostarczają dokumenty do Promin. Skonfiguruj źródło raz, a następnie odwołuj się do niego z dowolnej liczby potoków."
 title = "Źródła"
 
 [portal.sources.actions]
@@ -10833,7 +10852,7 @@ secretNote = "Sekret podpisywania jest wyświetlany raz, podczas tworzenia webho
 copy = "Kopiuj"
 done = "Gotowe"
 secret = "Sekret podpisywania"
-secretHelp = "Podpisuj surową treść każdego dostarczenia tym kluczem (HMAC-SHA256) i wysyłaj ją jako nagłówek X-Stirling-Signature."
+secretHelp = "Podpisuj surową treść każdego dostarczenia tym kluczem (HMAC-SHA256) i wysyłaj ją jako nagłówek X-Promin-Signature."
 secretWarning = "Skopiuj sekret podpisywania teraz. Ze względów bezpieczeństwa jest wyświetlany tylko raz i nie można go później odzyskać."
 title = "Utworzono webhook"
 url = "URL dostarczania"
@@ -10861,15 +10880,15 @@ adminOnly = "Miesięczne kredyty tego serwera są współdzielone przez wszystki
 barAria = "Pozostałe bezpłatne kredyty"
 capSuffix_one = "z {{allowance}} bezpłatnego kredytu pozostało w tym miesiącu"
 capSuffix_other = "z {{allowance}} bezpłatnych kredytów pozostało w tym miesiącu"
-connect = "Połącz konto Stirling"
+connect = "Połącz konto Promin"
 connectBody = "Połączenie dodaje drugi miesięczny limit, zwiększa liczbę użytkowników, których może mieć ten serwer, i włącza Processor."
-connectTitle = "Ten serwer nie ma konta Stirling"
+connectTitle = "Ten serwer nie ma konta Promin"
 loadError = "Nie udało się odczytać użycia kredytów tego serwera. Spróbuj ponownie za chwilę."
 loadErrorTitle = "Nie udało się wczytać użycia kredytów"
 resets = "Resetuje się {{date}}"
 
 [portal.usage.sessionExpired]
-body = "Sesja Twojego konta Stirling wygasła. Zaloguj się ponownie, aby zobaczyć rozliczenia — Twoja instancja pozostaje połączona."
+body = "Sesja Twojego konta Promin wygasła. Zaloguj się ponownie, aby zobaczyć rozliczenia — Twoja instancja pozostaje połączona."
 
 [portal.users]
 title = "Użytkownicy"
@@ -11194,7 +11213,7 @@ files = "Pliki"
 account = "Konto"
 docs = "Dokumentacja"
 editor = "Edytor"
-home = "Stirling"
+home = "Promin"
 invite = "Zaproś"
 landmark = "Szybka nawigacja"
 noProcessorAccess = "Poproś administratora o dostęp do Processor"
@@ -11582,6 +11601,10 @@ title = "Obróć dokument PDF"
 failed = "Wystąpił błąd podczas obracania PDF."
 
 [rotate.preview]
+angle = "Obrót: {{angle}}°"
+controls = "Sterowanie obrotem"
+keyboardHint = "← i → obracają, gdy ten panel jest aktywny."
+reset = "Resetuj"
 title = "Podgląd obrotu"
 
 [rotate.settings]
@@ -11619,7 +11642,7 @@ yd = "Jardy (yd)"
 back = "Wstecz"
 continue = "Kontynuuj"
 subtitle = "Wybierz, gdzie ma działać."
-title = "Gdzie chcesz uruchomić Stirling?"
+title = "Gdzie chcesz uruchomić Promin?"
 
 [runLocation.choice.browser]
 description = "Aplikacja webowa."
@@ -11811,8 +11834,8 @@ hideTools = "Ukryj niedostępne narzędzia ▴"
 messageNoFallback = "Narzędzia będą niedostępne, dopóki Twój serwer nie wróci online."
 messageWithFallback = "Niektóre narzędzia wymagają połączenia z serwerem."
 showTools = "Pokaż niedostępne narzędzia ▾"
-title = "Twój serwer Stirling-PDF jest nieosiągalny"
-toolNotAvailableLocally = "Twój serwer Stirling-PDF jest offline, a \"{{endpoint}}\" nie jest dostępny w lokalnym backendzie."
+title = "Twój serwer Promin jest nieosiągalny"
+toolNotAvailableLocally = "Twój serwer Promin jest offline, a \"{{endpoint}}\" nie jest dostępny w lokalnym backendzie."
 
 [session]
 expired = "Twoja sesja wygasła. Odśwież stronę i spróbuj ponownie."
@@ -11850,7 +11873,7 @@ storageSharing = "Przechowywanie plików i udostępnianie"
 systemSettings = "Ustawienia systemowe"
 
 [settings.connectedInstances]
-confirmBody = "To cofa dostęp instancji do Twojego zespołu w Stirling Cloud. Nie usuwa plików lokalnych ani już zarejestrowanego użycia. Aby połączyć ponownie, wykonaj pierwotne kroki łączenia na instancji."
+confirmBody = "To cofa dostęp instancji do Twojego zespołu w Promin Cloud. Nie usuwa plików lokalnych ani już zarejestrowanego użycia. Aby połączyć ponownie, wykonaj pierwotne kroki łączenia na instancji."
 confirmTitle = "Usunąć {{name}}?"
 connectedAt = "Połączono: {{date}}"
 connectedDate = "Połączono"
@@ -11884,7 +11907,7 @@ unknown = "Niedostępne"
 yourTeam = "Twój zespół"
 
 [settings.connection]
-description = "Pracuj lokalnie na tym urządzeniu lub połącz aplikację z serwerem Stirling."
+description = "Pracuj lokalnie na tym urządzeniu lub połącz aplikację z serwerem Promin."
 localDescription = "Korzystasz z lokalnego backendu bez konta. Niektóre narzędzia wymagające przetwarzania w chmurze lub serwera self-hosted są niedostępne."
 logout = "Wyloguj"
 server = "Serwer"
@@ -11894,12 +11917,12 @@ user = "Zalogowano jako"
 
 [settings.connection.mode]
 local = "Tylko lokalnie"
-saas = "Stirling Cloud"
+saas = "Promin Cloud"
 selfhosted = "Własny serwer"
 
 [settings.developer]
 apiKeys = "Klucze API"
-apiKeysDescription = "Klucze osobiste do wywoływania Stirling API ze skryptów i integracji."
+apiKeysDescription = "Klucze osobiste do wywoływania Promin API ze skryptów i integracji."
 title = "Deweloper"
 
 [settings.general]
@@ -11908,7 +11931,7 @@ autoUnzipFileLimit = "Limit automatycznego rozpakowywania"
 autoUnzipFileLimitTooltip = "Rozpakowuj tylko, jeśli ZIP zawiera nie więcej niż tyle plików. Ustaw wyżej, aby rozpakowywać większe archiwa ZIP."
 autoUnzipTooltip = "Automatycznie rozpakowuje pliki ZIP zwracane przez operacje API. Wyłącz, aby zachować pliki ZIP w stanie nienaruszonym. Nie wpływa to na przepływy automatyzacji."
 defaultPdfEditor = "Domyślny edytor PDF"
-defaultPdfEditorActive = "Stirling PDF jest Twoim domyślnym edytorem PDF"
+defaultPdfEditorActive = "Promin jest Twoim domyślnym edytorem PDF"
 defaultPdfEditorChecking = "Sprawdzanie..."
 defaultPdfEditorInactive = "Inna aplikacja jest ustawiona jako domyślna"
 defaultPdfEditorSet = "Już domyślny"
@@ -11978,7 +12001,7 @@ updateBehavior = "Sposób aktualizacji"
 updateBehaviorDescription = "Wybierz, czy pytać przed instalacją aktualizacji, instalować je automatycznie, czy całkowicie pominąć sprawdzanie aktualizacji."
 updateBehaviorError = "Nie można było zmienić sposobu aktualizacji"
 updateBehaviorErrorLocked = "To ustawienie jest zablokowane przez administratora."
-updateBehaviorLockedDescription = "Administrator skonfigurował sposób, w jaki Stirling-PDF obsługuje aktualizacje na tym komputerze. Skontaktuj się z nim, aby to zmienić."
+updateBehaviorLockedDescription = "Administrator skonfigurował sposób, w jaki Promin obsługuje aktualizacje na tym komputerze. Skontaktuj się z nim, aby to zmienić."
 updateBehaviorSaved = "Zapisano sposób aktualizacji."
 versionMismatch = "Twoja aplikacja desktopowa i serwer działają w różnych wersjach. Zaktualizuj oba do tej samej wersji, aby uniknąć problemów ze zgodnością."
 viewDetails = "Pokaż szczegóły"
@@ -12028,7 +12051,7 @@ mac = "Dodaj ⌘ (Command), ⌥ (Option) lub inny modyfikator do skrótu."
 windows = "Dodaj Ctrl, Alt lub inny modyfikator do skrótu."
 
 [settings.legal]
-description = "Warunki, polityka prywatności i Twoje preferencje dotyczące plików cookie."
+description = "Dokumenty prawne skonfigurowane dla tej instalacji."
 label = "Prawne"
 title = "Prawne"
 
@@ -12037,7 +12060,8 @@ description = "Przejrzyj lub zmień swoje zgody dotyczące plików cookie."
 manage = "Zarządzaj"
 
 [settings.legal.documents]
-description = "Zasady i informacje prawne dotyczące tej usługi."
+description = "Dokumenty skonfigurowane dla tej instalacji."
+localNotice = "Dla tej lokalnej wersji nie skonfigurowano zewnętrznych dokumentów prawnych."
 title = "Dokumenty prawne"
 
 [settings.licenses]
@@ -12070,7 +12094,7 @@ title = "Monitorowanie"
 [settings.planBilling]
 currentPlan = "Bieżący plan"
 loading = "Wczytywanie informacji rozliczeniowych..."
-notAvailable = "Plan i rozliczenia są dostępne tylko po połączeniu ze Stirling Cloud (tryb SaaS)."
+notAvailable = "Plan i rozliczenia są dostępne tylko po połączeniu ze Promin Cloud (tryb SaaS)."
 title = "Plan i rozliczenia"
 
 [settings.planBilling.billing]
@@ -12128,7 +12152,7 @@ title = "Prawo i prywatność"
 
 [settings.preferences]
 appearance = "Wygląd"
-description = "Jak edytor wygląda i działa dla Ciebie oraz Twoje konto."
+description = "Dostosuj wygląd i działanie edytora."
 downloads = "Pobrane"
 editorDefaults = "Domyślne ustawienia edytora"
 title = "Preferencje"
@@ -12204,7 +12228,7 @@ emptyUsername = "Wpisz nazwę użytkownika"
 oauthFailed = "Logowanie przez OAuth nie powiodło się. Spróbuj ponownie."
 
 [setup.saas]
-title = "Zaloguj się do Stirling"
+title = "Zaloguj się do Promin"
 
 [setup.selfhosted]
 changeServerLocked = "Twoja organizacja ograniczyła tę aplikację do określonego serwera"
@@ -12250,7 +12274,7 @@ step3 = "Uruchom ponownie serwer"
 title = "Logowanie nie jest włączone"
 
 [setup.server.url]
-description = "Wpisz pełny URL własnego serwera Stirling PDF"
+description = "Wpisz pełny URL własnego serwera Promin"
 label = "URL serwera"
 
 [sharedSign]
@@ -12704,7 +12728,7 @@ pleaseFillAllFields = "Wypełnij wszystkie pola"
 signUp = "Zarejestruj się"
 signUpWith = "Zarejestruj się za pomocą"
 skip = "Pomiń"
-subtitle = "Dołącz do Stirling PDF, aby zacząć"
+subtitle = "Dołącz do Promin, aby zacząć"
 title = "Utwórz konto"
 unableToAccessTool = "Nie można uzyskać dostępu do narzędzia: {{error}}"
 unexpectedError = "Nieoczekiwany błąd: {{message}}"
@@ -12821,6 +12845,15 @@ title = "Wybierz metodę podziału"
 text = "Wybierz, jak chcesz podzielić dokument PDF. Każda metoda jest zoptymalizowana do różnych przypadków użycia i typów dokumentów."
 title = "Wybór metody dzielenia"
 
+[split.pages]
+description = "Wpisz numery stron, po których ma się zacząć nowy plik, na przykład 2, 5. Wpisz „all”, aby zapisać każdą stronę osobno."
+descriptionWithCount = "Każdy wybrany PDF ma co najmniej {{count}} stron. Wpisz numery, po których ma się zacząć nowy plik, od 1 do {{lastPage}}. Wpisz „all”, aby zapisać każdą stronę osobno."
+invalid = "Wpisz prawidłowe numery lub zakresy stron. Nie można dzielić PDF po ostatniej stronie."
+label = "Podziel po stronach"
+placeholder = "Na przykład: 2, 5"
+preview = "Powstanie plików: {{count}}. Strony: {{ranges}}{{more}}"
+previewMore = " i jeszcze {{count}}"
+
 [split.poster]
 rightToLeft = "Dziel od prawej do lewej"
 
@@ -12915,6 +12948,7 @@ label = "Liczba plików"
 placeholder = "np. 3, 5"
 
 [split.value.fileSize]
+description = "Plik jest dzielony tylko między stronami. Jedna duża strona może przekroczyć podany rozmiar."
 label = "Rozmiar pliku"
 placeholder = "np. 10MB, 500KB"
 
@@ -12986,7 +13020,7 @@ download = "Pobierz"
 downloaded = "Pobrano"
 downloadFailed = "Nie można pobrać tego pliku."
 downloadsCount = "Pobrania: {{count}}"
-emailWarningBody = "To wygląda na adres e-mail. Jeśli ta osoba nie jest użytkownikiem Stirling PDF, nie będzie mogła uzyskać dostępu do pliku."
+emailWarningBody = "To wygląda na adres e-mail. Jeśli ta osoba nie jest użytkownikiem Promin, nie będzie mogła uzyskać dostępu do pliku."
 emailWarningConfirm = "Udostępnij mimo to"
 emailWarningTitle = "Adres e-mail"
 errorTitle = "Udostępnianie nie powiodło się"
@@ -13017,7 +13051,7 @@ manageTitle = "Zarządzaj udostępnianiem"
 noActivity = "Brak aktywności."
 noLinks = "Brak aktywnych linków udostępniania."
 noSharedUsers = "Żaden użytkownik nie ma jeszcze dostępu."
-openInApp = "Otwórz w Stirling PDF"
+openInApp = "Otwórz w Promin"
 ownerLabel = "Właściciel"
 ownerUnknown = "Nieznany"
 removeLink = "Usuń link"
@@ -13075,7 +13109,7 @@ all = "Wszystko"
 ariaLabel = "Superwyszukiwanie"
 filtersAriaLabel = "Filtry wyszukiwania"
 hint = "Wpisz, aby wyszukać"
-placeholder = "Szukaj w Stirling"
+placeholder = "Szukaj w Promin"
 placeholderShort = "Szukaj"
 showLess = "Pokaż mniej"
 showMore = "Pokaż jeszcze {{count}}"
@@ -13089,7 +13123,7 @@ settings = "Ustawienia"
 tools = "Narzędzia"
 
 [survey]
-title = "Ankieta Stirling PDF"
+title = "Ankieta Promin"
 
 [swagger]
 clickHere = "kliknij tutaj"
@@ -13258,7 +13292,7 @@ favorites = "Ulubione"
 heading = "Wszystkie narzędzia (widok pełnoekranowy)"
 noResults = "Spróbuj dostosować wyszukiwanie lub przełącz opisy, aby znaleźć to, czego potrzebujesz."
 recommended = "Zalecane"
-selfHostedOffline = "Wymaga Twojego serwera Stirling-PDF (obecnie offline):"
+selfHostedOffline = "Wymaga Twojego serwera Promin (obecnie offline):"
 showDetails = "Pokaż szczegóły"
 unavailable = "Wyłączone przez administratora serwera:"
 unavailableDependency = "Niedostępne – brakuje wymaganego narzędzia na serwerze:"
@@ -13267,7 +13301,7 @@ unfavorite = "Usuń z ulubionych"
 [toolPanel.modePrompt]
 chooseFullscreen = "Użyj trybu pełnoekranowego"
 chooseSidebar = "Użyj trybu paska bocznego"
-description = "Obejrzyj oba układy i zdecyduj, jak chcesz eksplorować narzędzia Stirling PDF."
+description = "Obejrzyj oba układy i zdecyduj, jak chcesz eksplorować narzędzia Promin."
 dismiss = "Może później"
 fullscreenDescription = "Przeglądaj wszystkie narzędzia w katalogu, który zasłania obszar roboczy, dopóki nie wybierzesz jednego."
 fullscreenTitle = "Tryb pełnoekranowy - (przestarzały)"
@@ -13334,7 +13368,7 @@ loadingDetailedInfo = "Wczytywanie szczegółowych informacji..."
 migrationGuide = "Przewodnik migracji"
 migrationGuides = "Przewodniki migracji"
 migrationGuidesDesc = "Przejrzyj ważne zmiany przed aktualizacją."
-modalSubtitle = "Nowa wersja Stirling PDF jest gotowa do instalacji."
+modalSubtitle = "Nowa wersja Promin jest gotowa do instalacji."
 modalTitle = "Dostępna aktualizacja"
 notes = "Uwagi"
 releaseNotes = "Informacje o wydaniu"
@@ -13360,7 +13394,7 @@ urgent = "Pilny"
 attentionBody = "Administrator musi się zalogować, aby zobaczyć więcej informacji. Skontaktuj się z nim niezwłocznie."
 attentionBodyAdmin = "Sprawdź wymagania licencyjne, aby zachować zgodność serwera."
 attentionTitle = "Ten serwer wymaga uwagi administratora"
-message = "Wykorzystaj Stirling PDF w pełni dzięki 100 użytkownikom, edycji tekstu PDF i zaawansowanym funkcjom"
+message = "Wykorzystaj Promin w pełni dzięki 100 użytkownikom, edycji tekstu PDF i zaawansowanym funkcjom"
 seeInfo = "Zobacz informacje"
 title = "Przejdź na plan Team"
 upgradeButton = "Ulepsz teraz"
@@ -13498,7 +13532,7 @@ authWeb = "Hasło"
 create = "Utwórz konto"
 createSubtitle = "Utwórz konto self-hosted z hasłem lub SSO."
 createTitle = "Utwórz konto"
-editorDesc = "Edytuj PDF w Stirling PDF Editor. Każdy to otrzymuje."
+editorDesc = "Edytuj PDF w Promin Editor. Każdy to otrzymuje."
 email = "Adres email"
 emailError = "Wpisz prawidłowy adres email"
 emailPlaceholder2 = "name@company.com"
@@ -13513,7 +13547,7 @@ processorDeferred = "Zaproszenie wysłane, ale nie można jeszcze przyznać dost
 processorDesc = "Powierzchnia zarządzania, uruchamianie potoków, agenci i API."
 role = "Rola"
 send2 = "Wyślij zaproszenie"
-subtitle2 = "Otrzymają email, aby dołączyć do Twojego obszaru roboczego Stirling."
+subtitle2 = "Otrzymają email, aby dołączyć do Twojego obszaru roboczego Promin."
 team = "Zespół"
 title = "Zaproś osoby"
 username = "Nazwa użytkownika"
@@ -13655,7 +13689,7 @@ downloads = "Pobrania"
 entryLabel = "Podsumowanie podpisu"
 filesEvaluated_one = "{{count}} plik sprawdzony"
 filesEvaluated_other = "{{count}} pliki sprawdzone"
-footer = "Zweryfikowano za pomocą Stirling PDF"
+footer = "Zweryfikowano za pomocą Promin"
 generatedAt = "Wygenerowano"
 noPdf = "Raport PDF będzie dostępny po pomyślnej weryfikacji."
 page = "Strona"
@@ -13863,7 +13897,7 @@ text = "Tekst"
 addFile = "Dodaj plik"
 count_one = "{{count}} plik w tym portfolio"
 count_other = "{{count}} plików w tym portfolio"
-import = "Importuj do Stirling"
+import = "Importuj do Promin"
 importFailed = "Nie udało się dodać tego pliku do obszaru roboczego."
 memberUnavailable = "Nie udało się odczytać tego pliku z portfolio."
 preview = "Podgląd"

@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "path";
 import { test, expect } from "@editor/tests/helpers/stub-test-base";
+import { revealPickerTool } from "@editor/tests/helpers/ui-helpers";
 
 interface SteadyZoomSamplerState {
   stop: boolean;
@@ -111,10 +112,7 @@ async function openCompressPanel(page: import("@playwright/test").Page) {
   await page.waitForTimeout(800);
   await page.getByRole("button", { name: "Back to all tools" }).first().click();
   await page.waitForTimeout(800);
-  await page
-    .getByRole("link", { name: "Compress", exact: true })
-    .first()
-    .click();
+  await (await revealPickerTool(page, "compress")).click();
   await page.waitForTimeout(1_500);
 }
 

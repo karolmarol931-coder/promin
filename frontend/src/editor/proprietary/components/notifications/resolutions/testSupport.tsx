@@ -110,8 +110,8 @@ export function policyContext({
   };
 }
 
-/** The processor shell: the portal mounts above the app's providers, so there is none. */
-export const inProcessor = ({ children }: { children: ReactNode }) => (
+/** Renders without the providers required to act on a workbench document. */
+export const withoutWorkbench = ({ children }: { children: ReactNode }) => (
   <MemoryRouter>{children}</MemoryRouter>
 );
 

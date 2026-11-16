@@ -28,16 +28,7 @@ class TeamMembershipServiceTest {
 
     @Mock private TeamMembershipRepository membershipRepository;
     @Mock private TeamRepository teamRepository;
-    @Mock private org.springframework.core.env.Environment environment;
-
     @InjectMocks private TeamMembershipService service;
-
-    @org.junit.jupiter.api.BeforeEach
-    void notSaas() {
-        org.mockito.Mockito.lenient()
-                .when(environment.getActiveProfiles())
-                .thenReturn(new String[] {});
-    }
 
     @Test
     void syncCreatesMemberRowForUsersTeam() {
@@ -174,14 +165,6 @@ class TeamMembershipServiceTest {
         ArgumentCaptor<TeamMembership> captor = ArgumentCaptor.forClass(TeamMembership.class);
         verify(membershipRepository).save(captor.capture());
         assertThat(captor.getValue().getRole()).isEqualTo(TeamRole.MEMBER);
-    }
-
-    @Test
-    void saasMembershipLifecycleIsUnchanged() {
-        when(environment.getActiveProfiles()).thenReturn(new String[] {"saas"});
-        service.syncMembership(userInTeam(5, 7));
-        verify(teamRepository, never()).lockById(any());
-        verify(membershipRepository, never()).save(any());
     }
 
     private User userInTeam(long userId, long teamId) {

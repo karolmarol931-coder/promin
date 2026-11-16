@@ -4,9 +4,6 @@ vi.mock("@editor/components/toast", () => ({ alert: vi.fn() }));
 vi.mock("@editor/services/specialErrorToasts", () => ({
   showSpecialErrorToast: vi.fn(() => false),
 }));
-vi.mock("@editor/services/saasErrorInterceptor", () => ({
-  handleSaaSError: vi.fn(() => false),
-}));
 vi.mock("@editor/services/errorUtils", () => ({
   broadcastErroredFiles: vi.fn(),
   extractErrorFileIds: vi.fn(() => []),

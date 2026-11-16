@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -23,6 +24,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaCertStore;
@@ -43,14 +45,16 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 
+import com.sun.net.httpserver.HttpServer;
+
 import stirling.software.common.model.ApplicationProperties;
 import stirling.software.common.service.ServerCertificateServiceInterface;
 
 /**
  * Additional coverage for {@link CertificateValidationService} that drives the real X.509 /
  * KeyStore machinery with the bundled test fixtures, exercises trust-store initialization, and
- * reaches the private trust-list parsers via reflection. Network paths are only hit with file://
- * URLs so no real connection is ever opened.
+ * reaches the private trust-list parsers via reflection. Network suppression is exercised against a
+ * loopback-only HTTP server.
  */
 @DisplayName("CertificateValidationService (more) Tests")
 class CertificateValidationServiceMoreTest {
@@ -97,6 +101,18 @@ class CertificateValidationServiceMoreTest {
         trust.setUseSystemTrust(false);
         trust.setUseMozillaBundle(false);
         return props;
+    }
+
+    private static void restoreSecurityProperty(String name, String value) {
+        Security.setProperty(name, value == null ? "false" : value);
+    }
+
+    private static void restoreSystemProperty(String name, String value) {
+        if (value == null) {
+            System.clearProperty(name);
+        } else {
+            System.setProperty(name, value);
+        }
     }
 
     private static CertificateValidationService newService(ApplicationProperties props) {
@@ -436,6 +452,54 @@ class CertificateValidationServiceMoreTest {
             CertificateValidationService svc = newService(props);
             initTrustStore(svc);
             assertThat(svc.getSigningTrustStore().size()).isZero();
+        }
+
+        @Test
+        @DisplayName("offline mode skips configured AATL and EUTL downloads")
+        void offlineModeSkipsTrustListDownloads() throws Exception {
+            HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+            AtomicInteger requests = new AtomicInteger();
+            server.createContext(
+                    "/",
+                    exchange -> {
+                        requests.incrementAndGet();
+                        exchange.sendResponseHeaders(404, -1);
+                        exchange.close();
+                    });
+            server.start();
+
+            ApplicationProperties props = defaultProps();
+            props.getSystem().setOfflineMode(true);
+            var validation = props.getSecurity().getValidation();
+            validation.setAllowAIA(true);
+            validation.getRevocation().setMode("ocsp+crl");
+            validation.getTrust().setUseAATL(true);
+            validation.getTrust().setUseEUTL(true);
+            String baseUrl = "http://127.0.0.1:" + server.getAddress().getPort();
+            validation.getAatl().setUrl(baseUrl + "/aatl.pdf");
+            validation.getEutl().setLotlUrl(baseUrl + "/lotl.xml");
+
+            String previousOcsp = Security.getProperty("ocsp.enable");
+            String previousCrl = System.getProperty("com.sun.security.enableCRLDP");
+            String previousAia = System.getProperty("com.sun.security.enableAIAcaIssuers");
+            try {
+                Security.setProperty("ocsp.enable", "true");
+                System.setProperty("com.sun.security.enableCRLDP", "true");
+                System.setProperty("com.sun.security.enableAIAcaIssuers", "true");
+
+                initTrustStore(newService(props));
+
+                assertThat(requests.get()).isZero();
+                assertThat(Security.getProperty("ocsp.enable")).isEqualTo("false");
+                assertThat(System.getProperty("com.sun.security.enableCRLDP")).isEqualTo("false");
+                assertThat(System.getProperty("com.sun.security.enableAIAcaIssuers"))
+                        .isEqualTo("false");
+            } finally {
+                server.stop(0);
+                restoreSecurityProperty("ocsp.enable", previousOcsp);
+                restoreSystemProperty("com.sun.security.enableCRLDP", previousCrl);
+                restoreSystemProperty("com.sun.security.enableAIAcaIssuers", previousAia);
+            }
         }
     }
 

@@ -29,7 +29,6 @@ export const Loaded: Story = {
           serverPort: 8080,
           enableLogin: true,
           enableAlphaFunctionality: false,
-          enableAnalytics: true,
           SSOAutoLogin: false,
         }}
       >

@@ -22,13 +22,6 @@ vi.mock("@editor/hooks/useEndpointConfig", () => ({
     },
   }),
 }));
-vi.mock("@editor/hooks/useConversionCloudStatus", () => ({
-  useConversionCloudStatus: () => ({
-    availability: {},
-    cloudStatus: {},
-    localOnly: {},
-  }),
-}));
 vi.mock("@editor/ui/Icon", () => ({ Icon: () => null }));
 
 beforeEach(() => {

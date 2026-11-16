@@ -1,7 +1,5 @@
 /**
- * The single React context backing `useAuth()`. Both the Spring and Supabase
- * providers write to this same context so consumers read a unified value
- * regardless of which backend authenticated the user.
+ * The single React context backing `useAuth()` for the local Spring backend.
  */
 import { createContext, useContext } from "react";
 import type { AuthContextValue } from "@editor/auth/types";
@@ -12,7 +10,6 @@ export const AuthContext = createContext<AuthContextValue>({
   displayName: null,
   isAnonymous: false,
   isAdmin: false,
-  portalAccess: false,
   role: null,
   loading: true,
   error: null,

@@ -16,7 +16,7 @@ import "@editor/components/docs/DeveloperDocs.css";
 
 /**
  * Developer Docs — a markdown browser over the docs manifest generated from the
- * Stirling docs repo (see scripts/sync-portal-docs.mts). The nav is auto-sorted
+ * Promin docs repo (see scripts/sync-portal-docs.mts). The nav is auto-sorted
  * from the repo's folders + frontmatter; content is the repo markdown. Full-text
  * search across docs lives in the global super search (Cmd/Ctrl+K).
  */

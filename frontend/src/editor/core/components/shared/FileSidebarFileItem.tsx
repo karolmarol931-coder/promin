@@ -337,6 +337,7 @@ export const FileItem = React.memo(function FileItem({
         <div className="file-sidebar-file-info">
           <span
             className={`file-sidebar-file-name${isSelected ? " selected" : ""}`}
+            title={name}
           >
             {name}
           </span>

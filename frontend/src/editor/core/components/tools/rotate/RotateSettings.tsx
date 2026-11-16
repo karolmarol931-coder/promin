@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { Stack, Text, Box, Group, Center } from "@mantine/core";
 import { ActionIcon } from "@editor/ui/ActionIcon";
 import { useTranslation } from "react-i18next";
@@ -6,6 +6,7 @@ import { Icon } from "@editor/ui/Icon";
 import { RotateParametersHook } from "@editor/hooks/tools/rotate/useRotateParameters";
 import { useViewScopedFileStubs } from "@editor/hooks/tools/shared/useViewScopedFiles";
 import DocumentThumbnail from "@editor/components/shared/filePreview/DocumentThumbnail";
+import { Button } from "@editor/ui/Button";
 
 interface RotateSettingsProps {
   parameters: RotateParametersHook;
@@ -23,27 +24,36 @@ const RotateSettings = ({
 
   // Calculate current angle display
   const currentAngle = parameters.parameters.angle;
+  const displayedAngle = ((currentAngle % 360) + 360) % 360;
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft") {
-        event.preventDefault();
-        parameters.rotateAnticlockwise();
-      } else if (event.key === "ArrowRight") {
-        event.preventDefault();
-        parameters.rotateClockwise();
-      }
-    };
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (
+      event.target !== event.currentTarget ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.shiftKey
+    ) {
+      return;
+    }
 
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [parameters]);
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      parameters.rotateAnticlockwise();
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      parameters.rotateClockwise();
+    }
+  };
 
   return (
-    <Stack gap="md">
+    <Stack
+      gap="md"
+      role="region"
+      aria-label={t("rotate.preview.controls", "Rotation controls")}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
       {/* Thumbnail Preview Section */}
       <Stack gap="xs">
         <Text size="sm" fw={500}>
@@ -83,6 +93,28 @@ const RotateSettings = ({
           </Box>
         </Center>
       </Stack>
+
+      <Group justify="center" gap="sm">
+        <Text size="sm" fw={600} aria-live="polite">
+          {t("rotate.preview.angle", "Rotation: {{angle}}°", {
+            angle: displayedAngle,
+          })}
+        </Text>
+        <Button
+          variant="tertiary"
+          size="sm"
+          onClick={() => parameters.updateParameter("angle", 0)}
+          disabled={disabled || displayedAngle === 0}
+        >
+          {t("rotate.preview.reset", "Reset")}
+        </Button>
+      </Group>
+      <Text size="xs" c="dimmed" ta="center">
+        {t(
+          "rotate.preview.keyboardHint",
+          "Use ← or → when this panel is focused.",
+        )}
+      </Text>
 
       {/* Rotation Controls */}
       <Group justify="center" gap="lg">

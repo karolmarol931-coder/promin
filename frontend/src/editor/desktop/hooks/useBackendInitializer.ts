@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useBackendHealth } from "@editor/hooks/useBackendHealth";
-import { useEndpointConfig } from "@editor/hooks/useEndpointConfig";
 import { tauriBackendService } from "@editor/services/tauriBackendService";
 
 /**
@@ -9,7 +8,6 @@ import { tauriBackendService } from "@editor/services/tauriBackendService";
  */
 export function useBackendInitializer(enabled = true) {
   const { status, checkHealth } = useBackendHealth();
-  const { backendUrl } = useEndpointConfig();
 
   useEffect(() => {
     // Skip if disabled
@@ -25,7 +23,7 @@ export function useBackendInitializer(enabled = true) {
 
     const initializeBackend = async () => {
       try {
-        await tauriBackendService.startBackend(backendUrl);
+        await tauriBackendService.startBackend();
 
         // Begin health checks after a short delay
         setTimeout(() => {
@@ -40,5 +38,5 @@ export function useBackendInitializer(enabled = true) {
     if (status !== "healthy" && status !== "starting") {
       void initializeBackend();
     }
-  }, [enabled, status, backendUrl, checkHealth]);
+  }, [enabled, status, checkHealth]);
 }

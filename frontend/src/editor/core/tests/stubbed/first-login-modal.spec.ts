@@ -1,8 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import {
-  mockAppApis,
-  seedCookieConsent,
-} from "@editor/tests/helpers/api-stubs";
+import { mockAppApis } from "@editor/tests/helpers/api-stubs";
 
 /**
  * The InitialOnboardingModal opens to the FirstLoginSlide when the
@@ -14,7 +11,6 @@ import {
  */
 
 async function setUpFirstLoginPage(page: Page) {
-  await seedCookieConsent(page);
   // Seed a JWT in localStorage so hasAuthToken() returns true and the
   // orchestrator's checkFirstLogin effect actually fires.
   await page.addInitScript(() => {

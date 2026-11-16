@@ -10,16 +10,7 @@ vi.mock("@editor/services/thumbnailGenerationService", () => ({
   thumbnailGenerationService: { generateThumbnails: vi.fn(async () => []) },
 }));
 
-/**
- * The processor's provider stack, which is the point of this file: it has app
- * config and the quick-nav host, and deliberately NO FileContextProvider.
- *
- * Both apps render this bridge, and the file hooks throw outside a provider, so
- * anything here that reaches for files takes the whole processor page down with
- * a "File hooks must be used within a FileContextProvider" crash. That shipped
- * once; this test is here so it cannot ship again.
- */
-function renderInProcessorShape() {
+function renderWithoutFileProvider() {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -40,7 +31,7 @@ function renderInProcessorShape() {
 }
 
 describe("QuickNavHostBridge without a FileContextProvider", () => {
-  it("mounts, as the processor needs it to", () => {
-    expect(() => renderInProcessorShape()).not.toThrow();
+  it("mounts when the file workspace is unavailable", () => {
+    expect(() => renderWithoutFileProvider()).not.toThrow();
   });
 });

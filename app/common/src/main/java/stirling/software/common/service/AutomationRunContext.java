@@ -7,27 +7,21 @@ package stirling.software.common.service;
  * <p>Automations dispatch each tool step as a separate internal loopback POST via {@link
  * InternalApiClient}. The orchestrator opens a run scope around its dispatch loop; {@code
  * InternalApiClient} reads {@link #current()} and stamps it on every sub-step request as {@link
- * #RUN_ID_HEADER}. The SaaS PAYG interceptor uses that header so all sub-steps of ONE run group
- * into a single charge, while two <em>separate</em> runs that happen to touch identical bytes stay
- * distinct charges (the old content+time-window grouping merged them).
+ * #RUN_ID_HEADER}. The request marker preserves audit lineage across internally dispatched
+ * sub-steps without requiring each service to pass a run id through its call chain.
  *
  * <p>Sub-steps dispatch synchronously on the orchestrator's own thread (loopback {@code
  * RestTemplate}), so this ThreadLocal is visible to {@code InternalApiClient}. The id then crosses
  * to the receiving request thread via the HTTP header — never via this ThreadLocal.
  *
- * <p>No-op when the id is absent (a standalone tool call): the interceptor treats a missing run id
- * as "its own charge", which is exactly what a one-off call should be.
+ * <p>No-op when the id is absent, as for a standalone tool call.
  */
 public final class AutomationRunContext {
 
     /** Header carrying the run id on internal sub-step dispatches. */
     public static final String RUN_ID_HEADER = "X-Stirling-Run-Id";
 
-    /** Header carrying the per-document id (run-scoped) on internal sub-step dispatches. */
-    public static final String DOCUMENT_ID_HEADER = "X-Stirling-Document-Id";
-
     private static final ThreadLocal<String> CURRENT = new ThreadLocal<>();
-    private static final ThreadLocal<String> CURRENT_DOCUMENT = new ThreadLocal<>();
 
     private AutomationRunContext() {}
 
@@ -50,28 +44,6 @@ public final class AutomationRunContext {
     /** The run id active on this thread, or {@code null} when not inside a run scope. */
     public static String current() {
         return CURRENT.get();
-    }
-
-    /**
-     * Opens a per-document scope on the current thread (nest inside a run scope, around one
-     * document's dispatch). Returns an {@link AutoCloseable} that restores the previous document
-     * id.
-     */
-    public static Scope openDocument(String documentId) {
-        String previous = CURRENT_DOCUMENT.get();
-        CURRENT_DOCUMENT.set(documentId);
-        return () -> {
-            if (previous == null) {
-                CURRENT_DOCUMENT.remove();
-            } else {
-                CURRENT_DOCUMENT.set(previous);
-            }
-        };
-    }
-
-    /** The document id active on this thread, or {@code null} when not inside a document scope. */
-    public static String currentDocument() {
-        return CURRENT_DOCUMENT.get();
     }
 
     /** AutoCloseable whose {@link #close()} declares no checked exception. */

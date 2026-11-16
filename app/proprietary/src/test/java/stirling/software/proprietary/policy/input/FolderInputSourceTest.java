@@ -25,7 +25,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.StandardEnvironment;
 
 import stirling.software.common.configuration.RuntimePathConfig;
 import stirling.software.common.model.ApplicationProperties;
@@ -61,10 +60,7 @@ class FolderInputSourceTest {
         properties.getPolicies().setAllowedFolderRoots(List.of(tempDir.toString()));
         FolderAccessGuard guard =
                 new FolderAccessGuard(
-                        properties,
-                        new RuntimePathConfig(properties),
-                        new StandardEnvironment(),
-                        new InProcessSourceStore());
+                        properties, new RuntimePathConfig(properties), new InProcessSourceStore());
         source = new FolderInputSource(readinessChecker, guard);
         ledger = new InProcessProcessedLedger();
         ctx = new RecordingContext();
@@ -325,7 +321,6 @@ class FolderInputSourceTest {
                         new FolderAccessGuard(
                                 properties,
                                 new RuntimePathConfig(properties),
-                                new StandardEnvironment(),
                                 new InProcessSourceStore()));
         Path victimDir = Files.createDirectories(storage.resolve("4"));
         Files.writeString(victimDir.resolve("secret.pdf"), "victim");

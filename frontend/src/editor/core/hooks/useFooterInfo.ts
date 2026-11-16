@@ -5,7 +5,7 @@ import { CONFIG_STALE_TIME } from "@editor/query/staleTime";
 
 export type { FooterInfo };
 
-const FALLBACK: FooterInfo = { analyticsEnabled: false };
+const FALLBACK: FooterInfo = {};
 
 /** Public footer config, shared by Footer and the admin legal section. */
 export function useFooterInfo() {

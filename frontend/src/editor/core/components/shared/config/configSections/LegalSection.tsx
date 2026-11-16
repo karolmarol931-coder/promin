@@ -1,11 +1,9 @@
 import React from "react";
 import { Anchor, Group, Paper, Stack, Text } from "@mantine/core";
-import { Button } from "@editor/ui/Button";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@editor/ui/Icon";
 import { useAppConfig } from "@editor/contexts/AppConfigContext";
 import { useFooterInfo } from "@editor/hooks/useFooterInfo";
-import { useCookieConsent } from "@editor/hooks/useCookieConsent";
 
 interface LegalLink {
   key: string;
@@ -18,8 +16,6 @@ const LegalSection: React.FC = () => {
   const { config } = useAppConfig();
   const { footerInfo } = useFooterInfo();
 
-  const analyticsEnabled =
-    config?.enableAnalytics ?? footerInfo?.analyticsEnabled ?? false;
   const privacyPolicy = config?.privacyPolicy ?? footerInfo?.privacyPolicy;
   const termsAndConditions =
     config?.termsAndConditions ?? footerInfo?.termsAndConditions;
@@ -28,26 +24,26 @@ const LegalSection: React.FC = () => {
   const cookiePolicy = config?.cookiePolicy ?? footerInfo?.cookiePolicy;
   const impressum = config?.impressum ?? footerInfo?.impressum;
 
-  const { showCookiePreferences } = useCookieConsent();
-
-  const isValidLink = (link?: string) => link && link.trim().length > 0;
+  const isAvailableLink = (link?: string) => {
+    if (!link?.trim()) return false;
+    const normalizedLink = link.trim().replace(/^https?:\/\//i, "");
+    return !/^(?:[a-z0-9-]+\.)*stirling(?:pdf)?\.(?:com|io)(?:\/|$)/i.test(
+      normalizedLink,
+    );
+  };
 
   const legalLinks: LegalLink[] = [
     {
       key: "privacy",
       label: t("legal.privacy", "Privacy Policy"),
-      href: isValidLink(privacyPolicy)
-        ? privacyPolicy!
-        : "https://www.stirling.com/privacy",
+      href: privacyPolicy ?? "",
     },
     {
       key: "terms",
       label: t("legal.terms", "Terms and Conditions"),
-      href: isValidLink(termsAndConditions)
-        ? termsAndConditions!
-        : "https://www.stirling.com/terms",
+      href: termsAndConditions ?? "",
     },
-    ...(isValidLink(accessibilityStatement)
+    ...(isAvailableLink(accessibilityStatement)
       ? [
           {
             key: "accessibility",
@@ -56,7 +52,7 @@ const LegalSection: React.FC = () => {
           },
         ]
       : []),
-    ...(isValidLink(cookiePolicy)
+    ...(isAvailableLink(cookiePolicy)
       ? [
           {
             key: "cookie",
@@ -65,7 +61,7 @@ const LegalSection: React.FC = () => {
           },
         ]
       : []),
-    ...(isValidLink(impressum)
+    ...(isAvailableLink(impressum)
       ? [
           {
             key: "impressum",
@@ -75,6 +71,10 @@ const LegalSection: React.FC = () => {
         ]
       : []),
   ];
+
+  const availableLegalLinks = legalLinks.filter((link) =>
+    isAvailableLink(link.href),
+  );
 
   const renderLink = (link: LegalLink) => (
     <Anchor
@@ -93,46 +93,31 @@ const LegalSection: React.FC = () => {
 
   return (
     <Stack gap="lg">
-      <Paper withBorder p="md" radius="md">
-        <Stack gap="md">
-          <div>
-            <Text fw={600} size="sm">
-              {t("settings.legal.documents.title", "Legal Documents")}
-            </Text>
-            <Text size="xs" c="dimmed" mt={4}>
-              {t(
-                "settings.legal.documents.description",
-                "Policies and legal information for this service.",
-              )}
-            </Text>
-          </div>
-          <Stack gap="sm">{legalLinks.map(renderLink)}</Stack>
-        </Stack>
-      </Paper>
-
-      {analyticsEnabled === true && (
+      {availableLegalLinks.length > 0 ? (
         <Paper withBorder p="md" radius="md">
-          <Group justify="space-between" align="center">
+          <Stack gap="md">
             <div>
               <Text fw={600} size="sm">
-                {t("legal.showCookieBanner", "Cookie Preferences")}
+                {t("settings.legal.documents.title", "Legal Documents")}
               </Text>
               <Text size="xs" c="dimmed" mt={4}>
                 {t(
-                  "settings.legal.cookiePreferences.description",
-                  "Review or change your cookie consent choices.",
+                  "settings.legal.documents.description",
+                  "Policies and legal information for this service.",
                 )}
               </Text>
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              id="cookieBanner"
-              onClick={showCookiePreferences}
-            >
-              {t("settings.legal.cookiePreferences.manage", "Manage")}
-            </Button>
-          </Group>
+            <Stack gap="sm">{availableLegalLinks.map(renderLink)}</Stack>
+          </Stack>
+        </Paper>
+      ) : (
+        <Paper withBorder p="md" radius="md">
+          <Text size="sm" c="dimmed">
+            {t(
+              "settings.legal.documents.localNotice",
+              "No external legal documents are configured for this local installation.",
+            )}
+          </Text>
         </Paper>
       )}
     </Stack>

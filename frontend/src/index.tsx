@@ -12,26 +12,30 @@ import "../vite-env.d.ts"; // oxlint-disable-line no-restricted-imports -- Outsi
 import "@editor/styles/index.css"; // Import global styles
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { ColorSchemeScript } from "@mantine/core";
 import { BrowserRouter } from "react-router-dom";
-import App from "@editor/App";
-import "@editor/i18n"; // Initialize i18next
+import { i18nReady } from "@editor/i18n";
 import { BASE_PATH } from "@editor/constants/app";
 import { applyDevWorktreeLabel } from "@editor/utils/applyDevWorktreeLabel";
-
-applyDevWorktreeLabel();
 
 const container = document.getElementById("root");
 if (!container) {
   throw new Error("Root container missing in index.html");
 }
 
-const root = ReactDOM.createRoot(container); // Finds the root DOM element
-root.render(
-  <React.StrictMode>
-    <ColorSchemeScript />
-    <BrowserRouter basename={BASE_PATH}>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>,
-);
+if (!Object.hasOwn(window, "__TAURI_INTERNALS__")) {
+  container.textContent = "Promin is available as a macOS app.";
+} else {
+  applyDevWorktreeLabel();
+  const root = ReactDOM.createRoot(container);
+  const renderApp = async () => {
+    const { default: App } = await import("@editor/App");
+    root.render(
+      <React.StrictMode>
+        <BrowserRouter basename={BASE_PATH}>
+          <App />
+        </BrowserRouter>
+      </React.StrictMode>,
+    );
+  };
+  void i18nReady.then(renderApp, renderApp);
+}

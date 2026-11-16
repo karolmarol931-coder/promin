@@ -584,8 +584,7 @@ class FileRunEventServiceTest {
                             TEAM,
                             "f1");
 
-            assertThat(offeredFor(theirs))
-                    .containsExactly(FailureActionId.VIEW_IN_PROCESSOR, FailureActionId.DISMISS);
+            assertThat(offeredFor(theirs)).containsExactly(FailureActionId.DISMISS);
         }
 
         @Test
@@ -598,7 +597,6 @@ class FileRunEventServiceTest {
                     .containsExactly(
                             FailureActionId.DECRYPT,
                             FailureActionId.VIEW_FILE,
-                            FailureActionId.VIEW_IN_PROCESSOR,
                             FailureActionId.OPEN_IN_TOOL,
                             FailureActionId.DISMISS);
         }
@@ -612,7 +610,6 @@ class FileRunEventServiceTest {
 
             assertThat(service.availableActions(unattended))
                     .filteredOn(action -> action.id() != FailureActionId.DISMISS)
-                    .filteredOn(action -> action.id() != FailureActionId.VIEW_IN_PROCESSOR)
                     .isNotEmpty()
                     .allSatisfy(
                             action -> {
@@ -628,11 +625,8 @@ class FileRunEventServiceTest {
                     givenHitBy(null, FailureKind.INPUT_PASSWORD_PROTECTED, TEAM, "f1");
 
             assertThat(service.availableActions(unattended))
-                    .filteredOn(
-                            action ->
-                                    action.id() == FailureActionId.DISMISS
-                                            || action.id() == FailureActionId.VIEW_IN_PROCESSOR)
-                    .hasSize(2)
+                    .filteredOn(action -> action.id() == FailureActionId.DISMISS)
+                    .hasSize(1)
                     .allMatch(FileRunEventService.AvailableAction::enabled);
         }
 
@@ -646,7 +640,6 @@ class FileRunEventServiceTest {
             assertThat(service.ownershipOf(documentless)).isEqualTo(Ownership.MINE);
             assertThat(service.availableActions(documentless))
                     .filteredOn(action -> action.id() != FailureActionId.DISMISS)
-                    .filteredOn(action -> action.id() != FailureActionId.VIEW_IN_PROCESSOR)
                     .isNotEmpty()
                     .allSatisfy(
                             action -> {
@@ -657,9 +650,8 @@ class FileRunEventServiceTest {
         }
 
         @Test
-        void aRowAboutTheSourceItselfKeepsItsOwnerActionUsableThoughItNamesNoDocument() {
-            // The folder is the subject, and the one thing offered its owner opens the processor,
-            // which needs no document. Greying it out would answer a question nobody asked.
+        void aRowAboutTheSourceItselfCanBeDismissed() {
+            // The source itself is the subject, so document actions do not apply.
             FileRunEvent folder =
                     store.record(
                             RecordFailure.forRun(
@@ -673,13 +665,8 @@ class FileRunEventServiceTest {
                                     "Permission denied"));
 
             assertThat(service.availableActions(folder))
-                    .filteredOn(action -> action.id() == FailureActionId.VIEW_IN_PROCESSOR)
-                    .singleElement()
-                    .satisfies(
-                            action -> {
-                                assertThat(action.enabled()).isTrue();
-                                assertThat(action.disabledReasonKey()).isNull();
-                            });
+                    .extracting(FileRunEventService.AvailableAction::id)
+                    .containsExactly(FailureActionId.DISMISS);
         }
 
         @Test
@@ -756,9 +743,7 @@ class FileRunEventServiceTest {
 
             assertThat(service.availableActions(event))
                     .extracting(FileRunEventService.AvailableAction::labelKey)
-                    .containsExactly(
-                            "portal.failures.action.viewInProcessor",
-                            "portal.failures.action.dismiss");
+                    .containsExactly("portal.failures.action.dismiss");
         }
     }
 

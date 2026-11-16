@@ -9,18 +9,11 @@ import type { QuickNavEntry } from "@editor/components/shared/quickNav/QuickNavR
 import type { ToolId } from "@editor/types/toolId";
 import { useQuickNavHost } from "@editor/contexts/QuickNavHostContext";
 import { requestReaderMode } from "@editor/utils/pendingReaderMode";
-import {
-  saveEditorReturnPath,
-  takeEditorReturnPath,
-} from "@editor/services/workbenchSession";
 import { EDITOR_BASENAME } from "@editor/routes/editorBasename";
-import { PORTAL_BASENAME } from "@editor/routes/portalBasename";
-import { HAS_PORTAL } from "@editor/routes/hasPortal";
 import { DOCS_PATH, HAS_DOCS } from "@editor/routes/docsRoute";
 import { stripBasePath } from "@editor/constants/app";
 import { canCreateProcessingFolders } from "@editor/hooks/useProcessingFolderCreation";
 import { requestProcessingFolderCreation } from "@editor/utils/pendingProcessingFolderCreation";
-import { requestProcessorSignup } from "@editor/services/processorSignup";
 import { useConnectedServer } from "@editor/hooks/useConnectedServer";
 
 import { Icon } from "@editor/ui/Icon";
@@ -37,9 +30,6 @@ export function QuickNavRailHost() {
   const { pathname } = useLocation();
   const host = useQuickNavHost();
   const [signMenuOpen, setSignMenuOpen] = useState(false);
-  // Processing folders run on the non-core API server. True on web (served by that backend);
-  // on desktop it tracks the signed-in connection, so the entry falls inert until the user
-  // signs in to Stirling Cloud or a self-hosted server.
   const connectedServer = useConnectedServer();
 
   const appMounted = Boolean(host?.appMounted);
@@ -47,16 +37,15 @@ export function QuickNavRailHost() {
   const path = stripBasePath(pathname);
   const inSettings = path.startsWith("/settings");
   const inDocs = path.startsWith(DOCS_PATH);
-  const inPortal = path.startsWith(PORTAL_BASENAME);
   // Settings and the docs browser are pages in their own right, so neither app
   // is the current one while you are on them.
-  const inEditor = !inPortal && !inSettings && !inDocs;
+  const inEditor = !inSettings && !inDocs;
 
   // Only the app knows its own default state.
   const returnHome = () => {
     const reset = host?.actions.current?.goToDefaultState;
     if (reset) reset();
-    else navigate(inPortal ? PORTAL_BASENAME : EDITOR_BASENAME);
+    else navigate(EDITOR_BASENAME);
   };
 
   // The brand goes where the app launches; the Editor entry stays in the editor.
@@ -95,10 +84,8 @@ export function QuickNavRailHost() {
     id: "reader",
     label: t("quickNav.reader", "Reader"),
     icon: <Icon name="book-open" size={SIZE} />,
-    // Current means the surface you are on, not a switch left on: reader mode set
-    // from the processor does not count until you are in the editor.
+    // Current means the surface you are on, not a switch left on.
     current: inEditor && Boolean(host?.readerMode),
-    // From the processor there is no editor to toggle - see pendingReaderMode.
     onClick: () => {
       const setMode = host?.actions.current?.setReaderMode;
       if (setMode) {
@@ -126,43 +113,11 @@ export function QuickNavRailHost() {
         returnHome();
         return;
       }
-      // Back to where you left the editor, not its front door.
-      navigate(takeEditorReturnPath() ?? EDITOR_BASENAME);
+      navigate(EDITOR_BASENAME);
     },
   };
 
-  const processor: QuickNavEntry = {
-    id: "processor",
-    label: t("quickNav.processor", "Processor"),
-    icon: <Icon name="cpu" size={SIZE} />,
-    current: inPortal,
-    disabled:
-      HAS_PORTAL && !inPortal && !host?.portalAccess && !host?.isAnonymous,
-    reason:
-      HAS_PORTAL && !inPortal && !host?.portalAccess && !host?.isAnonymous
-        ? t("quickNav.noProcessorAccess", "Ask an admin for processor access")
-        : undefined,
-    onClick: () => {
-      if (host?.isAnonymous) {
-        requestProcessorSignup();
-        return;
-      }
-      if (inPortal) {
-        returnHome();
-        return;
-      }
-      if (inEditor) saveEditorReturnPath();
-      go(PORTAL_BASENAME);
-    },
-  };
-
-  // The processor is additive: dropping the editor with it left a lone reader
-  // entry in builds without a portal, with no way back out of reading.
-  const surfaces: QuickNavEntry[] = [
-    reader,
-    editor,
-    ...(HAS_PORTAL && !localOnly ? [processor] : []),
-  ];
+  const surfaces: QuickNavEntry[] = [reader, editor];
 
   const within: QuickNavEntry[] = [
     ...(!host?.hasOpenFromComputer
@@ -183,15 +138,9 @@ export function QuickNavRailHost() {
       icon: <Icon name="folder" size={SIZE} />,
       current: Boolean(host?.fileLibrary),
       testId: "my-files-button",
-      // Through the app where possible: the library is a view, not a route. From the
-      // processor there is no editor to ask, so the path carries it and HomePage seeds
-      // the view on arrival. Unwrapped: setting the view runs the app's own
-      // unsaved-changes check, and asking twice leaves the second ask nowhere to
-      // prompt.
+      // The library is a view, not a route. The app owns the unsaved-changes check.
       onClick: () => {
         const show = host?.actions.current?.showFileLibrary;
-        // Unwrapped: setting the view runs the app's own unsaved-changes check, and
-        // asking twice leaves the second ask with nowhere to prompt.
         if (show) show();
         else go("/files");
       },
@@ -207,10 +156,6 @@ export function QuickNavRailHost() {
               ? undefined
               : t("quickNav.signInToUse", "Sign in to use this"),
             onClick: () => {
-              if (host?.isAnonymous) {
-                requestProcessorSignup();
-                return;
-              }
               const open = host?.actions.current?.createProcessingFolder;
               if (open) open();
               else
@@ -301,12 +246,6 @@ export function QuickNavRailHost() {
       accountActive={inSettings}
       onOpenDocs={openDocs}
       docsActive={inDocs}
-      onInvite={
-        // Spelt out: VIEW_PATHS lives in the portal, which core cannot import.
-        HAS_PORTAL && host?.portalAccess
-          ? () => go(`${PORTAL_BASENAME}/users`)
-          : undefined
-      }
       onToggleNotifications={() =>
         host?.actions.current?.toggleNotifications?.()
       }

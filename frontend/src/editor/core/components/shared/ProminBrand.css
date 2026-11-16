@@ -1,0 +1,38 @@
+.promin-brand {
+  display: block;
+}
+
+.promin-brand--landing {
+  width: min(100%, 22rem);
+  height: auto;
+  flex: 0 1 auto;
+  margin-bottom: 2.5rem;
+}
+
+.promin-brand--compact {
+  width: min(100%, 12rem);
+  height: auto;
+  margin: 0;
+}
+
+.promin-brand img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.promin-brand img.promin-brand__dark {
+  display: none;
+}
+
+[data-mantine-color-scheme="dark"] .promin-brand > img:first-child,
+[data-theme="dark"] .promin-brand > img:first-child,
+html[data-app-theme="midnight"] .promin-brand > img:first-child {
+  display: none;
+}
+
+[data-mantine-color-scheme="dark"] .promin-brand img.promin-brand__dark,
+[data-theme="dark"] .promin-brand img.promin-brand__dark,
+html[data-app-theme="midnight"] .promin-brand img.promin-brand__dark {
+  display: block;
+}

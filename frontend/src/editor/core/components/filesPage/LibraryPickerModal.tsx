@@ -8,13 +8,11 @@ export function LibraryPickerModal({
   opened,
   onClose,
   busy = false,
-  externalPickerOpen = false,
   children,
 }: {
   opened: boolean;
   onClose: () => void;
   busy?: boolean;
-  externalPickerOpen?: boolean;
   children: ReactNode;
 }) {
   const mobile = useMediaQuery("(max-width: 640px)") ?? false;
@@ -31,9 +29,9 @@ export function LibraryPickerModal({
       padding={0}
       radius="md"
       zIndex={Z_INDEX_FILE_MANAGER_MODAL}
-      trapFocus={!externalPickerOpen}
-      closeOnEscape={!busy && !externalPickerOpen}
-      closeOnClickOutside={!busy && !externalPickerOpen}
+      trapFocus
+      closeOnEscape={!busy}
+      closeOnClickOutside={!busy}
     >
       {opened && children}
     </Modal>

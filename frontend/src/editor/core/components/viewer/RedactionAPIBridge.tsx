@@ -12,7 +12,7 @@ import { useDocumentReady } from "@editor/components/viewer/hooks/useDocumentRea
 import { leaveRedactionMode } from "@editor/components/viewer/leaveRedactionMode";
 
 /**
- * Bridges between the EmbedPDF redaction plugin and the Stirling-PDF RedactionContext.
+ * Bridges between the EmbedPDF redaction plugin and the Promin RedactionContext.
  * Uses the unified redaction mode (toggleRedact/enableRedact/endRedact).
  */
 export function RedactionAPIBridge() {

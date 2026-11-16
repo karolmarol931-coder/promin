@@ -9,7 +9,7 @@ import {
 import { downloadFileWithPolicy as downloadFile } from "@editor/services/exportWithPolicy";
 
 /**
- * Desktop-only keyboard shortcut: Ctrl/Cmd+S to save selected files
+ * Cmd+S saves selected files in the desktop app.
  * Only saves files that have a localFilePath (came from disk)
  * Matches WorkbenchBar button behavior: saves selected files if any, otherwise all files
  */
@@ -20,8 +20,7 @@ export function useSaveShortcut() {
 
   useEffect(() => {
     const handleKeyDown = async (event: KeyboardEvent) => {
-      // Check for Ctrl+S (Windows/Linux) or Cmd+S (Mac)
-      if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+      if (event.metaKey && event.key === "s") {
         event.preventDefault();
 
         // Get selected files or all files if nothing selected

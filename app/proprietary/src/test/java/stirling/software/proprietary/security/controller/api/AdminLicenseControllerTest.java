@@ -68,38 +68,6 @@ class AdminLicenseControllerTest {
     }
 
     @Nested
-    @DisplayName("getInstallationId")
-    class GetInstallationId {
-
-        @Test
-        @DisplayName("returns 200 with the machine fingerprint")
-        void returnsFingerprint() {
-            try (MockedStatic<GeneralUtils> mocked = mockStatic(GeneralUtils.class)) {
-                mocked.when(GeneralUtils::generateMachineFingerprint).thenReturn("fingerprint-xyz");
-
-                ResponseEntity<Map<String, String>> response = controller.getInstallationId();
-
-                assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-                assertThat(response.getBody()).containsEntry("installationId", "fingerprint-xyz");
-            }
-        }
-
-        @Test
-        @DisplayName("returns 500 when fingerprint generation throws")
-        void returnsErrorOnException() {
-            try (MockedStatic<GeneralUtils> mocked = mockStatic(GeneralUtils.class)) {
-                mocked.when(GeneralUtils::generateMachineFingerprint)
-                        .thenThrow(new RuntimeException("boom"));
-
-                ResponseEntity<Map<String, String>> response = controller.getInstallationId();
-
-                assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-                assertThat(response.getBody()).containsKey("error");
-            }
-        }
-    }
-
-    @Nested
     @DisplayName("saveLicenseKey")
     class SaveLicenseKey {
 
@@ -190,13 +158,8 @@ class AdminLicenseControllerTest {
             assertThat(body(response)).containsEntry("success", false);
         }
 
-        /**
-         * A Team buyer has no licence key, and this endpoint is how their purchase reaches the tier
-         * in seconds instead of waiting for the next daily sync. Rejecting them on a missing key
-         * would break the whole path.
-         */
         @Test
-        @DisplayName("resyncs with no license key, for a Team plan bought on a SaaS account")
+        @DisplayName("refreshes the current license state when no key is configured")
         void noKey_stillResyncs() {
             applicationProperties.getPremium().setKey("   ");
             when(licenseKeyChecker.getPremiumLicenseEnabledResult()).thenReturn(License.SERVER);

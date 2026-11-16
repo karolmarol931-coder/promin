@@ -5,10 +5,6 @@ import { allowConsole, expectConsole } from "@editor/tests/failOnConsole";
 vi.mock("@editor/auth/spring/springAuthClient", () => ({
   setPostLoginRedirectPath: vi.fn(),
 }));
-vi.mock("@editor/utils/browserIdentifier", () => ({
-  getBrowserId: () => "browser-1",
-}));
-
 import { setupApiInterceptors } from "@editor/services/apiClientSetup";
 
 type Rejected = (error: unknown) => Promise<unknown>;

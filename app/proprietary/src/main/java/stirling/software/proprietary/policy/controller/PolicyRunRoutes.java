@@ -8,16 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * Policy execute-route namespace under {@code /api/v1/policies} - the paths that actually run an
  * automation ({@code /run}, {@code /run/stream}, {@code /{id}/run}, {@code /{id}/trigger}).
  *
- * <p>Single source of truth for both PAYG entitlement gates, so a caller without billing is blocked
- * at the start of a run rather than partway through: the saas {@code EntitlementGuard} gates these
- * on {@code FeatureGate.AUTOMATION}, and the self-hosted account-link {@code
- * InstanceEntitlementInterceptor} treats them as billable. Read/list policy endpoints are
- * deliberately excluded so the UI can still show policies and prompt on use.
- *
- * <p>This is the sole gate between an unentitled caller and a billable run, so the match is exact
- * (not a loose suffix) and segment-anchored. {@code PolicyRunRoutesTest} asserts it against every
- * mapping on {@code PolicyController}, so a new execute route that isn't classified here fails the
- * build rather than silently running for free.
+ * <p>The match is exact and segment-anchored so read/list routes aren't treated as execution.
  */
 public final class PolicyRunRoutes {
 

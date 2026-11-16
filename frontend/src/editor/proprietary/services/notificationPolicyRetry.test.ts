@@ -12,7 +12,7 @@ vi.mock("@editor/services/fileStorage", () => ({
 const runStoredPolicy = vi.fn();
 vi.mock("@editor/services/policyApi", () => ({
   runStoredPolicy: (...args: unknown[]) => runStoredPolicy(...args),
-  resolvePolicyRunTarget: () => "saas",
+  resolvePolicyRunTarget: () => "local",
 }));
 
 /** The local policy cache, which is how a backend policy id becomes a category without any hook. */
@@ -100,7 +100,7 @@ describe("rerunPolicy", () => {
       fileId: "f-1",
       fileName: "invoice.pdf",
       status: "PENDING",
-      target: "saas",
+      target: "local",
     });
     // Marked dispatched as any other run is, so the pair is not treated as never having run.
     expect(isDispatched("security", "f-1")).toBe(true);
@@ -254,7 +254,7 @@ describe("rechainPolicyOnDocument rejoining the chain", () => {
       fileId,
       fileName: "invoice.pdf",
       fileSize: 1,
-      target: "saas",
+      target: "local",
       status: "PENDING",
       outputs: [],
       error: null,

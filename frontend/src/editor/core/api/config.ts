@@ -54,7 +54,6 @@ export async function fetchEndpointEnabled(endpoint: string): Promise<boolean> {
 }
 
 export interface FooterInfo {
-  analyticsEnabled?: boolean;
   termsAndConditions?: string;
   privacyPolicy?: string;
   accessibilityStatement?: string;

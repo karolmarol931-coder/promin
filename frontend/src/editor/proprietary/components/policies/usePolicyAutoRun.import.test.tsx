@@ -52,7 +52,7 @@ vi.mock("@editor/services/policyApi", () => ({
   getPolicyRun: vi.fn(),
   listPolicyRuns: mocks.listPolicyRuns,
   downloadPolicyOutput: mocks.downloadPolicyOutput,
-  resolvePolicyRunTarget: () => "saas",
+  resolvePolicyRunTarget: () => "local",
 }));
 vi.mock("@editor/services/fileStorage", () => ({
   fileStorage: {
@@ -82,7 +82,7 @@ function recordCompletedRun() {
     fileId: "file-1",
     fileName: "doc.pdf",
     fileSize: 1234,
-    target: "saas",
+    target: "local",
     status: "COMPLETED",
     outputs: [{ fileId: "out-file-1", fileName: "doc.pdf" }],
     error: null,

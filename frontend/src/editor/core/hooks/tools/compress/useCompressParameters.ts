@@ -61,7 +61,8 @@ export function validateCompressParameters(
   // Filesize mode needs a target size; without one the request omits
   // expectedOutputSize and the backend silently does a quality compression.
   if (params.compressionMethod === "filesize") {
-    return params.fileSizeValue.trim() !== "";
+    const targetSize = Number(params.fileSizeValue.trim());
+    return Number.isFinite(targetSize) && targetSize > 0;
   }
   return true;
 }

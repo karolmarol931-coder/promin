@@ -30,7 +30,7 @@ export function useNewFolderFlow() {
     currentTab !== "all" && currentTab !== "cloud"
       ? t(
           "filesPage.newFolderTabUnavailable",
-          "Switch to Stirling library to create folders.",
+          "Switch to Promin library to create folders.",
         )
       : needsServer
         ? serverFolderBlock

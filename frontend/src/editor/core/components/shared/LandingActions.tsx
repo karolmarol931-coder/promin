@@ -1,77 +1,77 @@
 import React from "react";
-import { Group, Tooltip } from "@mantine/core";
+import { Group } from "@mantine/core";
 import { Button } from "@editor/ui/Button";
 import { Icon } from "@editor/ui/Icon";
-import { useFilesModalContext } from "@editor/contexts/FilesModalContext";
-import { useFilesPage } from "@editor/contexts/FilesPageContext";
-import { useFolders } from "@editor/contexts/FolderContext";
 import { useFileActionTerminology } from "@editor/hooks/useFileActionTerminology";
-import { useAppConfig } from "@editor/contexts/AppConfigContext";
-import { useIsMobile } from "@editor/hooks/useIsMobile";
 import { CreateProcessingFolderButton } from "@editor/components/policies/CreateProcessingFolderButton";
-import { folderKind } from "@editor/types/folder";
+import ToolButton from "@editor/components/tools/toolPicker/ToolButton";
+import { useToolWorkflow } from "@editor/contexts/ToolWorkflowContext";
+import { useTranslation } from "react-i18next";
 
 type LandingActionsProps = {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   onUploadClick: () => void;
-  onMobileUploadClick: () => void;
   onFileSelect: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  readerEmpty?: boolean;
 };
 
 export function LandingActions({
   fileInputRef,
   onUploadClick,
-  onMobileUploadClick,
   onFileSelect,
+  readerEmpty = false,
 }: LandingActionsProps) {
   const terminology = useFileActionTerminology();
-  const { openFilesModal } = useFilesModalContext();
-  const { allFiles, loading } = useFilesPage();
-  const folders = useFolders();
-  const { config } = useAppConfig();
-  const isMobile = useIsMobile();
-  // Mounted directories are listed on demand, so their files may not be cached yet.
-  const hasMountedFolders = folders.folders.some(
-    (folder) => folderKind(folder) === "local",
-  );
-  const libraryEmpty =
-    !loading && !folders.loading && allFiles.length === 0 && !hasMountedFolders;
+  const { t } = useTranslation();
+  const { selectedToolKey, handleToolSelect, toolRegistry } = useToolWorkflow();
 
   return (
     <>
-      <Group gap="sm" justify="center" wrap="wrap" mb="xs">
+      <Group
+        className="landing-primary-actions"
+        gap="sm"
+        justify="center"
+        wrap="wrap"
+        mb="xs"
+      >
         <Button
           fat
           leftSection={<Icon name="plus" size="1rem" />}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (libraryEmpty) {
-              onUploadClick();
-            } else {
-              openFilesModal();
-            }
-          }}
+          onClick={onUploadClick}
         >
-          {terminology.addFiles}
+          {terminology.uploadFromComputer}
         </Button>
 
-        <CreateProcessingFolderButton />
-
-        {config?.enableMobileScanner && !isMobile && (
-          <Tooltip label={terminology.mobileUpload} position="bottom">
-            <Button
-              variant="secondary"
-              fat
-              aria-label={terminology.mobileUpload}
-              onClick={(e) => {
-                e.stopPropagation();
-                onMobileUploadClick();
-              }}
-              leftSection={<Icon name="qr-code" size="1.25rem" />}
-            />
-          </Tooltip>
-        )}
+        {!readerEmpty && <CreateProcessingFolderButton />}
       </Group>
+      {!readerEmpty && (
+        <section
+          className="landing-quick-tools"
+          aria-label={t("toolPicker.quickAccess", "Quick access")}
+        >
+          <div className="landing-quick-tools__heading">
+            {t("toolPicker.quickAccess", "Quick access")}
+          </div>
+          <div className="landing-quick-tools__grid">
+            {(["merge", "split"] as const).map((id) => {
+              const tool = toolRegistry[id];
+              if (!tool) return null;
+
+              return (
+                <div className="landing-quick-tools__item" key={id}>
+                  <ToolButton
+                    id={id}
+                    tool={tool}
+                    isSelected={selectedToolKey === id}
+                    onSelect={handleToolSelect}
+                    showDescription
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
       <input
         ref={fileInputRef}
         type="file"

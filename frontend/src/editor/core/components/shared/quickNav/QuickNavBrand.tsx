@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { BrandMark } from "@editor/components/shared/BrandMark";
+import { QuickNavBrandMark } from "@editor/components/shared/quickNav/QuickNavBrandMark";
 import { useQuickNavHost } from "@editor/contexts/QuickNavHostContext";
 import { useSecretClicks } from "@editor/components/easterEgg/useSecretClicks";
 
@@ -11,7 +11,7 @@ export interface QuickNavBrandProps {
 
 export function QuickNavBrand({ onReturnHome }: QuickNavBrandProps) {
   const { t } = useTranslation();
-  const label = t("quickNav.home", "Stirling");
+  const label = t("quickNav.home", "Promin");
   const host = useQuickNavHost();
 
   // Nothing happens where the app has not offered the action.
@@ -37,7 +37,7 @@ export function QuickNavBrand({ onReturnHome }: QuickNavBrandProps) {
           countClick(rect);
         }}
       >
-        <BrandMark height="1.6rem" />
+        <QuickNavBrandMark />
       </button>
     </div>
   );

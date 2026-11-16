@@ -8,7 +8,6 @@ const mocks = vi.hoisted(() => ({
   openFilesModal: vi.fn(),
   openFilesFromDisk: vi.fn(),
   openFolderCreation: vi.fn(),
-  config: { enableMobileScanner: true } as { enableMobileScanner: boolean },
   signedIn: true,
   canCreateFolders: true,
 }));
@@ -22,10 +21,6 @@ vi.mock("react-i18next", () => ({
 vi.mock("@editor/contexts/FilesModalContext", () => ({
   useFilesModalContext: () => ({ openFilesModal: mocks.openFilesModal }),
 }));
-vi.mock("@editor/contexts/AppConfigContext", () => ({
-  useAppConfig: () => ({ config: mocks.config }),
-}));
-vi.mock("@editor/hooks/useIsMobile", () => ({ useIsPhone: () => false }));
 vi.mock("@editor/hooks/useProcessingFolderCreation", () => ({
   useProcessingFolderCreation: () => ({
     open: mocks.canCreateFolders ? mocks.openFolderCreation : undefined,
@@ -37,10 +32,6 @@ vi.mock("@editor/components/policies/usePoliciesEnabled", () => ({
 }));
 vi.mock("@editor/services/openFilesFromDisk", () => ({
   openFilesFromDisk: mocks.openFilesFromDisk,
-}));
-vi.mock("@editor/components/shared/MobileUploadModal", () => ({
-  default: ({ opened }: { opened: boolean }) =>
-    opened ? <div>mobile upload modal</div> : null,
 }));
 vi.mock("@editor/ui/Logo", () => ({ Logo: () => null }));
 
@@ -64,7 +55,6 @@ async function openMoreOptions() {
 describe("AddFileCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.config = { enableMobileScanner: true };
     mocks.signedIn = true;
     mocks.canCreateFolders = true;
   });
@@ -98,25 +88,6 @@ describe("AddFileCard", () => {
         .getByRole("button", { name: "More upload options" })
         .getAttribute("aria-expanded"),
     ).toBe("true");
-  });
-
-  test("the mobile upload opens the mobile upload modal", async () => {
-    renderCard();
-    await openMoreOptions();
-    await userEvent.click(
-      await screen.findByRole("menuitem", { name: "Upload from Mobile" }),
-    );
-    expect(screen.getByText("mobile upload modal")).toBeTruthy();
-  });
-
-  test("leaves mobile upload out of the menu when the scanner is off", async () => {
-    mocks.config = { enableMobileScanner: false };
-    renderCard();
-    await openMoreOptions();
-    await screen.findByRole("menuitem", { name: "Upload from computer" });
-    expect(
-      screen.queryByRole("menuitem", { name: "Upload from Mobile" }),
-    ).toBeNull();
   });
 
   test("hides Process a folder in builds without processing", () => {

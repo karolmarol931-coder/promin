@@ -38,13 +38,4 @@ public class AiEngineStatus {
 
     @Schema(description = "Why the probe failed, for display next to a red status")
     private String error;
-
-    @Schema(description = "Cloud mode only: whether the Stirling Cloud host answered")
-    private Boolean cloudUp;
-
-    @Schema(
-            description =
-                    "Cloud mode only: whether Stirling Cloud shares its AI with linked servers."
-                            + " Null when it could not be determined")
-    private Boolean cloudSharingEnabled;
 }

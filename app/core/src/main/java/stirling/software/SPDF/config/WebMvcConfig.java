@@ -4,7 +4,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -33,17 +32,10 @@ import stirling.software.common.model.ApplicationProperties;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final EndpointInterceptor endpointInterceptor;
-    private final PdfMetricsInterceptor pdfMetricsInterceptor;
     private final ApplicationProperties applicationProperties;
 
     private static final Logger logger = LoggerFactory.getLogger(WebMvcConfig.class);
 
-    private static final CacheControl NO_CACHE = CacheControl.noCache();
-    private static final CacheControl IMMUTABLE_ONE_YEAR =
-            CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable();
-    // For resources whose names are stable across releases (no content hash):
-    // a day of freshness so repeat opens are a cheap conditional request, plus
-    // stale-while-revalidate so a shared cache can still answer instantly.
     private static final CacheControl STABLE_ONE_DAY =
             CacheControl.maxAge(Duration.ofDays(1))
                     .cachePublic()
@@ -52,7 +44,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(endpointInterceptor);
-        registry.addInterceptor(pdfMetricsInterceptor);
     }
 
     @Override
@@ -62,92 +53,14 @@ public class WebMvcConfig implements WebMvcConfigurer {
                         + stirling.software.common.configuration.InstallationPathConfig
                                 .getStaticPath();
 
-        // 1. Service worker and PWA metadata (never store)
-        // Browsers revalidate SW bytes anyway; no-store is the safest for atomic updates.
-        registry.addResourceHandler(
-                        "/sw.js", "/manifest.json", "/site.webmanifest", "/browserconfig.xml")
-                .addResourceLocations(staticPath, "classpath:/static/")
-                .setCacheControl(CacheControl.noStore())
-                .resourceChain(true)
-                .addResolver(new PreferredEncodingResourceResolver());
-
-        // 2. Vite fingerprinted assets (immutable)
-        // These already have content hashes in filenames (e.g. index-ChAS4tCC.js)
-        registry.addResourceHandler("/assets/**")
-                .addResourceLocations(staticPath + "assets/", "classpath:/static/assets/")
-                .setCacheControl(IMMUTABLE_ONE_YEAR)
-                .resourceChain(true)
-                .addResolver(new PreferredEncodingResourceResolver());
-
-        // 3. Media and fonts (stable names, revalidated)
-        // The fallback faces ship inside the JAR under names that never change,
-        // so a one-year immutable policy would strand a browser on one release's
-        // bytes. A day of freshness plus SWR keeps repeat opens cheap without
-        // pinning an update.
-        registry.addResourceHandler("/images/**", "/fonts/**")
-                .addResourceLocations(
-                        staticPath + "images/",
-                        "classpath:/static/images/",
-                        staticPath + "fonts/",
-                        "classpath:/static/fonts/")
+        registry.addResourceHandler("/fonts/**")
+                .addResourceLocations(staticPath + "fonts/", "classpath:/static/fonts/")
                 .setCacheControl(STABLE_ONE_DAY)
                 .resourceChain(true)
                 .addResolver(new PreferredEncodingResourceResolver());
-
-        // 4. Branding and stable non-fingerprinted assets (1 day + SWR)
-        // Use stale-while-revalidate to improve perceived performance.
-        registry.addResourceHandler(
-                        "/favicon.*",
-                        "/apple-touch-icon.png",
-                        "/android-chrome-*.png",
-                        "/mstile-*.png",
-                        "/safari-pinned-tab.svg",
-                        "/icons/**",
-                        "/modern-logo/**",
-                        "/3rdPartyLicenses.json",
-                        "/pdfjs/**",
-                        "/pdfium/**",
-                        "/locales/**",
-                        "/css/**",
-                        "/js/**",
-                        "/vendor/**",
-                        "/samples/**",
-                        "/og_images/**",
-                        "/Login/**")
-                .addResourceLocations(
-                        staticPath,
-                        "classpath:/static/",
-                        staticPath + "pdfjs/",
-                        "classpath:/static/pdfjs/",
-                        staticPath + "pdfium/",
-                        "classpath:/static/pdfium/",
-                        staticPath + "locales/",
-                        "classpath:/static/locales/",
-                        staticPath + "css/",
-                        "classpath:/static/css/",
-                        staticPath + "js/",
-                        "classpath:/static/js/",
-                        staticPath + "vendor/",
-                        "classpath:/static/vendor/",
-                        staticPath + "samples/",
-                        "classpath:/static/samples/",
-                        staticPath + "og_images/",
-                        "classpath:/static/og_images/",
-                        staticPath + "Login/",
-                        "classpath:/static/Login/",
-                        staticPath + "icons/",
-                        "classpath:/static/icons/",
-                        staticPath + "modern-logo/",
-                        "classpath:/static/modern-logo/")
+        registry.addResourceHandler("/images/signature.png")
+                .addResourceLocations(staticPath + "images/", "classpath:/static/images/")
                 .setCacheControl(STABLE_ONE_DAY)
-                .resourceChain(true)
-                .addResolver(new PreferredEncodingResourceResolver());
-
-        // 5. Catch-all (SPA fallback)
-        // Must check with server to ensure index.html is always fresh.
-        registry.addResourceHandler("/**")
-                .addResourceLocations(staticPath, "classpath:/static/")
-                .setCacheControl(NO_CACHE)
                 .resourceChain(true)
                 .addResolver(new PreferredEncodingResourceResolver());
     }
@@ -290,8 +203,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                             "Origin",
                             "X-API-KEY",
                             "X-CSRF-TOKEN",
-                            "X-XSRF-TOKEN",
-                            "X-Browser-Id")
+                            "X-XSRF-TOKEN")
                     .exposedHeaders(
                             "WWW-Authenticate",
                             "X-Total-Count",
@@ -339,8 +251,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                             "Origin",
                             "X-API-KEY",
                             "X-CSRF-TOKEN",
-                            "X-XSRF-TOKEN",
-                            "X-Browser-Id")
+                            "X-XSRF-TOKEN")
                     .exposedHeaders(
                             "WWW-Authenticate",
                             "X-Total-Count",
@@ -369,8 +280,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                             "Origin",
                             "X-API-KEY",
                             "X-CSRF-TOKEN",
-                            "X-XSRF-TOKEN",
-                            "X-Browser-Id")
+                            "X-XSRF-TOKEN")
                     .exposedHeaders(
                             "WWW-Authenticate",
                             "X-Total-Count",

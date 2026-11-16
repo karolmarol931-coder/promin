@@ -11,9 +11,6 @@ import stirling.software.proprietary.security.configuration.ee.KeygenLicenseVeri
  * Service that provides dynamic license checking instead of cached beans. This ensures that when
  * admins update the license key, the changes are immediately reflected in the UI and config
  * endpoints without requiring a restart.
- *
- * <p>Linked Team entitlement is evaluated on access, including unlink and revocation; installed
- * licences retain their own validation lifecycle.
  */
 @Service
 @RequiredArgsConstructor

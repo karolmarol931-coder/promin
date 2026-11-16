@@ -308,7 +308,7 @@ describe("NotificationBell", () => {
 
   it("puts every one of the row's actions on the row", async () => {
     h.specs = {
-      VIEW_IN_PROCESSOR: {
+      FUTURE_ACTION: {
         available: () => true,
         run: vi.fn(),
         closesPanel: true,
@@ -317,14 +317,14 @@ describe("NotificationBell", () => {
     };
     fetchNotifications.mockResolvedValue([
       notification("a", "Unrecognised failure", {
-        actions: [offer("VIEW_IN_PROCESSOR"), offer("VIEW_FILE")],
+        actions: [offer("FUTURE_ACTION"), offer("VIEW_FILE")],
       }),
     ]);
     render(<NotificationBell />);
     await openPanel();
 
     // Named for their row: every button in the list says the same thing.
-    for (const id of ["VIEW_IN_PROCESSOR", "VIEW_FILE"])
+    for (const id of ["FUTURE_ACTION", "VIEW_FILE"])
       expect(
         screen.getByRole("button", { name: `${id}: Unrecognised failure` }),
       ).toBeTruthy();
@@ -334,14 +334,14 @@ describe("NotificationBell", () => {
     h.specs = {
       DECRYPT: { available: () => true, run: vi.fn() },
       VIEW_FILE: { available: () => true, run: vi.fn() },
-      VIEW_IN_PROCESSOR: { available: () => true, run: vi.fn() },
+      FUTURE_ACTION: { available: () => true, run: vi.fn() },
     };
     fetchNotifications.mockResolvedValue([
       notification("a", "Unrecognised failure", {
         actions: [
           offer("DECRYPT", "RESOLUTION"),
           offer("VIEW_FILE", "SECONDARY"),
-          offer("VIEW_IN_PROCESSOR", "OVERFLOW"),
+          offer("FUTURE_ACTION", "OVERFLOW"),
         ],
       }),
     ]);
@@ -359,7 +359,7 @@ describe("NotificationBell", () => {
     ).toBeTruthy();
     expect(
       screen.queryByRole("button", {
-        name: "VIEW_IN_PROCESSOR: Unrecognised failure",
+        name: "FUTURE_ACTION: Unrecognised failure",
       }),
     ).toBeNull();
 
@@ -369,19 +369,19 @@ describe("NotificationBell", () => {
       }),
     );
     expect(
-      await screen.findByRole("menuitem", { name: "VIEW_IN_PROCESSOR" }),
+      await screen.findByRole("menuitem", { name: "FUTURE_ACTION" }),
     ).toBeTruthy();
   });
 
   it("runs whichever of the row's actions is pressed", async () => {
     const run = vi.fn();
     h.specs = {
-      VIEW_IN_PROCESSOR: { available: () => true, run: vi.fn() },
+      FUTURE_ACTION: { available: () => true, run: vi.fn() },
       VIEW_FILE: { available: () => true, run },
     };
     fetchNotifications.mockResolvedValue([
       notification("a", "Unrecognised failure", {
-        actions: [offer("VIEW_IN_PROCESSOR"), offer("VIEW_FILE")],
+        actions: [offer("FUTURE_ACTION"), offer("VIEW_FILE")],
       }),
     ]);
     render(<NotificationBell />);
@@ -525,7 +525,7 @@ describe("NotificationBell", () => {
     // A greyed button that can never work is false hope, so the reason becomes the row's note.
     h.specs = {
       VIEW_FILE: { available: () => true, run: vi.fn() },
-      VIEW_IN_PROCESSOR: { available: () => true, run: vi.fn() },
+      FUTURE_ACTION: { available: () => true, run: vi.fn() },
     };
     fetchNotifications.mockResolvedValue([
       notification("a", "Unrecognised failure", {
@@ -535,7 +535,7 @@ describe("NotificationBell", () => {
             enabled: false,
             disabledReasonKey: "portal.failures.disabled.unattended",
           }),
-          offer("VIEW_IN_PROCESSOR"),
+          offer("FUTURE_ACTION"),
         ],
       }),
     ]);
@@ -545,7 +545,7 @@ describe("NotificationBell", () => {
     expect(screen.queryByRole("button", { name: /VIEW_FILE/ })).toBeNull();
     expect(
       screen.getByRole("button", {
-        name: "VIEW_IN_PROCESSOR: Unrecognised failure",
+        name: "FUTURE_ACTION: Unrecognised failure",
       }),
     ).toBeTruthy();
     expect(
@@ -555,13 +555,13 @@ describe("NotificationBell", () => {
 
   it("leaves a closed row with no buttons rather than a row of dead ones", async () => {
     h.specs = {
-      VIEW_IN_PROCESSOR: { available: () => true, run: vi.fn() },
+      FUTURE_ACTION: { available: () => true, run: vi.fn() },
       VIEW_FILE: { available: () => true, run: vi.fn() },
     };
     fetchNotifications.mockResolvedValue([
       notification("a", "Unrecognised failure", {
         actions: [
-          offer("VIEW_IN_PROCESSOR", "SECONDARY", {
+          offer("FUTURE_ACTION", "SECONDARY", {
             enabled: false,
             disabledReasonKey: "portal.failures.disabled.closed",
           }),
@@ -581,7 +581,7 @@ describe("NotificationBell", () => {
       screen.getByText("Not available for this notification."),
     ).toBeTruthy();
     expect(
-      screen.queryByRole("button", { name: /VIEW_IN_PROCESSOR|VIEW_FILE/ }),
+      screen.queryByRole("button", { name: /FUTURE_ACTION|VIEW_FILE/ }),
     ).toBeNull();
     // The error log stays reachable: a row with nothing left to do still owns its detail.
     expect(

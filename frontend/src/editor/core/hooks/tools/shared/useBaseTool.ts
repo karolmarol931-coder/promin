@@ -48,6 +48,8 @@ export function useBaseTool<
     minFiles?: number;
     /** When true, uses the full file selection rather than the viewer-scoped single file. */
     ignoreViewerScope?: boolean;
+    /** Reorders the scoped files for this tool without changing workbench order. */
+    orderFiles?: (files: StirlingFile[]) => StirlingFile[];
     /**
      * When true, skips the "reset params on 0→N files" effect. Tools that
      * manage their own parameter lifecycle (e.g. Compare, which auto-fills slots
@@ -68,7 +70,9 @@ export function useBaseTool<
   // In viewer mode: scope to the single displayed file (unless ignoreViewerScope).
   // In fileEditor with a selection: scope to the selected files.
   // All other cases (pageEditor, custom, no selection): use all loaded files.
-  const effectiveFiles = viewerScopedFiles;
+  const effectiveFiles = options?.orderFiles
+    ? options.orderFiles(viewerScopedFiles)
+    : viewerScopedFiles;
 
   const previousFileCount = useRef(effectiveFiles.length);
 

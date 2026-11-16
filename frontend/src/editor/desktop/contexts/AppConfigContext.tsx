@@ -36,8 +36,6 @@ export function useAppConfig() {
         storageShareEmailEnabled: false,
         storageGroupSigningEnabled: false,
         aiEngineEnabled: false,
-        enableMobileScanner: false,
-        enableMobileSignature: false,
       },
     };
   }, [context, localOnly]);

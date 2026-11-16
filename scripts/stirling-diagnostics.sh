@@ -298,7 +298,6 @@ if [ "$INCLUDE_METRICS" = true ] && [ -n "$BASE_URL" ]; then
   for endpoint in \
     /api/v1/info/status \
     /api/v1/info/uptime \
-    /api/v1/info/wau \
     /api/v1/info/requests \
     /api/v1/info/requests/unique \
     /api/v1/info/requests/all \
@@ -353,7 +352,6 @@ if [ "$INCLUDE_METRICS" = true ] && [ -z "$BASE_URL" ]; then
     for endpoint in \
       /api/v1/info/status \
       /api/v1/info/uptime \
-      /api/v1/info/wau \
       /api/v1/info/requests \
       /api/v1/info/requests/unique \
       /api/v1/info/requests/all \

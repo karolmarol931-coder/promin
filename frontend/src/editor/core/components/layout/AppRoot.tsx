@@ -4,11 +4,9 @@ import HomePage from "@editor/pages/HomePage";
 import { LoadingFallback } from "@editor/components/shared/LoadingFallback";
 import { stripBasePath } from "@editor/constants/app";
 import { DOCS_PATH, HAS_DOCS } from "@editor/routes/docsRoute";
-import { StartupPrompts } from "@editor/components/startup/StartupPrompts";
 import { usePdfEngineWarmUp } from "@editor/hooks/usePdfEngineWarmUp";
 
-// Their own chunks: the settings tree (admin sections, account, licence flows)
-// and the docs manifest are both large, and most sessions open neither.
+// Settings loads on demand because most sessions never open it.
 const SettingsPage = lazy(() => import("@editor/pages/SettingsPage"));
 const DocsPage = lazy(() => import("@editor/components/docs/DocsPage"));
 
@@ -40,7 +38,6 @@ export function AppRoot() {
   usePdfEngineWarmUp();
   return (
     <>
-      <StartupPrompts />
       <AppContent />
     </>
   );

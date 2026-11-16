@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.env.MockEnvironment;
 
 import stirling.software.common.model.ApplicationProperties;
 import stirling.software.proprietary.service.ToolRecommendationService.ToolRecommendation;
@@ -61,14 +60,12 @@ class ToolRecommendationServiceTest {
     @Mock private ToolUsageSignalService signalService;
 
     private ApplicationProperties properties;
-    private MockEnvironment environment;
     private ToolRecommendationService service;
 
     @BeforeEach
     void setUp() {
         properties = new ApplicationProperties();
-        environment = new MockEnvironment();
-        service = new ToolRecommendationService(signalService, TOOL_KEYS, properties, environment);
+        service = new ToolRecommendationService(signalService, TOOL_KEYS, properties);
         lenient().when(signalService.resolveTeamScope(anyString())).thenReturn(TeamScope.none());
         lenient()
                 .when(signalService.userFrequency(anyString(), anyLong(), anyLong()))
@@ -199,7 +196,6 @@ class ToolRecommendationServiceTest {
         @Test
         @DisplayName("external analytics being off still serves workflow history")
         void workflowsIgnoreExternalAnalytics() {
-            properties.getSystem().setEnableAnalytics(false);
             when(signalService.userChains(eq(PRINCIPAL), anyLong(), anyInt(), anyInt()))
                     .thenReturn(List.of(chain(9, "a", "b")));
 
@@ -323,7 +319,6 @@ class ToolRecommendationServiceTest {
         @Test
         @DisplayName("external analytics being off still ranks from usage")
         void recommendationsIgnoreExternalAnalytics() {
-            properties.getSystem().setEnableAnalytics(false);
             when(signalService.userFrequency(eq(PRINCIPAL), anyLong(), anyLong()))
                     .thenReturn(Map.of("merge", 5.0));
 

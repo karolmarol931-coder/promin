@@ -24,7 +24,6 @@ import stirling.software.SPDF.model.PipelineConfig;
 import stirling.software.SPDF.model.PipelineResult;
 import stirling.software.SPDF.service.ApiDocService;
 import stirling.software.common.configuration.RuntimePathConfig;
-import stirling.software.common.service.PostHogService;
 import stirling.software.common.service.ToolMetadataService;
 import stirling.software.common.util.FileReadinessChecker;
 import stirling.software.common.util.PipelineLimits;
@@ -58,7 +57,6 @@ class PipelineDirectoryProcessorFailureTest {
                         mock(ApiDocService.class),
                         mock(ToolMetadataService.class),
                         pipelineProcessor,
-                        mock(PostHogService.class),
                         mock(FileReadinessChecker.class),
                         paths);
         when(pipelineProcessor.generateInputFiles(any(File[].class)))

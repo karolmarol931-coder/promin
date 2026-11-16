@@ -2,7 +2,6 @@ import {
   SETTINGS_SECTION_REGISTRY as CORE_SETTINGS_SECTION_REGISTRY,
   type SettingsSectionEntry,
 } from "@editor-core/data/settingsSectionRegistry";
-import { HAS_PORTAL } from "@editor/routes/hasPortal";
 
 export type { SettingsSectionEntry };
 
@@ -174,29 +173,5 @@ export const SETTINGS_SECTION_REGISTRY: SettingsSectionEntry[] = [
     groupLabelKey: "settings.monitoring.title",
     groupLabelFallback: "Monitoring",
   },
-  // --- Workspace (moved off the processor's own nav). Present only where the
-  // nav can actually show them: a processor build, and a session that can
-  // enter it. ---
-  ...(HAS_PORTAL
-    ? ([
-        {
-          key: "billing",
-          labelKey: "portal.nav.usage",
-          labelFallback: "Usage & Billing",
-          keywords: [
-            "billing",
-            "wallet",
-            "credits",
-            "invoice",
-            "spend",
-            "payg",
-          ],
-          adminArea: true,
-          requiresPortalAccess: true,
-          groupLabelKey: "settings.workspace.title",
-          groupLabelFallback: "Workspace",
-        },
-      ] satisfies SettingsSectionEntry[])
-    : []),
   // --- Policies & Privacy ---
 ];

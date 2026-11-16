@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { resolveLandingPath } from "@editor/utils/loginLanding";
 import { useTranslation } from "react-i18next";
 import {
   consumePostLoginRedirectPath,
@@ -14,6 +13,7 @@ import {
 import { AuthShell } from "@editor/auth/ui/AuthShell";
 import { Spinner } from "@editor/ui/Spinner";
 import { withBasePath } from "@editor/constants/app";
+import { EDITOR_BASENAME } from "@editor/routes/editorBasename";
 import "@editor/auth/ui/auth.css";
 import loginHeader from "@editor/assets/brand/modern-logo/LoginLightModeHeader.svg";
 import i18n from "@editor/i18n";
@@ -101,10 +101,7 @@ export default function AuthCallback() {
         // This prevents infinite render loop when coming from cross-domain SAML redirect
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // No explicit destination: land processor users on the processor and
-        // everyone else on the editor.
-        const target =
-          consumePostLoginRedirectPath() ?? (await resolveLandingPath());
+        const target = consumePostLoginRedirectPath() ?? EDITOR_BASENAME;
         console.info(
           `[AuthCallback] Authenticated ${data.session.user.username} in ${elapsed()}, navigating to ${target}`,
         );
@@ -134,12 +131,12 @@ export default function AuthCallback() {
       <div className="auth-logo-block">
         <img
           src={loginHeader}
-          alt="Stirling PDF"
+          alt="Promin"
           className="auth-logo-header auth-logo-header--light"
         />
         <img
           src={withBasePath("/modern-logo/LoginDarkModeHeader.svg")}
-          alt="Stirling PDF"
+          alt="Promin"
           className="auth-logo-header auth-logo-header--dark"
         />
       </div>

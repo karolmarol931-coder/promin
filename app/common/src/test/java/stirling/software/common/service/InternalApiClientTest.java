@@ -64,12 +64,7 @@ class InternalApiClientTest {
 
     @Test
     void postTagsRequestAsAutomation() throws Exception {
-        // Every InternalApiClient.post() caller is a parent automation flow dispatching a child
-        // tool (pipeline executor, AI workflow, policy runner). Tagging the sub-step here means
-        // the saas PaygChargeInterceptor classifies it as BillingCategory.AUTOMATION regardless of
-        // the dispatched controller's @RequiresFeature — so an AI-OCR step inside a policy run
-        // bills as AUTOMATION, not AI. The header value is the literal string "true" because the
-        // interceptor compares case-insensitively-trimmed against that token.
+        // Every InternalApiClient.post() caller dispatches a child tool as part of an automation.
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
         body.add("fileInput", namedResource("input.pdf", "data"));
 

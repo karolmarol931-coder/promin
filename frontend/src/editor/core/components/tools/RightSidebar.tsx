@@ -12,6 +12,7 @@ import { ActionIcon } from "@editor/ui/ActionIcon";
 import { withViewTransition } from "@editor/utils/viewTransition";
 import { Icon } from "@editor/ui/Icon";
 import { ToolId } from "@editor/types/toolId";
+import { openSuperSearch } from "@editor/components/shared/superSearch/openSuperSearch";
 import type { ToolRegistryEntry } from "@editor/data/toolsTaxonomy";
 import {
   FullscreenToolPanel,
@@ -66,6 +67,7 @@ export default function RightSidebar() {
   const inToolView = leftPanelView !== "toolPicker";
   // Show X (close) button only when there's somewhere to go back to.
   const showCloseButton = inToolView || allToolsView;
+  const showToolsHeader = leftPanelView === "toolPicker";
 
   const handleHeaderBack = () => {
     if (inToolView) {
@@ -131,28 +133,40 @@ export default function RightSidebar() {
                     : t("toolPanel.goBack", "Go back")
                 }
               />
-            ) : showCloseButton ? (
-              /* Closing a tool, not the panel: the panel itself is fixed open, so
-                 with nothing to leave there is no header to show. */
+            ) : showCloseButton || showToolsHeader ? (
               <div className="tool-panel__compact-header">
                 <span className="tool-panel__compact-title">
                   {t("toolPanel.pdfTools", "PDF Tools")}
                 </span>
                 <div className="tool-panel__compact-header-actions">
-                  <ActionIcon
-                    variant="tertiary"
-                    size="md"
-                    shape="circle"
-                    onClick={handleHeaderBack}
-                    aria-label={
-                      inToolView
-                        ? t("toolPanel.backToAllTools", "Back to all tools")
-                        : t("toolPanel.goBack", "Go back")
-                    }
-                    className="tool-panel__expand-btn"
-                  >
-                    <Icon name="x" size={"1.1rem"} />
-                  </ActionIcon>
+                  {showToolsHeader && (
+                    <ActionIcon
+                      variant="tertiary"
+                      size="md"
+                      shape="circle"
+                      onClick={() => openSuperSearch(["tools"])}
+                      title={t("toolPanel.searchTools", "Search tools")}
+                      aria-label={t("toolPanel.searchTools", "Search tools")}
+                    >
+                      <Icon name="search" size="1.1rem" />
+                    </ActionIcon>
+                  )}
+                  {showCloseButton && (
+                    <ActionIcon
+                      variant="tertiary"
+                      size="md"
+                      shape="circle"
+                      onClick={handleHeaderBack}
+                      aria-label={
+                        inToolView
+                          ? t("toolPanel.backToAllTools", "Back to all tools")
+                          : t("toolPanel.goBack", "Go back")
+                      }
+                      className="tool-panel__expand-btn"
+                    >
+                      <Icon name="x" size={"1.1rem"} />
+                    </ActionIcon>
+                  )}
                 </div>
               </div>
             ) : null}
@@ -161,7 +175,7 @@ export default function RightSidebar() {
               allToolsView={allToolsView}
               onShowAllTools={handleShowAllTools}
               onToolSelect={handleToolSelectWithTransition}
-              compact={false}
+              compact={!allToolsView}
               /* Mobile keeps the workbench bar - and with it the super search -
                  on the other slide, so the list needs its own filter. */
               showSearch={isMobile}

@@ -1,5 +1,8 @@
 import { useHotkeys } from "@editor/contexts/HotkeyContext";
-import { useToolWorkflow } from "@editor/contexts/ToolWorkflowContext";
+import {
+  useToolWorkflowActions,
+  useToolWorkflowData,
+} from "@editor/contexts/ToolWorkflowContext";
 import { ToolRegistryEntry } from "@editor/data/toolsTaxonomy";
 import { ToolId } from "@editor/types/toolId";
 import type { ToolAvailabilityMap } from "@editor/hooks/useToolManagement";
@@ -104,7 +107,7 @@ export const getDisabledLabel = (
   if (disabledReason === "selfHostedOffline") {
     return {
       key: "toolPanel.fullscreen.selfHostedOffline",
-      fallback: "Requires your Stirling-PDF server (currently offline):",
+      fallback: "Requires your Promin server (currently offline):",
     };
   }
   if (disabledReason === "missingDependency") {
@@ -130,7 +133,8 @@ export const getDisabledLabel = (
 
 export function useToolMeta(id: string, tool: ToolRegistryEntry) {
   const { hotkeys } = useHotkeys();
-  const { isFavorite, toggleFavorite, toolAvailability } = useToolWorkflow();
+  const { isFavorite, toolAvailability } = useToolWorkflowData();
+  const { toggleFavorite } = useToolWorkflowActions();
   const { config } = useAppConfig();
   const premiumEnabled = config?.premiumEnabled;
 

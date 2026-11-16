@@ -141,22 +141,11 @@ export async function fetchConnectionsSettings(): Promise<
   );
   const mailData = mailResponse.data || {};
 
-  const premiumResponse = await apiClient.get(
-    "/api/v1/admin/settings/section/premium",
-  );
-  const premiumData = premiumResponse.data || {};
-
   // Fetch Telegram settings
   const telegramResponse = await apiClient.get(
     "/api/v1/admin/settings/section/telegram",
   );
   const telegramData = telegramResponse.data || {};
-
-  // Fetch system settings for enableMobileScanner
-  const systemResponse = await apiClient.get(
-    "/api/v1/admin/settings/section/system",
-  );
-  const systemData = systemResponse.data || {};
 
   const result: ConnectionsSettingsData & {
     _pending?: Record<string, unknown>;
@@ -166,19 +155,6 @@ export async function fetchConnectionsSettings(): Promise<
     mail: mailData || {},
     telegram: telegramData || {},
     ssoAutoLogin: securityData.ssoAutoLogin || false,
-    enableMobileScanner: systemData.enableMobileScanner || false,
-    mobileScannerConvertToPdf:
-      systemData.mobileScannerSettings?.convertToPdf !== false,
-    mobileScannerImageResolution:
-      systemData.mobileScannerSettings?.imageResolution || "full",
-    mobileScannerPageFormat:
-      systemData.mobileScannerSettings?.pageFormat || "A4",
-    mobileScannerStretchToFit:
-      systemData.mobileScannerSettings?.stretchToFit || false,
-    googleDriveEnabled: premiumData.proFeatures?.googleDrive?.enabled || false,
-    googleDriveClientId: premiumData.proFeatures?.googleDrive?.clientId || "",
-    googleDriveApiKey: premiumData.proFeatures?.googleDrive?.apiKey || "",
-    googleDriveAppId: premiumData.proFeatures?.googleDrive?.appId || "",
   };
 
   // Merge pending blocks from all endpoints
@@ -198,44 +174,6 @@ export async function fetchConnectionsSettings(): Promise<
   if (securityData._pending?.ssoAutoLogin !== undefined) {
     pendingBlock.ssoAutoLogin = securityData._pending.ssoAutoLogin;
   }
-  if (systemData._pending?.enableMobileScanner !== undefined) {
-    pendingBlock.enableMobileScanner = systemData._pending.enableMobileScanner;
-  }
-  if (systemData._pending?.mobileScannerSettings?.convertToPdf !== undefined) {
-    pendingBlock.mobileScannerConvertToPdf =
-      systemData._pending.mobileScannerSettings.convertToPdf;
-  }
-  if (
-    systemData._pending?.mobileScannerSettings?.imageResolution !== undefined
-  ) {
-    pendingBlock.mobileScannerImageResolution =
-      systemData._pending.mobileScannerSettings.imageResolution;
-  }
-  if (systemData._pending?.mobileScannerSettings?.pageFormat !== undefined) {
-    pendingBlock.mobileScannerPageFormat =
-      systemData._pending.mobileScannerSettings.pageFormat;
-  }
-  if (systemData._pending?.mobileScannerSettings?.stretchToFit !== undefined) {
-    pendingBlock.mobileScannerStretchToFit =
-      systemData._pending.mobileScannerSettings.stretchToFit;
-  }
-  if (premiumData._pending?.proFeatures?.googleDrive?.enabled !== undefined) {
-    pendingBlock.googleDriveEnabled =
-      premiumData._pending.proFeatures.googleDrive.enabled;
-  }
-  if (premiumData._pending?.proFeatures?.googleDrive?.clientId !== undefined) {
-    pendingBlock.googleDriveClientId =
-      premiumData._pending.proFeatures.googleDrive.clientId;
-  }
-  if (premiumData._pending?.proFeatures?.googleDrive?.apiKey !== undefined) {
-    pendingBlock.googleDriveApiKey =
-      premiumData._pending.proFeatures.googleDrive.apiKey;
-  }
-  if (premiumData._pending?.proFeatures?.googleDrive?.appId !== undefined) {
-    pendingBlock.googleDriveAppId =
-      premiumData._pending.proFeatures.googleDrive.appId;
-  }
-
   if (Object.keys(pendingBlock).length > 0) {
     result._pending = pendingBlock;
   }
@@ -300,44 +238,6 @@ export function saveConnectionsSettings(
     deltaSettings["security.ssoAutoLogin"] = currentSettings.ssoAutoLogin;
   }
 
-  if (currentSettings?.enableMobileScanner !== undefined) {
-    deltaSettings["system.enableMobileScanner"] =
-      currentSettings.enableMobileScanner;
-  }
-  if (currentSettings?.mobileScannerConvertToPdf !== undefined) {
-    deltaSettings["system.mobileScannerSettings.convertToPdf"] =
-      currentSettings.mobileScannerConvertToPdf;
-  }
-  if (currentSettings?.mobileScannerImageResolution !== undefined) {
-    deltaSettings["system.mobileScannerSettings.imageResolution"] =
-      currentSettings.mobileScannerImageResolution;
-  }
-  if (currentSettings?.mobileScannerPageFormat !== undefined) {
-    deltaSettings["system.mobileScannerSettings.pageFormat"] =
-      currentSettings.mobileScannerPageFormat;
-  }
-  if (currentSettings?.mobileScannerStretchToFit !== undefined) {
-    deltaSettings["system.mobileScannerSettings.stretchToFit"] =
-      currentSettings.mobileScannerStretchToFit;
-  }
-
-  if (currentSettings?.googleDriveEnabled !== undefined) {
-    deltaSettings["premium.proFeatures.googleDrive.enabled"] =
-      currentSettings.googleDriveEnabled;
-  }
-  if (currentSettings?.googleDriveClientId !== undefined) {
-    deltaSettings["premium.proFeatures.googleDrive.clientId"] =
-      currentSettings.googleDriveClientId;
-  }
-  if (currentSettings?.googleDriveApiKey !== undefined) {
-    deltaSettings["premium.proFeatures.googleDrive.apiKey"] =
-      currentSettings.googleDriveApiKey;
-  }
-  if (currentSettings?.googleDriveAppId !== undefined) {
-    deltaSettings["premium.proFeatures.googleDrive.appId"] =
-      currentSettings.googleDriveAppId;
-  }
-
   return {
     sectionData: {},
     deltaSettings,
@@ -358,16 +258,12 @@ export async function fetchPrivacySettings(): Promise<
   const result: PrivacySettingsData & {
     _pending?: Record<string, unknown>;
   } = {
-    enableAnalytics: system.enableAnalytics || false,
     googleVisibility: system.googlevisibility || false,
     metricsEnabled: metrics.enabled || false,
   };
 
   // Merge pending blocks from both endpoints
   const pendingBlock: Record<string, unknown> = {};
-  if (system._pending?.enableAnalytics !== undefined) {
-    pendingBlock.enableAnalytics = system._pending.enableAnalytics;
-  }
   if (system._pending?.googlevisibility !== undefined) {
     pendingBlock.googleVisibility = system._pending.googlevisibility;
   }
@@ -386,7 +282,6 @@ export function savePrivacySettings(
   settings: PrivacySettingsData,
 ): SettingsSaveResult {
   const deltaSettings = {
-    "system.enableAnalytics": settings.enableAnalytics,
     "system.googlevisibility": settings.googleVisibility,
     "metrics.enabled": settings.metricsEnabled,
   };

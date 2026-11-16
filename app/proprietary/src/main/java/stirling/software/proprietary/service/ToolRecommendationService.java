@@ -1,14 +1,12 @@
 package stirling.software.proprietary.service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,7 +42,6 @@ public class ToolRecommendationService {
     private final ToolUsageSignalService signals;
     private final ToolKeyRegistry toolKeys;
     private final ApplicationProperties applicationProperties;
-    private final Environment environment;
 
     public record ToolRecommendation(String toolKey, double score) {}
 
@@ -60,16 +57,6 @@ public class ToolRecommendationService {
      * habit into a pipeline.
      */
     public record ToolWorkflow(List<String> tools, long count, WorkflowScope scope) {}
-
-    /**
-     * Whether the install-wide tier may be consulted. On a self-hosted install "everyone here" is
-     * one organisation and is exactly the signal wanted. In SaaS it is every customer on the
-     * platform, so one tenant's aggregate usage would rank another's tools; there, a caller sees
-     * only themselves and their teams.
-     */
-    boolean installWideSignalAllowed() {
-        return !Arrays.asList(environment.getActiveProfiles()).contains("saas");
-    }
 
     /**
      * The most repeated document workflows, the caller's own first and then topped up with their
@@ -105,7 +92,7 @@ public class ToolRecommendationService {
                     WorkflowScope.TEAM,
                     capped);
         }
-        if (installWideSignalAllowed() && workflows.size() < capped) {
+        if (workflows.size() < capped) {
             collect(
                     workflows,
                     seen,
@@ -143,7 +130,7 @@ public class ToolRecommendationService {
         long today = ToolUsageTrackingService.currentEpochDay();
         long cutoff = today - applicationProperties.getToolRecommendations().getWindowDays();
         long recent = today - applicationProperties.getToolRecommendations().getRecentWindowDays();
-        boolean installWide = installWideSignalAllowed();
+        boolean installWide = true;
         TeamScope team = signals.resolveTeamScope(principal);
 
         Map<String, Double> scores = new HashMap<>();

@@ -88,10 +88,7 @@ export function ReaderRail() {
     [fileIds, activeFileId],
   );
 
-  // Through the guard, because closing what you are reading is a way out of it and
-  // unsaved changes still deserve their prompt. Storage keeps its copy: this closes
-  // the document, it does not delete it. Left pressable with nothing open, because
-  // the rail cannot always tell, and a wrongly greyed-out control is the worse failure.
+  // Closing a document goes through the guard, and its stored copy remains available.
   const closeDocument = useCallback(() => {
     if (!openFileId) return;
     requestNavigation(() => {
@@ -135,17 +132,19 @@ export function ReaderRail() {
       {/* The document-level controls lead the rail; the groups below act on how it
           is read. */}
       <div className="reader-rail__group">
-        <AppTooltip content={closeLabel} position="left" arrow delay={0}>
-          <ActionIcon
-            variant="tertiary"
-            size="md"
-            shape="circle"
-            aria-label={closeLabel}
-            onClick={closeDocument}
-          >
-            <Icon name="x" size={SIZE} />
-          </ActionIcon>
-        </AppTooltip>
+        {openFileId && (
+          <AppTooltip content={closeLabel} position="left" arrow delay={0}>
+            <ActionIcon
+              variant="tertiary"
+              size="md"
+              shape="circle"
+              aria-label={closeLabel}
+              onClick={closeDocument}
+            >
+              <Icon name="x" size={SIZE} />
+            </ActionIcon>
+          </AppTooltip>
+        )}
         {/* Capped and scrolling: with enough documents open the list would run
             past the viewport and take Add file off the bottom with it. */}
         <Menu
@@ -192,7 +191,7 @@ export function ReaderRail() {
             {documents.length > 0 && <Menu.Divider />}
             <Menu.Item
               leftSection={<Icon name="plus" size={SIZE} />}
-              // The full library modal, as the home screen opens it: Stirling's
+              // The full library modal, as the home screen opens it: Promin's
               // own files as well as the device.
               onClick={() => openFilesModal()}
             >
@@ -200,59 +199,60 @@ export function ReaderRail() {
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>
-        <div className="reader-rail__divider" />
+        {openFileId && <div className="reader-rail__divider" />}
       </div>
-      {RAIL_GROUPS.map((group, index) => (
-        <div className="reader-rail__group" key={group[0].id}>
-          {index > 0 && <div className="reader-rail__divider" />}
-          {group.map((item) => {
-            const label = labels[item.id] ?? item.id;
-            const button = registered.get(item.id);
-            const action = button ? actions[button.id] : undefined;
+      {openFileId &&
+        RAIL_GROUPS.map((group, index) => (
+          <div className="reader-rail__group" key={group[0].id}>
+            {index > 0 && <div className="reader-rail__divider" />}
+            {group.map((item) => {
+              const label = labels[item.id] ?? item.id;
+              const button = registered.get(item.id);
+              const action = button ? actions[button.id] : undefined;
 
-            // A control that brought its own renderer keeps it: that is where the
-            // search field and the read-aloud controls live.
-            if (button?.render) {
+              // A control that brought its own renderer keeps it: that is where the
+              // search field and the read-aloud controls live.
+              if (button?.render) {
+                return (
+                  <div className="reader-rail__item" key={item.id}>
+                    {button.render({
+                      id: button.id,
+                      disabled: Boolean(button.disabled),
+                      allButtonsDisabled: false,
+                      action,
+                      triggerAction: () => action?.(),
+                      active: Boolean(button.active),
+                    })}
+                  </div>
+                );
+              }
+
               return (
-                <div className="reader-rail__item" key={item.id}>
-                  {button.render({
-                    id: button.id,
-                    disabled: Boolean(button.disabled),
-                    allButtonsDisabled: false,
-                    action,
-                    triggerAction: () => action?.(),
-                    active: Boolean(button.active),
-                  })}
-                </div>
-              );
-            }
-
-            return (
-              <AppTooltip
-                key={item.id}
-                content={label}
-                position="left"
-                arrow
-                // No delay: the rail is icons only, so the tooltip is the label.
-                delay={0}
-              >
-                <ActionIcon
-                  variant={button?.active ? "primary" : "tertiary"}
-                  size="md"
-                  shape="circle"
-                  aria-label={label}
-                  aria-pressed={button?.active}
-                  // Nothing open means nothing to act on, but the rail keeps its shape.
-                  disabled={!action || Boolean(button?.disabled)}
-                  onClick={() => action?.()}
+                <AppTooltip
+                  key={item.id}
+                  content={label}
+                  position="left"
+                  arrow
+                  // No delay: the rail is icons only, so the tooltip is the label.
+                  delay={0}
                 >
-                  {item.icon}
-                </ActionIcon>
-              </AppTooltip>
-            );
-          })}
-        </div>
-      ))}
+                  <ActionIcon
+                    variant={button?.active ? "primary" : "tertiary"}
+                    size="md"
+                    shape="circle"
+                    aria-label={label}
+                    aria-pressed={button?.active}
+                    // Nothing open means nothing to act on, but the rail keeps its shape.
+                    disabled={!action || Boolean(button?.disabled)}
+                    onClick={() => action?.()}
+                  >
+                    {item.icon}
+                  </ActionIcon>
+                </AppTooltip>
+              );
+            })}
+          </div>
+        ))}
     </nav>
   );
 }

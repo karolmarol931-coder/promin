@@ -7,35 +7,9 @@ import { handleExternalLinkClick } from "@editor/platform/externalLinkClick";
 /** Null until the docs page is written; setting it brings back the set-up guide button. */
 export const AI_ENGINE_DOCS_URL: string | null = null;
 
-/**
- * What the AI engine is, in the one place an admin is guaranteed to look.
- *
- * Replaces a note that led with the shared-secret environment variable - true, but meaningless to
- * anyone who did not already know there was a second container to run.
- */
-export function AiAboutNotice({ cloud = false }: { cloud?: boolean }) {
+/** Explains how the local app connects to its optional AI engine. */
+export function AiAboutNotice() {
   const { t } = useTranslation();
-
-  if (cloud) {
-    return (
-      <Alert
-        variant="light"
-        color="blue"
-        title={t(
-          "admin.settings.ai.general.cloudNote.title",
-          "About Stirling Cloud AI",
-        )}
-        icon={<Icon name="info" size="1rem" />}
-      >
-        <Text size="xs">
-          {t(
-            "admin.settings.ai.general.cloudNote.body",
-            "The reasoning runs on Stirling's infrastructure, billed to the account this server is linked to. There is no container to run and no provider key to hold here. Whatever the AI reads is processed by Stirling Cloud rather than on your own hardware.",
-          )}
-        </Text>
-      </Alert>
-    );
-  }
 
   return (
     <Alert
@@ -48,7 +22,7 @@ export function AiAboutNotice({ cloud = false }: { cloud?: boolean }) {
         <Text size="xs" style={{ flexGrow: 1 }}>
           {t(
             "admin.settings.ai.general.note.intro",
-            "A separate container you run next to Stirling. It does the reasoning; Stirling still does every page operation itself. It needs the same",
+            "A separate container you run next to Promin. It does the reasoning; Promin still does every page operation itself. It needs the same",
           )}{" "}
           <Code>STIRLING_ENGINE_SHARED_SECRET</Code>{" "}
           {t(

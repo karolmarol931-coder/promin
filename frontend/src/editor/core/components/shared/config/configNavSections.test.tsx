@@ -21,15 +21,10 @@ describe("extendPreferences", () => {
   it("keeps what earlier layers passed when a later one adds its own", () => {
     const base = [createPreferencesNavSection(t, { hideAdminBanner: true })];
     const withAccount = extendPreferences(base, { accountSlot: "account" });
-    const withUpdates = extendPreferences(withAccount, {
-      hideUpdateSection: true,
-    });
-
-    const props = page(withUpdates).props;
-    expect(page(withUpdates).type).toBe(PreferencesSection);
+    const props = page(withAccount).props;
+    expect(page(withAccount).type).toBe(PreferencesSection);
     expect(props.hideAdminBanner).toBe(true);
     expect(props.accountSlot).toBe("account");
-    expect(props.hideUpdateSection).toBe(true);
   });
 
   it("keeps a wrapper page when a later layer adds props", () => {

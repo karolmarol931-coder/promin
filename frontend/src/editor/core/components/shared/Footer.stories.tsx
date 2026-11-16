@@ -14,7 +14,7 @@ export const Default: Story = {
   args: {},
 };
 
-/** All optional legal links populated, plus the cookie preferences button. */
+/** All optional legal links populated. */
 export const AllLinksAndCookieBanner: Story = {
   args: {
     privacyPolicy: "https://example.com/privacy",
@@ -22,6 +22,5 @@ export const AllLinksAndCookieBanner: Story = {
     accessibilityStatement: "https://example.com/accessibility",
     cookiePolicy: "https://example.com/cookies",
     impressum: "https://example.com/impressum",
-    analyticsEnabled: true,
   },
 };

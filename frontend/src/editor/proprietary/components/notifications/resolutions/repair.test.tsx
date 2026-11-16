@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import {
   bytesOf,
   context,
-  inProcessor,
+  withoutWorkbench,
   policyContext,
 } from "@editor/components/notifications/resolutions/testSupport";
 
@@ -228,7 +228,7 @@ describe("REPAIR", () => {
 
     expect(await registry().REPAIR?.run(row)).toEqual({
       ok: false,
-      message: "This document can no longer be retried from this browser.",
+      message: "This document is no longer available in this workspace.",
     });
     expect(repairDocuments).not.toHaveBeenCalled();
     expect(rechainPolicyOnDocument).not.toHaveBeenCalled();
@@ -338,7 +338,7 @@ describe("REPAIR", () => {
     expect(actions.OPEN_IN_TOOL?.available(lostSecret)).toBe(true);
     expect(await actions.REPAIR?.run(lostSecret)).toEqual({
       ok: false,
-      message: "This document can no longer be retried from this browser.",
+      message: "This document is no longer available in this workspace.",
     });
     expect(repairDocuments).not.toHaveBeenCalled();
   });
@@ -456,13 +456,13 @@ describe("REPAIR", () => {
     ).toBe(true);
     // Without a workbench the row promotes the next action instead.
     expect(
-      registry(inProcessor).REPAIR?.available(
+      registry(withoutWorkbench).REPAIR?.available(
         policyContext({ kindId: "INPUT_CORRUPTED" }),
       ),
     ).toBe(false);
   });
 
-  it("is not offered once the document has left this browser", async () => {
+  it("is not offered once the document has left this device", async () => {
     expect(
       registry().REPAIR?.available(
         context({ kindId: "INPUT_CORRUPTED", hasLocalFile: false }),

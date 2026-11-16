@@ -106,9 +106,14 @@ public class CertificateValidationService {
 
         ApplicationProperties.Security.Validation validation =
                 applicationProperties.getSecurity().getValidation();
+        boolean offlineMode = applicationProperties.getSystem().isOfflineMode();
 
         // Enable JDK fetching of OCSP/CRLDP if allowed
-        if (validation.isAllowAIA()) {
+        if (offlineMode) {
+            java.security.Security.setProperty("ocsp.enable", "false");
+            System.setProperty("com.sun.security.enableCRLDP", "false");
+            System.setProperty("com.sun.security.enableAIAcaIssuers", "false");
+        } else if (validation.isAllowAIA()) {
             java.security.Security.setProperty("ocsp.enable", "true");
             System.setProperty("com.sun.security.enableCRLDP", "true");
             System.setProperty("com.sun.security.enableAIAcaIssuers", "true");
@@ -120,8 +125,8 @@ public class CertificateValidationService {
         if (validation.getTrust().isServerAsAnchor()) loadServerCertAsAnchor();
         if (validation.getTrust().isUseSystemTrust()) loadJavaSystemTrustStore();
         if (validation.getTrust().isUseMozillaBundle()) loadBundledMozillaCACerts();
-        if (validation.getTrust().isUseAATL()) loadAATLCertificates();
-        if (validation.getTrust().isUseEUTL()) loadEUTLCertificates();
+        if (!offlineMode && validation.getTrust().isUseAATL()) loadAATLCertificates();
+        if (!offlineMode && validation.getTrust().isUseEUTL()) loadEUTLCertificates();
     }
 
     /**
@@ -170,15 +175,17 @@ public class CertificateValidationService {
         // PKIX parameters
         PKIXBuilderParameters params = new PKIXBuilderParameters(anchors, target);
         params.addCertStore(intermediateStore);
+        boolean offlineMode = applicationProperties.getSystem().isOfflineMode();
         String revocationMode =
                 applicationProperties.getSecurity().getValidation().getRevocation().getMode();
-        params.setRevocationEnabled(!"none".equalsIgnoreCase(revocationMode));
+        boolean revocationEnabled = !offlineMode && !"none".equalsIgnoreCase(revocationMode);
+        params.setRevocationEnabled(revocationEnabled);
         if (validationTime != null) {
             params.setDate(validationTime);
         }
 
         // Revocation checking
-        if (!"none".equalsIgnoreCase(revocationMode)) {
+        if (revocationEnabled) {
             try {
                 PKIXRevocationChecker rc =
                         (PKIXRevocationChecker)

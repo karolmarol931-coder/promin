@@ -1,11 +1,8 @@
 /**
- * Shared, provider-agnostic auth used by both the editor and the portal.
+ * Shared authentication for the editor and local backend.
  *
- * Hosts configure a backend once at startup:
- * - Spring:   configureSpringAuth({ http, basePath, platform }) then render
- *             <AuthProvider mode="spring">.
- * - Supabase: configureSupabase({ url, key }) then render
- *             <AuthProvider mode="supabase">.
+ * Hosts configure Spring authentication once at startup, then render
+ * <AuthProvider>.
  *
  * Consumers read state via useAuth(); guards (RequireAuth/RequireAdmin) gate UI.
  */
@@ -28,11 +25,6 @@ export {
   RequireAdmin,
   type RequireAdminProps,
 } from "@editor/auth/guards/RequireAdmin";
-export {
-  RequirePortalAccess,
-  type RequirePortalAccessProps,
-} from "@editor/auth/guards/RequirePortalAccess";
-
 // Spring backend
 export {
   configureSpringAuth,
@@ -67,12 +59,6 @@ export {
   createAnonymousSession,
 } from "@editor/auth/spring/springAuthClient";
 export type { OAuthProvider } from "@editor/auth/spring/oauthTypes";
-
-// Supabase backend is intentionally NOT re-exported here: doing so would pull
-// @supabase/supabase-js into every barrel consumer (e.g. the portal in Spring
-// mode). Supabase-mode hosts import directly from the subpath:
-//   import { configureSupabase } from "@editor/auth/supabase/supabaseClient";
-// The unified <AuthProvider mode="supabase"> lazy-loads the provider on demand.
 
 // Login UI components live under @editor/auth/ui/* and are imported directly
 // (default exports), e.g. `import OAuthButtons from "@editor/auth/ui/OAuthButtons"`.

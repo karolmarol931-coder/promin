@@ -1,6 +1,5 @@
 import { describe, expect, test, beforeEach } from "vitest";
 import "fake-indexeddb/auto";
-import { expectConsole } from "@editor/tests/failOnConsole";
 
 import {
   DATABASE_CONFIGS,
@@ -21,12 +20,8 @@ import {
  * versions. This test pins the behaviour by seeding a v2 DB and asserting
  * every v3+v4 field is present and correctly set after the upgrade.
  *
- * Also covers the SaaS-lineage reconciliation: SaaS shipped its own
- * versions of this database up to v8 (v5 added folder_* stores, v8 was
- * the terminal SaaS schema). When the unified codebase first opens a
- * SaaS browser's database it has to drop those orphan stores, backfill
- * folderId on every file row, and (for v6/v7 specifically) force-delete
- * the database because its data is known-corrupt.
+ * Older database versions also need to preserve file contents while adding
+ * the current folder metadata.
  */
 
 const DB_NAME = DATABASE_CONFIGS.FILES.name;
@@ -118,14 +113,7 @@ function seedV3Database(): Promise<void> {
   });
 }
 
-/**
- * Seed a SaaS-shaped database at the given version. Mirrors the SaaS
- * terminal schema: `files` store plus the three folder_* / smart_folders
- * stores that we now treat as orphans. SaaS file rows are v3-shaped
- * (they got the file history fields via the SaaS migrateFileHistoryFields
- * path) but have never had a folderId.
- */
-function seedSaasDatabase(version: number, fileIds: string[]): Promise<void> {
+function seedLegacyDatabase(version: number, fileIds: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, version);
     req.onupgradeneeded = () => {
@@ -133,22 +121,10 @@ function seedSaasDatabase(version: number, fileIds: string[]): Promise<void> {
       if (!db.objectStoreNames.contains("files")) {
         db.createObjectStore("files", { keyPath: "id" });
       }
-      if (!db.objectStoreNames.contains("folder_members")) {
-        db.createObjectStore("folder_members", { keyPath: "folderId" });
-      }
-      if (!db.objectStoreNames.contains("folder_run_states")) {
-        db.createObjectStore("folder_run_states", { keyPath: "folderId" });
-      }
-      if (!db.objectStoreNames.contains("smart_folders")) {
-        db.createObjectStore("smart_folders", { keyPath: "folderId" });
-      }
     };
     req.onsuccess = () => {
       const db = req.result;
-      const tx = db.transaction(
-        ["files", "folder_members", "smart_folders"],
-        "readwrite",
-      );
+      const tx = db.transaction("files", "readwrite");
       const filesStore = tx.objectStore("files");
       for (const id of fileIds) {
         filesStore.add({
@@ -158,34 +134,23 @@ function seedSaasDatabase(version: number, fileIds: string[]): Promise<void> {
           size: 1024,
           lastModified: 5000,
           data: new Blob([id], { type: "application/pdf" }),
-          // v3 fields - SaaS records always have these by v3+
+          // v3 fields are present on all records from this schema version.
           isLeaf: true,
           versionNumber: 1,
           originalFileId: id,
           parentFileId: undefined,
           toolHistory: [],
-          // intentionally no folderId field - SaaS lineage never had it
+          // Older records do not have folderId.
         });
       }
-      // Drop a SaaS-only row in folder_members and smart_folders so we
-      // can verify the orphan stores were actually dropped (not just
-      // empty).
-      tx.objectStore("folder_members").add({
-        folderId: "saas-folder-1",
-        fileIds: [...fileIds],
-      });
-      tx.objectStore("smart_folders").add({
-        folderId: "saas-folder-1",
-        files: {},
-        lastUpdated: 6000,
-      });
       tx.oncomplete = () => {
         db.close();
         resolve();
       };
-      tx.onerror = () => reject(tx.error ?? new Error("SaaS seed tx failed"));
+      tx.onerror = () => reject(tx.error ?? new Error("legacy seed tx failed"));
     };
-    req.onerror = () => reject(req.error ?? new Error("SaaS seed open failed"));
+    req.onerror = () =>
+      reject(req.error ?? new Error("legacy seed open failed"));
   });
 }
 
@@ -286,115 +251,71 @@ describe("IndexedDB migration (FILES store)", () => {
     indexedDBManager.closeDatabase(DB_NAME);
   });
 
-  test("SaaS v8 -> latest backfills folderId, preserves files, drops orphan stores", async () => {
-    await seedSaasDatabase(8, ["saas-file-a", "saas-file-b"]);
+  test("v8 -> latest backfills folderId and preserves files", async () => {
+    await seedLegacyDatabase(8, ["file-a", "file-b"]);
     await indexedDBManager.openDatabase(DATABASE_CONFIGS.FILES);
     indexedDBManager.closeDatabase(DB_NAME);
 
     const rows = (await readAllFiles()) as Array<Record<string, unknown>>;
     expect(rows).toHaveLength(2);
     for (const row of rows) {
-      // SaaS file rows already had v3 fields - migration should leave them alone.
+      // Existing file history fields remain unchanged.
       expect(row.isLeaf).toBe(true);
       expect(row.versionNumber).toBe(1);
       expect(row.originalFileId).toBe(row.id);
       expect(row.toolHistory).toEqual([]);
-      // Critical: SaaS lineage never had folderId, the new schema requires it.
+      // Legacy records without folder metadata join the unfiled group.
       expect(row.folderId).toBeNull();
     }
 
-    // Orphan SaaS-only stores should be gone; the v9 schema's `folders`
-    // store should exist; the `files` store survives.
     const stores = await getObjectStoreNames();
     expect(stores).toContain("files");
     expect(stores).toContain("folders");
-    expect(stores).not.toContain("folder_members");
-    expect(stores).not.toContain("folder_run_states");
-    expect(stores).not.toContain("smart_folders");
 
     expect(await indexedDBManager.getDatabaseVersion(DB_NAME)).toBe(
       TARGET_VERSION,
     );
   });
 
-  test("SaaS v5 (pre-orphan-stores edge case) backfills folderId", async () => {
-    // v5 predates folder_members / folder_run_states / smart_folders in
-    // SaaS lineage, so seed it with only the files store. SaaS v5 file
-    // rows still lack folderId; this verifies the field-presence check
-    // doesn't depend on the orphan stores existing.
-    await new Promise<void>((resolve, reject) => {
-      const req = indexedDB.open(DB_NAME, 5);
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains("files")) {
-          db.createObjectStore("files", { keyPath: "id" });
-        }
-      };
-      req.onsuccess = () => {
-        const db = req.result;
-        const tx = db.transaction("files", "readwrite");
-        tx.objectStore("files").add({
-          id: "saas-v5-file",
-          name: "saas-v5.pdf",
-          type: "application/pdf",
-          size: 256,
-          lastModified: 7000,
-          data: new Blob(["v5"], { type: "application/pdf" }),
-          isLeaf: true,
-          versionNumber: 1,
-          originalFileId: "saas-v5-file",
-          parentFileId: undefined,
-          toolHistory: [],
-        });
-        tx.oncomplete = () => {
-          db.close();
-          resolve();
-        };
-        tx.onerror = () => reject(tx.error ?? new Error("v5 seed tx failed"));
-      };
-      req.onerror = () => reject(req.error ?? new Error("v5 seed open failed"));
-    });
+  test("v5 -> latest backfills folderId", async () => {
+    await seedLegacyDatabase(5, ["file-v5"]);
+    await indexedDBManager.openDatabase(DATABASE_CONFIGS.FILES);
+    indexedDBManager.closeDatabase(DB_NAME);
+
+    const rows = (await readAllFiles()) as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe("file-v5");
+    expect(rows[0].folderId).toBeNull();
+  });
+
+  test("v6 -> latest preserves local files", async () => {
+    await seedLegacyDatabase(6, ["file-v6"]);
 
     await indexedDBManager.openDatabase(DATABASE_CONFIGS.FILES);
     indexedDBManager.closeDatabase(DB_NAME);
 
     const rows = (await readAllFiles()) as Array<Record<string, unknown>>;
     expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe("file-v6");
     expect(rows[0].folderId).toBeNull();
-  });
-
-  test("SaaS v6 database is force-deleted (data lost, schema reset to v9)", async () => {
-    // The force-delete warn IS the contract under test; production fires it
-    // to surface why data was wiped.
-    expectConsole.warn(/Deleting corrupt SaaS v6/);
-    await seedSaasDatabase(6, ["v6-corrupt-file"]);
-
-    await indexedDBManager.openDatabase(DATABASE_CONFIGS.FILES);
-    indexedDBManager.closeDatabase(DB_NAME);
-
-    // Wipe path - files are gone, but the DB is now a clean v9 install.
-    const rows = await readAllFiles();
-    expect(rows).toHaveLength(0);
     const stores = await getObjectStoreNames();
     expect(stores).toContain("files");
     expect(stores).toContain("folders");
-    expect(stores).not.toContain("folder_members");
     expect(await indexedDBManager.getDatabaseVersion(DB_NAME)).toBe(
       TARGET_VERSION,
     );
   });
 
-  test("SaaS v7 database is force-deleted (data lost, schema reset to v9)", async () => {
-    // The force-delete warn IS the contract under test; production fires it
-    // to surface why data was wiped.
-    expectConsole.warn(/Deleting corrupt SaaS v7/);
-    await seedSaasDatabase(7, ["v7-corrupt-file"]);
+  test("v7 -> latest preserves local files", async () => {
+    await seedLegacyDatabase(7, ["file-v7"]);
 
     await indexedDBManager.openDatabase(DATABASE_CONFIGS.FILES);
     indexedDBManager.closeDatabase(DB_NAME);
 
-    const rows = await readAllFiles();
-    expect(rows).toHaveLength(0);
+    const rows = (await readAllFiles()) as Array<Record<string, unknown>>;
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe("file-v7");
+    expect(rows[0].folderId).toBeNull();
     expect(await indexedDBManager.getDatabaseVersion(DB_NAME)).toBe(
       TARGET_VERSION,
     );

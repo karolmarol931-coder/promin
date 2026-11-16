@@ -9,22 +9,19 @@ import * as path from "path";
  */
 describe("useLogoAssets - Logo Asset Files", () => {
   const publicDir = path.resolve(__dirname, "../../../../public");
-  // Brand logo assets live in core; the editor's vite config copies
-  // core/assets/brand/modern-logo/* into the served root at build time (see
-  // viteStaticCopy in editor/vite.config.ts), so useLogoAssets can keep
-  // referencing them by their public-URL path. Validate them at source.
-  const logoDir = path.resolve(__dirname, "../assets/brand/modern-logo");
+  const logoDir = path.resolve(__dirname, "../assets/brand/promin");
 
   // All asset files that useLogoAssets references
   const requiredAssets = [
-    "logo-tooltip.svg",
-    "Firstpage.png",
-    "favicon.ico",
+    "promin-location-mark.svg",
+    "promin-partner-logo.png",
+    "promin-app-icon.svg",
+    "promin-app-icon.png",
+    "favicon.png",
     "logo192.png",
     "logo512.png",
-    "StirlingPDFLogoWhiteText.svg",
-    "StirlingPDFLogoBlackText.svg",
-    "StirlingPDFLogoGreyText.svg",
+    "promin-wordmark-white.svg",
+    "promin-wordmark.svg",
   ];
 
   test("logo folder should exist", () => {
@@ -33,10 +30,9 @@ describe("useLogoAssets - Logo Asset Files", () => {
 
   test.each(requiredAssets)("should have %s", (assetName) => {
     const assetPath = path.join(logoDir, assetName);
-    expect(
-      fs.existsSync(assetPath),
-      `Missing asset: modern-logo/${assetName}`,
-    ).toBe(true);
+    expect(fs.existsSync(assetPath), `Missing asset: promin/${assetName}`).toBe(
+      true,
+    );
   });
 
   test("manifest.json should exist", () => {

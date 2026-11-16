@@ -15,7 +15,6 @@ describe("useFooterInfo", () => {
 
   it("returns the server's footer config", async () => {
     mockFetch.mockResolvedValue({
-      analyticsEnabled: true,
       privacyPolicy: "/privacy",
     });
 
@@ -26,12 +25,11 @@ describe("useFooterInfo", () => {
     expect(result.current.loading).toBe(true);
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.footerInfo).toEqual({
-      analyticsEnabled: true,
       privacyPolicy: "/privacy",
     });
   });
 
-  it("falls back to analytics-off rather than null when the fetch fails", async () => {
+  it("falls back to an empty result rather than null when the fetch fails", async () => {
     mockFetch.mockRejectedValue(new Error("offline"));
 
     const { result } = renderHook(() => useFooterInfo(), {
@@ -39,11 +37,11 @@ describe("useFooterInfo", () => {
     });
 
     await waitFor(() => expect(result.current.error).toBeTruthy());
-    expect(result.current.footerInfo).toEqual({ analyticsEnabled: false });
+    expect(result.current.footerInfo).toEqual({});
   });
 
   it("shares one request between the footer and the legal section", async () => {
-    mockFetch.mockResolvedValue({ analyticsEnabled: false });
+    mockFetch.mockResolvedValue({});
 
     const { result } = renderHook(
       () => ({ footer: useFooterInfo(), legal: useFooterInfo() }),

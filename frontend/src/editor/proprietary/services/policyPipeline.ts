@@ -69,7 +69,7 @@ export interface BackendEditorConfig {
  * Where a policy run executes, and therefore where its output files live and
  * are downloaded from.
  */
-export type PolicyExecutionTarget = "local" | "saas";
+export type PolicyExecutionTarget = "local";
 
 /** Lifecycle states of a backend run (mirrors PolicyRunStatus). */
 export type PolicyRunStatus =
@@ -94,17 +94,8 @@ export interface PolicyRunView {
   currentStep: number;
   stepCount: number;
   error: string | null;
-  /**
-   * Stable failure code from the backend (e.g. an entitlement sentinel
-   * {@code PAYG_LIMIT_REACHED} / {@code FEATURE_DEGRADED} propagated from a
-   * downstream tool's 402). Null/absent for ordinary failures.
-   */
+  /** Stable backend failure code; absent for ordinary failures. */
   errorCode?: string | null;
-  /**
-   * For an entitlement-limit failure, the {@code subscribed} flag from the blocking 402 — picks the
-   * spend-cap (true) vs free-limit (false) modal. Null/absent otherwise.
-   */
-  errorSubscribed?: boolean | null;
   outputs: BackendResultFile[];
   externalOutput?: boolean;
   /** When the run was created (epoch millis); lets a rediscovered run show its real age. */

@@ -4,7 +4,7 @@ import {
   type TranslatedToolCatalog,
 } from "@editor-core/data/useTranslatedToolRegistry";
 import { useLocalProcessingOnly } from "@editor/hooks/useLocalProcessingOnly";
-import { useMultipleEndpointsEnabled } from "@editor/hooks/useEndpointConfig";
+import { useMultipleEndpointsEnabled } from "@editor/hooks/useEndpointAvailability";
 import type { ToolRegistryEntry } from "@editor/data/toolsTaxonomy";
 
 export type { TranslatedToolCatalog } from "@editor-core/data/useTranslatedToolRegistry";

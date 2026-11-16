@@ -14,32 +14,11 @@ export interface PlatformSessionUser {
 }
 
 /**
- * Proprietary/web default: no desktop SaaS auth bridge.
- */
-export async function isDesktopSaaSAuthMode(): Promise<boolean> {
-  return false;
-}
-
-/**
  * Whether the currently-authoritative backend exposes `/api/v1/auth/logout`
  * and should be hit during sign-out.
  */
 export async function shouldCallBackendLogout(): Promise<boolean> {
   return true;
-}
-
-/**
- * Proprietary/web default: no platform user store.
- */
-export async function getPlatformSessionUser(): Promise<PlatformSessionUser | null> {
-  return null;
-}
-
-/**
- * Proprietary/web default: no platform refresh path.
- */
-export async function refreshPlatformSession(): Promise<boolean> {
-  return false;
 }
 
 /**

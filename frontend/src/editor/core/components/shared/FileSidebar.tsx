@@ -15,7 +15,6 @@ import { Icon, type IconName } from "@editor/ui/Icon";
 import { useTranslation } from "react-i18next";
 import { useFileState, useFileActions } from "@editor/contexts/file/fileHooks";
 import { useAppConfig } from "@editor/contexts/AppConfigContext";
-import { useGoogleDrivePicker } from "@editor/hooks/useGoogleDrivePicker";
 import {
   useNavigationState,
   useNavigationActions,
@@ -25,8 +24,6 @@ import { useViewer } from "@editor/contexts/ViewerContext";
 import { useFileHandler } from "@editor/hooks/useFileHandler";
 import { openFilesFromDisk } from "@editor/services/openFilesFromDisk";
 import { useAccountIdentity } from "@editor/hooks/useAccountIdentity";
-import { useFreeCreditsSummary } from "@editor/hooks/useFreeCreditsSummary";
-import { useOpenPlan } from "@editor/hooks/useOpenPlan";
 import { NavFooter } from "@editor/components/shared/navFooter/NavFooter";
 import {
   useIndexedDB,
@@ -49,7 +46,6 @@ import { VersionHistoryModal } from "@editor/components/filesPage/VersionHistory
 import { DeleteFilesDialog } from "@editor/components/filesPage/DeleteFilesDialog";
 import { RenameFileDialog } from "@editor/components/shared/RenameFileDialog";
 import { duplicateStoredFile } from "@editor/utils/duplicateFile";
-import { SidebarChecklistSlot } from "@editor/components/shared/SidebarChecklistSlot";
 import { SidebarChat } from "@editor/components/chat/SidebarChat";
 import {
   deleteServerFile,
@@ -91,8 +87,6 @@ export interface FileSidebarProps {
   onUploadFiles?: (files: File[]) => void | Promise<void>;
   /** Publishes the sidebar's picker so the quick navigation rail can reuse it. */
   onRegisterOpenFromComputer?: (open: (() => void) | null) => void;
-  /** Override the Google Drive handler. */
-  onPickGoogleDriveFiles?: (files: File[]) => void | Promise<void>;
   /** Action rows inserted under Open-from-computer (New folder, Refresh). A
    *  control with more than one destination renders itself instead. */
   extraActions?: Array<{
@@ -203,8 +197,6 @@ function SidebarActionRow({ action }: { action: SidebarAction }) {
 interface LibraryHeaderProps {
   stubs: StirlingFileStub[];
   scrolled: boolean;
-  isGoogleDriveEnabled: boolean;
-  onGoogleDrive: () => void;
   onAddFiles: () => void;
   onOpenFilesPage: () => void;
 }
@@ -212,8 +204,6 @@ interface LibraryHeaderProps {
 function LibraryHeader({
   stubs,
   scrolled,
-  isGoogleDriveEnabled,
-  onGoogleDrive,
   onAddFiles,
   onOpenFilesPage,
 }: LibraryHeaderProps) {
@@ -250,25 +240,13 @@ function LibraryHeader({
       >
         <Icon name="search" size={"1rem"} />
       </ActionIcon>
-      {isGoogleDriveEnabled && (
-        <ActionIcon
-          variant="quiet"
-          className="file-sidebar-section-btn file-sidebar-section-btn-drive"
-          onClick={onGoogleDrive}
-          title={t("fileSidebar.googleDrive", "Open from Google Drive")}
-          aria-label={t("fileSidebar.googleDrive", "Open from Google Drive")}
-          data-testid="google-drive-button"
-        >
-          <Icon name="googledrive" size={16} />
-        </ActionIcon>
-      )}
       <ActionIcon
         variant="quiet"
         className="file-sidebar-section-btn file-sidebar-section-btn-add"
         data-testid="pdf-library-add-files"
         onClick={onAddFiles}
-        title={t("fileSidebar.addFiles", "Add files")}
-        aria-label={t("fileSidebar.addFiles", "Add files")}
+        title={t("fileSidebar.openFromComputer", "Open from computer")}
+        aria-label={t("fileSidebar.openFromComputer", "Open from computer")}
       >
         <Icon name="plus" size={"1rem"} />
       </ActionIcon>
@@ -453,25 +431,16 @@ interface FileLibrarySectionProps extends Omit<
   LibraryFileListProps,
   "scrollRef"
 > {
-  isGoogleDriveEnabled: boolean;
-  onGoogleDrive: () => void;
   onAddFiles: () => void;
 }
 
-function FileLibrarySection({
-  isGoogleDriveEnabled,
-  onGoogleDrive,
-  onAddFiles,
-  ...list
-}: FileLibrarySectionProps) {
+function FileLibrarySection({ onAddFiles, ...list }: FileLibrarySectionProps) {
   const { scrolled, scrollRef } = useIsScrolled();
   return (
     <div className="file-sidebar-files-section sidebar-content-fade">
       <LibraryHeader
         stubs={list.stubs}
         scrolled={scrolled}
-        isGoogleDriveEnabled={isGoogleDriveEnabled}
-        onGoogleDrive={onGoogleDrive}
         onAddFiles={onAddFiles}
         onOpenFilesPage={list.onOpenFilesPage}
       />
@@ -488,15 +457,13 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
       accountHoisted = false,
       onUploadFiles,
       onRegisterOpenFromComputer,
-      onPickGoogleDriveFiles,
       extraActions,
     },
     ref,
   ) {
     const { t } = useTranslation();
     const labelName = useLabelName();
-    // Classification off (non-SaaS / AI-off) → never show the per-row label chip,
-    // even if a stub carries labels from an imported PDF; keeps the row plain.
+    // Keep imported classification labels hidden when classification is disabled.
     const classificationEnabled = useClassificationEnabled();
     const nativeFileInputRef = useRef<HTMLInputElement>(null);
     // State schedules the viewer transition after the file enters the workspace.
@@ -505,10 +472,6 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
     );
 
     const { config } = useAppConfig();
-    const {
-      isEnabled: isGoogleDriveEnabled,
-      openPicker: openGoogleDrivePicker,
-    } = useGoogleDrivePicker();
     const { state } = useFileState();
     const { actions: fileActions } = useFileActions();
     const damagedRepair = useDamagedFileRepair();
@@ -524,8 +487,6 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
 
     const { displayName, profilePictureUrl, isAnonymous } =
       useAccountIdentity();
-    const credits = useFreeCreditsSummary();
-    const openPlan = useOpenPlan();
 
     const [allFileStubs, setAllFileStubs] = useState<StirlingFileStub[]>([]);
     // Keep unreadable records so a reload can retry their bytes.
@@ -803,7 +764,7 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
       }
     }, [pendingViewFileId, state.files.ids, setActiveFileId, navActions]);
 
-    // SaaS groups by classification label; core returns null → one flat, recency-sorted list.
+    // Classification groups are optional; without them, keep a flat recency-sorted list.
     const fileGroups = useFileSidebarGroups(allFileStubs);
     const workbenchIds = useMemo(
       () => new Set(state.files.ids.map((id) => id as string)),
@@ -825,27 +786,6 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
         setGroupOpen((prev) => ({ ...prev, [id]: open })),
       [],
     );
-
-    const handleGoogleDriveClick = useCallback(async () => {
-      if (!isGoogleDriveEnabled) return;
-      const files = await openGoogleDrivePicker({ multiple: true });
-      if (files.length === 0) return;
-      if (onPickGoogleDriveFiles) {
-        await onPickGoogleDriveFiles(files);
-        return;
-      }
-      await addFiles(files);
-      if (!staysOnAdd) {
-        navActions.setWorkbench(files.length === 1 ? "viewer" : "fileEditor");
-      }
-    }, [
-      isGoogleDriveEnabled,
-      openGoogleDrivePicker,
-      addFiles,
-      navActions,
-      staysOnAdd,
-      onPickGoogleDriveFiles,
-    ]);
 
     const handleFileClick = useCallback(
       async (fileId: FileId) => {
@@ -1120,19 +1060,6 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
               onClick: openNativeFilePicker,
               testId: "pdf-library-add-files",
             },
-            ...(isGoogleDriveEnabled
-              ? [
-                  {
-                    icon: <Icon name="googledrive" />,
-                    label: t(
-                      "fileSidebar.googleDrive",
-                      "Open from Google Drive",
-                    ),
-                    onClick: () => void handleGoogleDriveClick(),
-                    testId: "google-drive-button",
-                  },
-                ]
-              : []),
           ]
         : []),
       ...(extraActions ?? []),
@@ -1185,8 +1112,6 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
                   groupOpen={groupOpen}
                   onGroupOpenChange={setGroupOpenState}
                   renderFileRow={renderFileRow}
-                  isGoogleDriveEnabled={isGoogleDriveEnabled}
-                  onGoogleDrive={handleGoogleDriveClick}
                   onAddFiles={openNativeFilePicker}
                   onOpenFilesPage={() => navActions.setWorkbench("myFiles")}
                 />
@@ -1223,17 +1148,12 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
           onConfirm={handleConfirmSidebarDelete}
         />
 
-        {/* Getting-started checklist, floating above the footer (SaaS only). */}
-        <SidebarChecklistSlot />
-
         <NavFooter
           className="file-sidebar-footer-box"
           displayName={displayName}
           profilePictureUrl={profilePictureUrl}
           onOpenSettings={onOpenSettings}
           showAccount={!accountHoisted}
-          credits={credits}
-          onOpenPlan={openPlan ?? undefined}
         />
 
         {currentWorkbench !== "myFiles" && <SidebarChat />}

@@ -17,7 +17,7 @@ const apiClient = create({
   withCredentials: false, // Desktop doesn't need credentials
 });
 
-// Setup interceptors (desktop-specific auth and backend ready checks)
+// Setup interceptors for the local backend request boundary.
 // Cast to AxiosInstance - Tauri client has compatible API
 setupApiInterceptors(apiClient as unknown as AxiosInstance);
 

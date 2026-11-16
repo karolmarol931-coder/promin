@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useAuth } from "@editor/auth/UseSession";
 import { useQuickNavHost } from "@editor/contexts/QuickNavHostContext";
 import { useAccountIdentity } from "@editor/hooks/useAccountIdentity";
-import { usePortalAccessState } from "@editor/hooks/usePortalAccess";
 import { useSigningBadgeState } from "@editor/hooks/signing/useSigningBadgeCount";
 
 /** Publishes resolved account fields from the mounted view into the root cache. */
@@ -14,7 +13,6 @@ export function useSyncQuickNavAccount(): void {
     profilePictureUrl,
     loading: identityLoading,
   } = useAccountIdentity();
-  const { granted, settled: accessSettled } = usePortalAccessState();
   const { count, settled: signingSettled, items } = useSigningBadgeState();
   const accountId = user?.id ?? null;
 
@@ -28,7 +26,6 @@ export function useSyncQuickNavAccount(): void {
         : { displayName, profilePictureUrl },
       signingBadge: signingSettled ? count : undefined,
       signingItems: signingSettled ? items : undefined,
-      portalAccess: accessSettled ? granted : undefined,
     });
   }, [
     updateAccount,
@@ -41,7 +38,5 @@ export function useSyncQuickNavAccount(): void {
     signingSettled,
     items,
     count,
-    accessSettled,
-    granted,
   ]);
 }

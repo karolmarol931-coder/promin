@@ -11,14 +11,11 @@ import { useFilesModalContext } from "@editor/contexts/FilesModalContext";
 import { useFilesPage } from "@editor/contexts/FilesPageContext";
 import { useFolders } from "@editor/contexts/FolderContext";
 import { useAllFiles } from "@editor/contexts/FileContext";
-import { useAppConfig } from "@editor/contexts/AppConfigContext";
 import { useSharingEnabled } from "@editor/hooks/useSharingEnabled";
-import { useGoogleDrivePicker } from "@editor/hooks/useGoogleDrivePicker";
 import { useProcessingFolders } from "@editor/hooks/useProcessingFolders";
 import { useFolderFileStates } from "@editor/components/filesPage/useFolderFileStates";
 import { pendingFilePathMappings } from "@editor/services/pendingFilePathMappings";
 import { createQuickKey } from "@editor/types/fileContext";
-import { useIsMobile } from "@editor/hooks/useIsMobile";
 import {
   FileGrid,
   type FilesPageEntry,
@@ -38,7 +35,6 @@ import {
   supportsPickerFile,
   type PickerItem,
 } from "@editor/components/filesPage/pickerSelection";
-import MobileUploadModal from "@editor/components/shared/MobileUploadModal";
 import { openFilesFromDisk } from "@editor/services/openFilesFromDisk";
 import { readDiskFile } from "@editor/services/localFolderContents";
 import { zipFileService } from "@editor/services/zipFileService";
@@ -60,7 +56,6 @@ import "@editor/components/filesPage/LibraryFilePicker.css";
 interface Props {
   supportedFormats?: string[];
   onBusyChange: (busy: boolean) => void;
-  onExternalPickerChange: (open: boolean) => void;
   /** Destination mode shows server storage; files provide context and cannot be selected. */
   destination?: {
     fileCount: number;
@@ -73,7 +68,6 @@ interface Props {
 export function LibraryFilePicker({
   supportedFormats,
   onBusyChange,
-  onExternalPickerChange,
   destination,
 }: Props) {
   const { t } = useTranslation();
@@ -87,10 +81,7 @@ export function LibraryFilePicker({
     () => new Set<string>(activeFileIds),
     [activeFileIds],
   );
-  const { config } = useAppConfig();
   const { sharingEnabled } = useSharingEnabled();
-  const drive = useGoogleDrivePicker();
-  const isPhone = useIsMobile();
   const compact = useMediaQuery("(max-width: 1000px)") ?? false;
   const {
     currentFolderId,
@@ -116,7 +107,6 @@ export function LibraryFilePicker({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const busyRef = useRef(false);
-  const [mobileUploadOpen, setMobileUploadOpen] = useState(false);
   const [showSelected, setShowSelected] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -557,7 +547,7 @@ export function LibraryFilePicker({
         <div>
           <h2>
             {destination
-              ? t("filesPage.addToLibrary", "Add to Stirling library…")
+              ? t("filesPage.addToLibrary", "Add to Promin library…")
               : t("filePicker.title", "Add files")}
           </h2>
           <Text size="sm" c="dimmed">
@@ -591,34 +581,6 @@ export function LibraryFilePicker({
           >
             {t("filePicker.fromComputer", "From your computer")}
           </Button>
-          {drive.isEnabled && (
-            <Button
-              variant="tertiary"
-              disabled={busy}
-              loading={drive.isLoading}
-              leftSection={<Icon name="googledrive" />}
-              onClick={() => {
-                onExternalPickerChange(true);
-                void drive
-                  .openPicker({ multiple: maxSelectable !== 1 })
-                  .then(stageFiles)
-                  .catch(reportError)
-                  .finally(() => onExternalPickerChange(false));
-              }}
-            >
-              Google Drive
-            </Button>
-          )}
-          {config?.enableMobileScanner && !isPhone && (
-            <Button
-              variant="tertiary"
-              disabled={busy}
-              leftSection={<Icon name="qr-code" />}
-              onClick={() => setMobileUploadOpen(true)}
-            >
-              {t("filePicker.fromPhone", "From your phone")}
-            </Button>
-          )}
           <input
             ref={fileInput}
             type="file"
@@ -634,17 +596,16 @@ export function LibraryFilePicker({
           />
         </div>
       )}
-      {(error || (!destination && drive.error)) && (
+      {error && (
         <Alert
           title={t("filePicker.errorTitle", "Couldn't add files")}
           withCloseButton
           onClose={() => {
             setError(null);
-            drive.clearError();
           }}
           role="alert"
         >
-          {error ?? drive.error}
+          {error}
         </Alert>
       )}
       <LibraryTabs
@@ -957,14 +918,6 @@ export function LibraryFilePicker({
       >
         {details}
       </Drawer>
-      <MobileUploadModal
-        opened={mobileUploadOpen}
-        onClose={() => setMobileUploadOpen(false)}
-        onFilesReceived={(files) => {
-          stageFiles(files);
-          setMobileUploadOpen(false);
-        }}
-      />
     </div>
   );
 }

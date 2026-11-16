@@ -36,19 +36,16 @@ beforeEach(() => {
 });
 
 describe("SystemCard default locale", () => {
-  // The Select's options are keyed on the underscore form, but
-  // SYSTEM_DEFAULTLOCALE accepts a hyphenated tag too, and the backend stores
-  // whichever form was configured.
   it("shows the configured language for the underscore form", () => {
-    expect(renderWithLocale("en_GB").value).toBe("English (UK) (en-GB)");
+    expect(renderWithLocale("ru_RU").value).toBe("Русский (ru-RU)");
   });
 
   it("shows the configured language for the hyphenated form", () => {
-    expect(renderWithLocale("en-GB").value).toBe("English (UK) (en-GB)");
+    expect(renderWithLocale("ru-RU").value).toBe("Русский (ru-RU)");
   });
 
   it("matches a lowercased region tag", () => {
-    expect(renderWithLocale("en-gb").value).toBe("English (UK) (en-GB)");
+    expect(renderWithLocale("ru-ru").value).toBe("Русский (ru-RU)");
   });
 
   it("leaves the field empty when no locale is configured", () => {

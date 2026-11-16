@@ -75,8 +75,8 @@ public class OfficeDocumentSanitizer {
 
     /**
      * The document with external references stripped from its relationship and ODF XML parts,
-     * except targets an admin has allowlisted. Returned unchanged, with no part inspected, when
-     * {@code system.disableSanitize} is set.
+     * except targets an admin has allowlisted outside offline mode. Returned unchanged, with no
+     * part inspected, when {@code system.disableSanitize} is set outside offline mode.
      *
      * @throws IOException when the input is empty, an entry is named outside the archive, or a
      *     relationship or ODF XML part cannot be parsed; such a document is refused rather than
@@ -86,7 +86,8 @@ public class OfficeDocumentSanitizer {
         if (documentBytes == null || documentBytes.length == 0) {
             throw new IOException("Office document input is empty or null");
         }
-        if (applicationProperties.getSystem().isDisableSanitize()) {
+        if (applicationProperties.getSystem().isDisableSanitize()
+                && !applicationProperties.getSystem().isOfflineMode()) {
             log.debug("Office document sanitization disabled by configuration");
             return documentBytes;
         }
@@ -270,7 +271,10 @@ public class OfficeDocumentSanitizer {
 
     // Preserved only with an explicit allowedDomains entry; MEDIUM default would admit public URLs.
     private boolean isAdminAllowed(String url) {
-        if (ssrfProtectionService == null || url == null || url.isBlank()) {
+        if (applicationProperties.getSystem().isOfflineMode()
+                || ssrfProtectionService == null
+                || url == null
+                || url.isBlank()) {
             return false;
         }
         ApplicationProperties.Html.UrlSecurity config =

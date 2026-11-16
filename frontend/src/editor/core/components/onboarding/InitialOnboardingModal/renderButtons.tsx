@@ -8,7 +8,6 @@ import {
   ButtonDefinition,
   type FlowState,
 } from "@editor/components/onboarding/onboardingFlowConfig";
-import type { LicenseNotice } from "@editor/types/types";
 import type { ButtonAction } from "@editor/components/onboarding/onboardingFlowConfig";
 
 interface SlideButtonsProps {
@@ -16,14 +15,12 @@ interface SlideButtonsProps {
     buttons: ButtonDefinition[];
     id: string;
   };
-  licenseNotice: LicenseNotice;
   flowState: FlowState;
   onAction: (action: ButtonAction) => void;
 }
 
 export function SlideButtons({
   slideDefinition,
-  licenseNotice,
   flowState,
   onAction,
 }: SlideButtonsProps) {
@@ -38,16 +35,6 @@ export function SlideButtons({
   );
 
   const resolveButtonLabel = (button: ButtonDefinition) => {
-    // Special case: override "See Plans" with "Upgrade now" when over limit
-    if (
-      button.type === "button" &&
-      slideDefinition.id === "server-license" &&
-      button.action === "see-plans" &&
-      licenseNotice.isOverLimit
-    ) {
-      return t("onboarding.serverLicense.upgrade", "Upgrade now →");
-    }
-
     // Translate the label (it's a translation key)
     const label = button.label ?? "";
     if (!label) return "";

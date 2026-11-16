@@ -18,20 +18,6 @@ import stirling.software.common.model.exception.UnsupportedProviderException;
 class ApplicationPropertiesLogicTest {
 
     @Test
-    void system_isAnalyticsEnabled_null_false_true() {
-        ApplicationProperties.System sys = new ApplicationProperties.System();
-
-        sys.setEnableAnalytics(null);
-        assertFalse(sys.isAnalyticsEnabled());
-
-        sys.setEnableAnalytics(Boolean.FALSE);
-        assertFalse(sys.isAnalyticsEnabled());
-
-        sys.setEnableAnalytics(Boolean.TRUE);
-        assertTrue(sys.isAnalyticsEnabled());
-    }
-
-    @Test
     void storageDefaultsEnableLocalStorageAndSigningWithoutSharingOrEncryption() {
         ApplicationProperties.Storage storage = new ApplicationProperties().getStorage();
 
@@ -175,8 +161,8 @@ class ApplicationPropertiesLogicTest {
         ApplicationProperties.EnterpriseEdition.CustomMetadata eMeta = ee.getCustomMetadata();
         eMeta.setCreator("  ");
         eMeta.setProducer(null);
-        assertEquals("Stirling-PDF", eMeta.getCreator());
-        assertEquals("Stirling-PDF", eMeta.getProducer());
+        assertEquals("Promin", eMeta.getCreator());
+        assertEquals("Promin", eMeta.getProducer());
     }
 
     @Test
@@ -185,8 +171,8 @@ class ApplicationPropertiesLogicTest {
         Premium.ProFeatures.CustomMetadata pMeta = pf.getCustomMetadata();
         pMeta.setCreator("");
         pMeta.setProducer("");
-        assertEquals("Stirling-PDF", pMeta.getCreator());
-        assertEquals("Stirling-PDF", pMeta.getProducer());
+        assertEquals("Promin", pMeta.getCreator());
+        assertEquals("Promin", pMeta.getProducer());
     }
 
     @Test

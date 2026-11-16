@@ -11,7 +11,6 @@ import {
   editorHomeRoute,
 } from "@editor/utils/urlRouting";
 import { ToolRegistry } from "@editor/data/toolsTaxonomy";
-import { firePixel } from "@editor/utils/scarfTracking";
 import { useAppConfig } from "@editor/contexts/AppConfigContext";
 
 /**
@@ -41,9 +40,6 @@ export function useNavigationUrlSync(
   const hasInitialized = useRef(false);
   const prevSelectedTool = useRef<ToolId | null>(null);
   const lastReadLocation = useRef<typeof location | null>(null);
-  // A pixel is a move, not a render.
-  const countedPath = useRef<string | null>(null);
-
   // Held in a ref so neither pass below depends on it: a write that re-ran on
   // every address change would answer a Back by returning to the tool it left.
   const here = useRef(location);
@@ -74,9 +70,6 @@ export function useNavigationUrlSync(
     // Only run once on initial mount
     if (hasInitialized.current) return;
 
-    // Fire pixel for initial page load
-    firePixel(window.location.pathname);
-
     lastReadLocation.current = here.current;
     const route = parseToolRoute(registry, here.current);
     if (route.toolId) {
@@ -89,7 +82,6 @@ export function useNavigationUrlSync(
     // the startup view preference (defaultStartupView) is respected.
 
     hasInitialized.current = true;
-    countedPath.current = pathname;
   }, [
     checkPremiumAndSelect,
     config,
@@ -112,11 +104,6 @@ export function useNavigationUrlSync(
     // reconciling it against the address it is leaving would cancel the move.
     if (prevSelectedTool.current !== selectedTool) return;
     lastReadLocation.current = location;
-
-    if (countedPath.current !== pathname) {
-      countedPath.current = pathname;
-      firePixel(window.location.pathname);
-    }
 
     const route = parseToolRoute(registry, here.current);
     if (route.toolId === selectedTool) return;

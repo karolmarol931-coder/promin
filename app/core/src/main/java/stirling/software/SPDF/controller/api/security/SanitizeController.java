@@ -183,6 +183,11 @@ public class SanitizeController {
                 }
             }
 
+            COSDictionary additionalActions = page.getCOSObject().getCOSDictionary(COSName.AA);
+            if (additionalActions != null && additionalActions.size() == 0) {
+                page.getCOSObject().removeItem(COSName.AA);
+            }
+
             for (PDAnnotation annotation : page.getAnnotations()) {
                 if (annotation instanceof PDAnnotationWidget widget) {
                     PDAction action = widget.getAction();

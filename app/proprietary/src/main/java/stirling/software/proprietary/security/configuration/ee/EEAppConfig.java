@@ -28,8 +28,8 @@ public class EEAppConfig {
         migrateEnterpriseSettingsToPremium(this.applicationProperties);
     }
 
-    /** Team entitlement is stored in the configured database. */
-    @Profile("security & !saas")
+    /** Installed license state controls premium features. */
+    @Profile("security")
     @Bean(name = "runningProOrHigher")
     @DependsOn("entityManagerFactory")
     public boolean runningProOrHigher() {
@@ -37,7 +37,7 @@ public class EEAppConfig {
         return license == License.SERVER || license == License.ENTERPRISE;
     }
 
-    @Profile("security & !saas")
+    @Profile("security")
     @Bean(name = "license")
     @DependsOn("entityManagerFactory")
     public String licenseType() {
@@ -45,14 +45,14 @@ public class EEAppConfig {
     }
 
     /** Never promoted: Enterprise is contracted, so this stays what the licence key itself says. */
-    @Profile("security & !saas")
+    @Profile("security")
     @Bean(name = "runningEE")
     @DependsOn("entityManagerFactory")
     public boolean runningEnterprise() {
         return licenseKeyChecker.premiumTier() == License.ENTERPRISE;
     }
 
-    @Profile("security & !saas")
+    @Profile("security")
     @Bean(name = "SSOAutoLogin")
     public boolean ssoAutoLogin() {
         return applicationProperties.getSecurity().isSsoAutoLogin();

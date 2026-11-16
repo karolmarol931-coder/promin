@@ -2,7 +2,6 @@ export interface AppConfig {
   baseUrl?: string;
   contextPath?: string;
   serverPort?: number;
-  frontendUrl?: string;
   appNameNavbar?: string;
   languages?: string[];
   defaultLocale?: string;
@@ -16,21 +15,10 @@ export interface AppConfig {
   shouldShowUpdate?: boolean;
   enableAlphaFunctionality?: boolean;
   stirlingOfficeConversion?: boolean;
-  enableAnalytics?: boolean | null;
-  enablePosthog?: boolean | null;
-  enableScarf?: boolean | null;
-  enableDesktopInstallSlide?: boolean;
   /** False strips the hidden novelty features - see useSecretClicks. */
   enableEasterEggs?: boolean;
   premiumEnabled?: boolean;
   premiumKey?: string;
-  paygEnabled?: boolean;
-  /**
-   * Whether this instance can link a Stirling (SaaS) account. False means the account-link
-   * endpoints are absent (404), which is indistinguishable from "not linked" on the client, so
-   * anything that prompts to link must gate on this first.
-   */
-  accountLinkAvailable?: boolean;
   termsAndConditions?: string;
   privacyPolicy?: string;
   cookiePolicy?: string;
@@ -42,12 +30,6 @@ export interface AppConfig {
   SSOAutoLogin?: boolean;
   serverCertificateEnabled?: boolean;
   hardwareSigningAvailable?: boolean;
-  enableMobileScanner?: boolean;
-  enableMobileSignature?: boolean;
-  mobileScannerConvertToPdf?: boolean;
-  mobileScannerImageResolution?: string;
-  mobileScannerPageFormat?: string;
-  mobileScannerStretchToFit?: boolean;
   appVersion?: string;
   machineType?: string;
   activeSecurity?: boolean;
@@ -66,12 +48,6 @@ export interface AppConfig {
   storageShareLinksEnabled?: boolean;
   storageShareEmailEnabled?: boolean;
   storageGroupSigningEnabled?: boolean;
-  hideDisabledToolsGoogleDrive?: boolean;
-  hideDisabledToolsMobileQRScanner?: boolean;
-  googleDriveEnabled?: boolean;
-  googleDriveClientId?: string;
-  googleDriveApiKey?: string;
-  googleDriveAppId?: string;
   timestampDefaultTsaUrl?: string;
   timestampCustomTsaUrls?: string[];
   timestampTsaPresets?: { label: string; url: string }[];

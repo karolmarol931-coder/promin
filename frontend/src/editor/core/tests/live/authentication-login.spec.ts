@@ -10,12 +10,10 @@ test.describe("1. Authentication and Login", () => {
       await page.goto("/editor");
       await expect(page).toHaveURL(/\/login/);
 
-      // Step 2: Confirm the login page displays the Stirling PDF logo
+      // Step 2: Confirm the login page displays the Promin logo
       await expect(
         page
-          .locator(
-            'img[alt*="Stirling"], img[src*="stirling"], img[src*="logo"]',
-          )
+          .locator('img[alt*="Promin"], img[src*="stirling"], img[src*="logo"]')
           .first(),
       ).toBeVisible();
 
@@ -113,28 +111,12 @@ test.describe("1. Authentication and Login", () => {
         }),
       );
 
-      // Invalidate the client session: clear cookies + the stored JWT, then
-      // re-add the cookie-consent cookie so the banner doesn't block the login
-      // page after redirect.
+      // Invalidate the client session: clear cookies and the stored JWT.
       await page.context().clearCookies();
       await page.evaluate(() => {
         localStorage.removeItem("stirling_jwt");
         localStorage.removeItem("stirling_refresh_token");
       });
-      await page.context().addCookies([
-        {
-          name: "cc_cookie",
-          value: JSON.stringify({
-            categories: ["necessary"],
-            revision: 0,
-            data: null,
-            rfc_cookie: false,
-          }),
-          domain: "localhost",
-          path: "/",
-        },
-      ]);
-
       // Full page reload forces the SPA to re-check auth with the backend.
       await page.reload({ waitUntil: "domcontentloaded" });
 

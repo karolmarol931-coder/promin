@@ -6,9 +6,6 @@ import SearchResults from "@editor/components/tools/SearchResults";
 import ToolRenderer from "@editor/components/tools/ToolRenderer";
 import ToolSearch from "@editor/components/tools/toolPicker/ToolSearch";
 import { ToolPanelViewerBar } from "@editor/components/tools/ToolPanelViewerBar";
-import { openSuperSearch } from "@editor/components/shared/superSearch/openSuperSearch";
-import { ActionIcon } from "@editor/ui/ActionIcon";
-import { Icon } from "@editor/ui/Icon";
 import { ToolId } from "@editor/types/toolId";
 
 interface ToolPanelProps {
@@ -24,11 +21,7 @@ interface ToolPanelProps {
   onToolSelect?: (id: ToolId) => void;
   /** Whether to render the compact (favourites + recommended only) view. */
   compact?: boolean;
-  /**
-   * Render a tool filter at the head of the panel. Set where the workbench
-   * bar's super search is out of reach, so the list stays searchable in place;
-   * otherwise the head is a header whose button opens the super search on tools.
-   */
+  /** Render a tool filter at the head of the panel when the workbench search is out of reach. */
   showSearch?: boolean;
 }
 
@@ -93,26 +86,6 @@ export default function ToolPanel({
             isSearching={searching}
             compact={compactProp ?? !allToolsView}
             onShowAllTools={onShowAllTools}
-            header={
-              !showSearch && (
-                <div className="tool-panel__list-header">
-                  <span className="tool-panel__list-title">
-                    {t("toolPanel.toolsHeader", "PDF Tools")}
-                  </span>
-                  <ActionIcon
-                    variant="quiet"
-                    accent="neutral"
-                    size="sm"
-                    onClick={() => openSuperSearch(["tools"])}
-                    title={t("toolPanel.searchTools", "Search tools")}
-                    aria-label={t("toolPanel.searchTools", "Search tools")}
-                    data-testid="tool-panel-search"
-                  >
-                    <Icon name="search" size="1rem" />
-                  </ActionIcon>
-                </div>
-              )
-            }
           />
         </div>
       ) : (

@@ -33,6 +33,17 @@ describe("locale folders", () => {
   );
 });
 
+describe("app language choices", () => {
+  it("offers only English, Polish, Russian, and Ukrainian", () => {
+    expect(supportedLanguages).toEqual({
+      "en-US": "English",
+      "pl-PL": "Polski",
+      "ru-RU": "Русский",
+      "uk-UA": "Українська",
+    });
+  });
+});
+
 describe("normalizeLanguageCode", () => {
   it.each(Object.keys(supportedLanguages))(
     "round-trips %s through the backend underscore form",
@@ -46,7 +57,6 @@ describe("normalizeLanguageCode", () => {
     (legacy) => {
       const normalized = normalizeLanguageCode(legacy);
       expect(normalized).toBe("sr-Latn-RS");
-      expect(supportedLanguages[normalized]).toBe("Srpski");
     },
   );
 

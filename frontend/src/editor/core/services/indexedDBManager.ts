@@ -57,7 +57,7 @@ class IndexedDBManager {
     // this database during boot got its own connection - and per spec only the
     // FIRST request ever receives `blocked`, leaving the rest waiting on an event
     // that never comes.
-    const initPromise = this.openWithRecovery(config);
+    const initPromise = this.performDatabaseInit(config);
     this.initPromises.set(config.name, initPromise);
 
     try {
@@ -68,28 +68,6 @@ class IndexedDBManager {
       this.initPromises.delete(config.name);
       throw error;
     }
-  }
-
-  /** The v6/v7 wipe, kept off {@link openDatabase}'s synchronous registration path. */
-  private async openWithRecovery(config: DatabaseConfig): Promise<IDBDatabase> {
-    // SaaS lineage shipped a v6 and a v7 of stirling-pdf-files whose
-    // upgrade paths corrupted records (separate cursor walks racing in
-    // one versionchange transaction). The SaaS build wipes those
-    // databases on open to get users unstuck; we carry the wipe forward
-    // here so any SaaS browser that hadn't reopened the app since then
-    // gets a clean v9 install instead of trying to migrate corrupt data.
-    // Affected users have already lost their files - this is just the
-    // recovery path they were already on.
-    if (config.name === "stirling-pdf-files") {
-      const existingVersion = await this.getDatabaseVersion(config.name);
-      if (existingVersion === 6 || existingVersion === 7) {
-        console.warn(
-          `Deleting corrupt SaaS v${existingVersion} ${config.name} database. Files will be lost but the app will work.`,
-        );
-        await this.deleteDatabase(config.name);
-      }
-    }
-    return this.performDatabaseInit(config);
   }
 
   private performDatabaseInit(config: DatabaseConfig): Promise<IDBDatabase> {
@@ -227,25 +205,6 @@ class IndexedDBManager {
             this.migrateFilesStore(store, oldVersion);
           }
         });
-
-        // Drop stores that the SaaS lineage created in v6 but that this
-        // codebase doesn't use. We use a different folder model now
-        // (a `folders` store plus a `folderId` foreign key on each
-        // file row), so folder_members / folder_run_states /
-        // smart_folders are dead weight. The deleteObjectStore calls
-        // must happen inside this versionchange transaction.
-        if (config.name === "stirling-pdf-files") {
-          for (const orphan of [
-            "folder_members",
-            "folder_run_states",
-            "smart_folders",
-          ]) {
-            if (db.objectStoreNames.contains(orphan)) {
-              db.deleteObjectStore(orphan);
-              console.info(`Dropped orphan SaaS store: ${orphan}`);
-            }
-          }
-        }
       };
     });
   }
@@ -309,11 +268,8 @@ class IndexedDBManager {
         }
       }
 
-      // folderId. OSS lineage added this in v4. SaaS lineage never had
-      // it (its v5 and v8 file rows both lack the field), so we gate on
-      // field presence rather than oldVersion. Required on every row
-      // so the folderId index doesn't drop the record out of
-      // bounded-key cursor scans.
+      // Older file records may lack folder metadata. Required on every row
+      // so the folderId index doesn't drop the record out of bounded-key scans.
       if (record.folderId === undefined) {
         record.folderId = null;
         needsUpdate = true;

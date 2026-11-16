@@ -7,7 +7,7 @@ import { useLoginRequired } from "@editor/hooks/useLoginRequired";
 import type { GeneralCardProps } from "@editor/components/shared/config/configSections/server/serverCardProps";
 
 /**
- * The certificate behind "Sign with Stirling-PDF". This was the whole Features
+ * The certificate behind "Sign with Promin". This was the whole Features
  * row: one hook whose key said "features" while it read and wrote the system
  * section, so it rides the general draft now.
  */
@@ -30,7 +30,7 @@ export function ServerCertificateCard({
           )}
           info={t(
             "admin.settings.features.serverCertificate.enabled.description",
-            'Offer "Sign with Stirling-PDF" using a certificate this server generates',
+            'Offer "Sign with Promin" using a certificate this server generates',
           )}
           pending={isFieldPending("serverCertificate.enabled")}
           checked={settings.serverCertificate?.enabled ?? true}
@@ -69,9 +69,7 @@ export function ServerCertificateCard({
                 />
               </Group>
             }
-            value={
-              settings.serverCertificate?.organizationName || "Stirling PDF Inc"
-            }
+            value={settings.serverCertificate?.organizationName || "Promin Inc"}
             onChange={(e) =>
               setSettings({
                 ...settings,
@@ -81,7 +79,7 @@ export function ServerCertificateCard({
                 },
               })
             }
-            placeholder="Stirling-PDF"
+            placeholder="Promin"
             disabled={!loginEnabled}
           />
         </div>

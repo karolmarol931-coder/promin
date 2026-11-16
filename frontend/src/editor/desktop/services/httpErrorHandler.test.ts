@@ -1,51 +1,33 @@
-import { describe, expect, test, vi, beforeEach, afterEach } from "vitest";
-import { OPEN_SIGN_IN_EVENT } from "@editor/constants/signInEvents";
-import { FREE_LIMIT_MODAL_EVENT } from "@editor/components/usageLimitModals";
+import { describe, expect, test, vi } from "vitest";
 import { handleHttpError } from "@editor/services/httpErrorHandler";
 
-// The non-PAYG path delegates to core; stub it so these cases stay isolated.
 vi.mock("@editor-core/services/httpErrorHandler", () => ({
   handleHttpError: vi.fn().mockResolvedValue(false),
 }));
 
-function axiosErr(
-  status: number,
-  sentinel: string,
-  extra: Record<string, unknown> = {},
-) {
-  return {
-    isAxiosError: true,
-    response: { status, data: { error: sentinel, ...extra } },
-  };
-}
-
-describe("desktop handleHttpError — PAYG sentinels", () => {
-  let events: string[];
-  let listener: (e: Event) => void;
-
-  beforeEach(() => {
-    events = [];
-    listener = (e: Event) => events.push(e.type);
-    window.addEventListener(OPEN_SIGN_IN_EVENT, listener);
-    window.addEventListener(FREE_LIMIT_MODAL_EVENT, listener);
-  });
-  afterEach(() => {
-    window.removeEventListener(OPEN_SIGN_IN_EVENT, listener);
-    window.removeEventListener(FREE_LIMIT_MODAL_EVENT, listener);
+describe("local API errors", () => {
+  test("does not open a sign-in flow for unauthorized local endpoints", async () => {
+    const error = {
+      isAxiosError: true,
+      response: { status: 401, data: { error: "UNAUTHORIZED" } },
+    };
+    await expect(handleHttpError(error)).resolves.toBe(true);
   });
 
-  test("401 SIGNUP_REQUIRED opens the desktop sign-in modal", async () => {
-    const handled = await handleHttpError(axiosErr(401, "SIGNUP_REQUIRED"));
-    expect(handled).toBe(true);
-    expect(events).toContain(OPEN_SIGN_IN_EVENT);
+  test("shows the local permission error", async () => {
+    const error = {
+      isAxiosError: true,
+      response: { status: 403, data: { error: "FORBIDDEN" } },
+    };
+    await expect(handleHttpError(error)).resolves.toBe(true);
   });
 
-  test("402 FEATURE_DEGRADED (free) pops the limit modal, not sign-in", async () => {
-    const handled = await handleHttpError(
-      axiosErr(402, "FEATURE_DEGRADED", { subscribed: false }),
-    );
-    expect(handled).toBe(true);
-    expect(events).toContain(FREE_LIMIT_MODAL_EVENT);
-    expect(events).not.toContain(OPEN_SIGN_IN_EVENT);
+  test("keeps suppressed endpoint probes quiet", async () => {
+    const error = {
+      isAxiosError: true,
+      config: { suppressErrorToast: true },
+      response: { status: 500 },
+    };
+    await expect(handleHttpError(error)).resolves.toBe(false);
   });
 });

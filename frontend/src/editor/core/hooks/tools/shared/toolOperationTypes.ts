@@ -381,7 +381,6 @@ export interface ToolOperationHook<TParams = void> {
   status: string;
   errorMessage: string | null;
   progress: ProcessingProgress | null;
-  willUseCloud?: boolean;
 
   // Actions
   /** Non-empty inputs accepted for the current params, using FileContext's protection metadata.

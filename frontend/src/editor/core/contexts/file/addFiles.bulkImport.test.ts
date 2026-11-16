@@ -70,7 +70,7 @@ describe("addFiles with skipMetadataHydration", () => {
       );
       const importFiles = (files: File[]) =>
         addFiles(
-          { files, skipMetadataHydration: true, skipUploadTracking: true },
+          { files, skipMetadataHydration: true },
           h.stateRef,
           h.filesRef,
           h.dispatch,
@@ -137,7 +137,6 @@ describe("addFiles with skipMetadataHydration", () => {
         {
           files: [duplicate],
           skipMetadataHydration: true,
-          skipUploadTracking: true,
         },
         h.stateRef,
         h.filesRef,
@@ -153,7 +152,6 @@ describe("addFiles with skipMetadataHydration", () => {
           {
             files: [pdf("other.pdf")],
             skipMetadataHydration: true,
-            skipUploadTracking: true,
           },
           h.stateRef,
           h.filesRef,
@@ -187,7 +185,6 @@ describe("addFiles with skipMetadataHydration", () => {
         files: [duplicate, duplicate],
         allowDuplicates: true,
         skipMetadataHydration: true,
-        skipUploadTracking: true,
       },
       h.stateRef,
       h.filesRef,
@@ -212,7 +209,6 @@ describe("addFiles with skipMetadataHydration", () => {
       {
         files: [pdf("first.pdf"), pdf("slow.pdf")],
         skipMetadataHydration: true,
-        skipUploadTracking: true,
       },
       h.stateRef,
       h.filesRef,
@@ -250,7 +246,6 @@ describe("addFiles with skipMetadataHydration", () => {
         {
           files: [pdf(name)],
           skipMetadataHydration: true,
-          skipUploadTracking: true,
         },
         h.stateRef,
         h.filesRef,
@@ -279,7 +274,7 @@ describe("addFiles with skipMetadataHydration", () => {
         files: [pdf("a.pdf"), pdf("b.pdf")],
         skipWorkspaceDispatch: true,
         skipMetadataHydration: true,
-        skipUploadTracking: true,
+
         presetClassification: { labels: ["invoice"], confidence: "low" },
       },
       h.stateRef,
@@ -304,7 +299,7 @@ describe("addFiles with skipMetadataHydration", () => {
     generateThumbnailPairWithMetadata.mockReturnValue(new Promise(() => {}));
     const h = harness();
     await addFiles(
-      { files: [pdf("a.pdf")], skipUploadTracking: true },
+      { files: [pdf("a.pdf")] },
       h.stateRef,
       h.filesRef,
       h.dispatch,
@@ -325,7 +320,6 @@ describe("addFiles with skipMetadataHydration", () => {
       {
         files: [pdf("a.pdf")],
         skipMetadataHydration: true,
-        skipUploadTracking: true,
       },
       h.stateRef,
       h.filesRef,

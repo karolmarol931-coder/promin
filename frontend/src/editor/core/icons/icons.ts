@@ -401,7 +401,6 @@ import Elastic from "@editor/icons/svg/third-party/elastic.svg?react";
 import Github from "@editor/icons/svg/third-party/github.svg?react";
 import Google from "@editor/icons/svg/third-party/google.svg?react";
 import Googlechat from "@editor/icons/svg/third-party/googlechat.svg?react";
-import Googledrive from "@editor/icons/svg/third-party/googledrive.svg?react";
 import Jira from "@editor/icons/svg/third-party/jira.svg?react";
 import Keycloak from "@editor/icons/svg/third-party/keycloak.svg?react";
 import Linux from "@editor/icons/svg/third-party/linux.svg?react";
@@ -833,7 +832,6 @@ export const ICONS = {
   github: { Component: Github, kind: "brand" },
   google: { Component: Google, kind: "brand" },
   googlechat: { Component: Googlechat, kind: "brand" },
-  googledrive: { Component: Googledrive, kind: "brand" },
   jira: { Component: Jira, kind: "brand" },
   keycloak: { Component: Keycloak, kind: "brand" },
   linux: { Component: Linux, kind: "brand" },

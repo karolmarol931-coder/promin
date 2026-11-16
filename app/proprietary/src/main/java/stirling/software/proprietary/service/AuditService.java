@@ -40,7 +40,6 @@ import stirling.software.common.service.CustomPDFDocumentFactory;
 import stirling.software.common.service.InternalApiClient;
 import stirling.software.common.util.RegexPatternUtils;
 import stirling.software.common.util.RequestUriUtils;
-import stirling.software.proprietary.accountlink.BillableOperationClassifier;
 import stirling.software.proprietary.audit.AuditContext;
 import stirling.software.proprietary.audit.AuditEventType;
 import stirling.software.proprietary.audit.AuditLevel;
@@ -970,8 +969,7 @@ public class AuditService {
      * <p>API and SYSTEM origins pass through unchanged. A WEB origin is demoted to "AUTOMATION" or
      * "AI" when the request carries the automation marker or targets an AI surface; only a manual
      * interactive tool call ({@code BYPASSED}) stays "WEB". A "WEB" source therefore counts as a
-     * free/BYPASSED UI run. The automation/AI resolution is delegated to {@link
-     * BillableOperationClassifier} so it can't drift from the billing gate's own signal.
+     * free/BYPASSED UI run.
      *
      * <p>IMPORTANT: like {@link #captureCurrentOrigin()} this must be called on the request thread
      * before async execution, because it reads the current {@link HttpServletRequest}.
@@ -988,12 +986,16 @@ public class AuditService {
         if (req == null) {
             return "WEB";
         }
-        // apiKey=false: a WEB origin already means the request is not API-key authenticated.
-        return switch (BillableOperationClassifier.categorize(req, false)) {
-            case AUTOMATION -> "AUTOMATION";
-            case AI -> "AI";
-            default -> "WEB";
-        };
+        if (req.getHeader(InternalApiClient.AUTOMATION_HEADER) != null) {
+            return "AUTOMATION";
+        }
+        String uri = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        String path =
+                contextPath != null && !contextPath.isEmpty() && uri.startsWith(contextPath)
+                        ? uri.substring(contextPath.length())
+                        : uri;
+        return path.startsWith("/api/v1/ai/tools/") ? "AI" : "WEB";
     }
 
     /**

@@ -25,7 +25,7 @@ vi.mock("@editor/services/policyApi", () => ({
   runStoredPolicy: vi.fn(),
   getPolicyRun: vi.fn(),
   downloadPolicyOutput: vi.fn(),
-  resolvePolicyRunTarget: () => "saas",
+  resolvePolicyRunTarget: () => "local",
 }));
 vi.mock("@editor/services/fileStorage", () => ({
   fileStorage: {
@@ -93,7 +93,7 @@ describe("auto-run queue-rejection retry", () => {
       fileId: "file-1",
       fileName: "doc.pdf",
       fileSize: 1234,
-      target: "saas",
+      target: "local",
       status: "RUNNING",
       outputs: [],
       error: null,
@@ -123,7 +123,6 @@ describe("auto-run queue-rejection retry", () => {
       "backend-1",
       [{ size: 1234 }],
       "file-1",
-      "background",
     );
     expect(getRun("run-1")).toBeUndefined();
     expect(getRun("run-2")?.status).toBe("RUNNING");

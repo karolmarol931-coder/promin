@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -69,7 +68,6 @@ import stirling.software.proprietary.security.session.SessionPersistentRegistry;
 @EnableWebSecurity
 @EnableMethodSecurity
 @DependsOn("runningProOrHigher")
-@Profile("!saas")
 public class SecurityConfiguration {
 
     private final CustomUserDetailsService userDetailsService;
@@ -199,8 +197,7 @@ public class SecurityConfiguration {
                         "Origin",
                         "X-API-KEY",
                         "X-CSRF-TOKEN",
-                        "X-XSRF-TOKEN",
-                        "X-Browser-Id"));
+                        "X-XSRF-TOKEN"));
 
         cfg.setExposedHeaders(
                 List.of(

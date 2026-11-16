@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.core.env.StandardEnvironment;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 
@@ -61,7 +60,6 @@ class FolderOutputSinkTest {
                         new FolderAccessGuard(
                                 properties,
                                 new RuntimePathConfig(properties),
-                                new StandardEnvironment(),
                                 new InProcessSourceStore()),
                         ledger);
     }
@@ -129,7 +127,6 @@ class FolderOutputSinkTest {
                         new FolderAccessGuard(
                                 properties,
                                 new RuntimePathConfig(properties),
-                                new StandardEnvironment(),
                                 new InProcessSourceStore()),
                         orderedLedger);
 

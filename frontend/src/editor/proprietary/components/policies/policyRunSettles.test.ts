@@ -13,7 +13,7 @@ const run = (overrides: Partial<PolicyRunRecord> = {}): PolicyRunRecord => ({
   fileId: "f",
   fileName: "f.pdf",
   fileSize: 1,
-  target: "saas",
+  target: "local",
   status: "COMPLETED",
   outputs: [],
   error: null,

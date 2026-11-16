@@ -76,13 +76,6 @@ Feature: Config, info and UI-data read APIs
             | /api/v1/info/requests/all/unique  |
 
 
-    @metrics @positive
-    Scenario: weekly active users reports tracking metadata
-        When I send a GET request to "/api/v1/info/wau"
-        Then the response status code should be 200
-        And the response JSON field "trackingSince" should not be empty
-
-
     @settings @positive
     Scenario: get-endpoints-status returns the endpoint toggle map
         When I send a GET request to "/api/v1/settings/get-endpoints-status"

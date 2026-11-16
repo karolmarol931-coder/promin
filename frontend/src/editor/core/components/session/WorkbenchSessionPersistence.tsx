@@ -1,5 +1,5 @@
-// The editor/processor shell switch unmounts every editor provider, and a reload starts from nothing:
-// this mirrors the workbench into sessionStorage and reopens its files alongside incoming files.
+// A reload starts from an empty provider tree, so the workbench is saved per tab and restored with
+// any files that arrive through the native launch path.
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {

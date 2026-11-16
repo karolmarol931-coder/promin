@@ -9,7 +9,6 @@ import java.util.Optional;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -41,7 +40,6 @@ import stirling.software.proprietary.security.session.SessionPersistentRegistry;
 
 @Slf4j
 @Component
-@Profile("!saas")
 public class UserAuthenticationFilter extends OncePerRequestFilter {
 
     /** MDC key carrying the resolved key's label into audit events for the processor feed. */

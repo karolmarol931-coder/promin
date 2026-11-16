@@ -56,7 +56,8 @@ public class SvgSanitizer {
             throw new IOException("SVG input is empty or null");
         }
 
-        if (applicationProperties.getSystem().isDisableSanitize()) {
+        if (applicationProperties.getSystem().isDisableSanitize()
+                && !applicationProperties.getSystem().isOfflineMode()) {
             log.debug("SVG sanitization disabled by configuration");
             return svgBytes;
         }
@@ -68,6 +69,9 @@ public class SvgSanitizer {
                 throw new IOException("SVG document has no root element");
             }
 
+            if (applicationProperties.getSystem().isOfflineMode()) {
+                removeProcessingInstructions(doc);
+            }
             sanitizeNode(root);
 
             byte[] result = serializeDocument(doc);
@@ -130,6 +134,18 @@ public class SvgSanitizer {
 
         if (node.getNodeType() == Node.ELEMENT_NODE) {
             sanitizeAttributes((Element) node);
+        }
+    }
+
+    private void removeProcessingInstructions(Node node) {
+        NodeList children = node.getChildNodes();
+        for (int i = children.getLength() - 1; i >= 0; i--) {
+            Node child = children.item(i);
+            if (child.getNodeType() == Node.PROCESSING_INSTRUCTION_NODE) {
+                node.removeChild(child);
+            } else {
+                removeProcessingInstructions(child);
+            }
         }
     }
 
@@ -248,6 +264,9 @@ public class SvgSanitizer {
     }
 
     private boolean isUrlAllowed(String url) {
+        if (applicationProperties.getSystem().isOfflineMode()) {
+            return false;
+        }
         if (ssrfProtectionService == null) {
             return true;
         }

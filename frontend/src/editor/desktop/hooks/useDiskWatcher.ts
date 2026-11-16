@@ -23,8 +23,7 @@ export function useDiskWatcher(): void {
         .filter((path): path is string => Boolean(path)),
     ),
   ].sort();
-  // Re-registered whenever the linked set changes. JSON rather than a joined
-  // string: no separator character is safe inside Windows paths.
+  // Re-registered whenever the linked set changes; JSON keeps paths unambiguous.
   const watchKey = JSON.stringify(paths);
 
   const pathsRef = useRef(paths);
@@ -65,10 +64,8 @@ export function useDiskWatcher(): void {
     };
   }, [actions]);
 
-  // Every linked path, not just the ones already marked unreachable: a volume
-  // that goes away takes its watches with it, so nothing can raise the first
-  // mark. This also picks up what the watcher cannot see at all - on Windows,
-  // a watched folder being renamed or moved.
+  // Recheck every linked path after focus because a removed volume also removes
+  // its watches before the watcher can report the loss.
   useEffect(() => {
     const recheck = () => {
       const linked = pathsRef.current;

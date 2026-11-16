@@ -409,8 +409,6 @@ class UserServiceMoreTest {
                                     "true",
                                     "mfaSecret",
                                     "original-secret",
-                                    "loginLandingView",
-                                    "files",
                                     "theme",
                                     "light")));
             when(userRepository.findByUsernameIgnoreCaseWithSettings("p"))
@@ -422,7 +420,6 @@ class UserServiceMoreTest {
             assertThat(u.getSettings())
                     .containsEntry("mfaEnabled", "true")
                     .containsEntry("mfaSecret", "original-secret")
-                    .containsEntry("loginLandingView", "files")
                     .containsEntry("theme", "dark");
         }
 

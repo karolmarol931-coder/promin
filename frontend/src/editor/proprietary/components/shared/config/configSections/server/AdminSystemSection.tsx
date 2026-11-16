@@ -114,7 +114,7 @@ export default function AdminSystemSection() {
         // Was the Features row's own hook and its own GET of this same section.
         serverCertificate: system.serverCertificate || {
           enabled: true,
-          organizationName: "Stirling PDF Inc",
+          organizationName: "Promin Inc",
           validity: 365,
           regenerateOnStartup: false,
         },
@@ -170,10 +170,6 @@ export default function AdminSystemSection() {
       const deltaSettings: Record<string, unknown> = {
         "ui.appNameNavbar": settings.ui?.appNameNavbar,
         "ui.languages": settings.ui?.languages,
-        "ui.hideDisabledTools.googleDrive":
-          settings.ui?.hideDisabledTools?.googleDrive,
-        "ui.hideDisabledTools.mobileQRScanner":
-          settings.ui?.hideDisabledTools?.mobileQRScanner,
         "system.defaultLocale": settings.system?.defaultLocale,
         "system.showUpdate": settings.system?.showUpdate,
         "system.showUpdateOnlyAdmin": settings.system?.showUpdateOnlyAdmin,
@@ -542,7 +538,7 @@ export default function AdminSystemSection() {
           )}
           description={t(
             "admin.settings.features.serverCertificate.description",
-            'Generate the certificate that backs the "Sign with Stirling-PDF" signing feature.',
+            'Generate the certificate that backs the "Sign with Promin" signing feature.',
           )}
         >
           <ServerCertificateCard {...generalCard} />

@@ -420,7 +420,6 @@ export async function materializeServerStubs(
         autoUnzip: boolean;
         skipAutoUnzip: boolean;
         allowDuplicates: boolean;
-        skipUploadTracking?: boolean;
       },
     ) => Promise<StirlingFile[]>;
     updateStub: (id: FileId, updates: Partial<StirlingFileStub>) => void;
@@ -490,7 +489,6 @@ export async function materializeServerStubs(
         autoUnzip: false,
         skipAutoUnzip: true,
         allowDuplicates: true,
-        skipUploadTracking: true,
       });
       if (ingested.length === 0) continue;
       const primary = ingested[ingested.length - 1];

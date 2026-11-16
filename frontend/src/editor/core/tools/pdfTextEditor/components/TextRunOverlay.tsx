@@ -28,6 +28,7 @@ import { buildExactLines } from "@editor/tools/pdfTextEditor/util/exactLayout";
 import { stackLineBoxes } from "@editor/tools/pdfTextEditor/util/lineLayout";
 import {
   isLinePainted,
+  moveCaretToLineEdge,
   normalizeContainerCaret,
   type PaintLine,
   paintLines,
@@ -873,7 +874,21 @@ export function TextRunOverlay({
         // which reads back as a line the user never typed. Seat it in the
         // block it sits beside before the input applies.
         const sel = window.getSelection();
-        if (sel) normalizeContainerCaret(e.currentTarget, sel);
+        if (sel) {
+          normalizeContainerCaret(e.currentTarget, sel);
+          const edge =
+            e.key === "Home" || (e.metaKey && e.key === "ArrowLeft")
+              ? "start"
+              : e.key === "End" || (e.metaKey && e.key === "ArrowRight")
+                ? "end"
+                : null;
+          if (
+            edge &&
+            moveCaretToLineEdge(e.currentTarget, sel, edge, e.shiftKey)
+          ) {
+            e.preventDefault();
+          }
+        }
       }}
       onPaste={(e) => {
         // Paste as PLAIN TEXT.

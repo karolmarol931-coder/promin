@@ -65,7 +65,6 @@ export interface ExecuteButtonConfig {
   /** Raw override for tools with fully custom disable logic (e.g. Compare, ShowJS). */
   disabled?: boolean;
   testId?: string;
-  showCloudBadge?: boolean;
   /** Suppress the automatic "(this file)" / "(N files)" scope hints in the button text. */
   disableScopeHints?: boolean;
 }
@@ -185,11 +184,6 @@ export function createToolFlow<TParams = unknown>(
                   disabledReason={effectiveDisabledReason}
                   loadingText={eb.loadingText}
                   submitText={eb.text}
-                  showCloudBadge={
-                    eb.showCloudBadge ??
-                    config.review.operation.willUseCloud ??
-                    false
-                  }
                   data-testid={eb.testId}
                   data-tour="run-button"
                 />

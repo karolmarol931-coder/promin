@@ -44,8 +44,8 @@ public class PolicyRun {
     /**
      * The user who triggered this run, or null when nothing attended it (a trigger-fired sweep).
      * Recorded as a failure's actor, so an attended failure is handed to the person holding the
-     * document. Deliberately not the billing principal: a shared policy is billed to its owner, who
-     * may never have touched the file.
+     * document. Deliberately not the audit principal: a shared policy's owner may never have
+     * touched the file.
      */
     private final String triggeringUser;
 
@@ -62,19 +62,7 @@ public class PolicyRun {
     private volatile WaitState waitState;
     private volatile String error;
 
-    /**
-     * Stable, machine-readable failure code the client can branch on — e.g. an entitlement-limit
-     * sentinel ({@code PAYG_LIMIT_REACHED} / {@code FEATURE_DEGRADED}) propagated from a downstream
-     * tool call's 402 — alongside the human-readable {@link #error}. Null unless set on failure.
-     */
     private volatile String errorCode;
-
-    /**
-     * For an entitlement-limit failure, whether the team was subscribed (over its spending cap) vs
-     * un-subscribed (free allowance spent) — taken from the blocking 402 body. Drives which
-     * usage-limit modal the client shows. Null unless {@link #errorCode} is an entitlement code.
-     */
-    private volatile Boolean errorSubscribed;
 
     private volatile List<ResultFile> outputs = List.of();
     private volatile Instant updatedAt = Instant.now();
@@ -154,14 +142,8 @@ public class PolicyRun {
         touch();
     }
 
-    /**
-     * Fail with a stable {@code errorCode} the client can branch on (e.g. an entitlement-limit
-     * sentinel from a downstream 402), plus the optional {@code subscribed} flag from that
-     * response, in addition to the human-readable message.
-     */
-    public synchronized void failWithCode(String message, String errorCode, Boolean subscribed) {
+    public synchronized void failWithCode(String message, String errorCode) {
         this.errorCode = errorCode;
-        this.errorSubscribed = subscribed;
         fail(message);
     }
 

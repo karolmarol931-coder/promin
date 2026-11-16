@@ -1,14 +1,12 @@
 name: Backend build, format check, and coverage
 
 # Reusable workflow called from build.yml. Runs the backend build matrix
-# (JDK 25 × every flavor), Spotless formatting check, JUnit, and
+# (JDK 25 × local flavors), Spotless formatting check, JUnit, and
 # posts Jacoco coverage to PRs.
 #
 # Flavor axis (maps to STIRLING_FLAVOR in settings.gradle):
-#   core         - DISABLE_ADDITIONAL_FEATURES=true, no proprietary, no saas
-#   proprietary  - default build, no saas
-#   saas         - proprietary + the saas subproject (build + JUnit only,
-#                  never any runtime/integration testing)
+#   core         - DISABLE_ADDITIONAL_FEATURES=true
+#   proprietary  - default local build
 on:
   workflow_call:
 
@@ -29,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         jdk-version: [25]
-        flavor: [core, proprietary, saas]
+        flavor: [core, proprietary]
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -57,7 +55,7 @@ jobs:
           version: 3.54.0
       - name: Check Java formatting (Spotless)
         # Runs once per matrix combination - pick the cheapest leg
-        # (core - no proprietary, no saas) so we don't wait for the
+        # (core flavor) so we don't wait for the
         # heavier flavors just to fail formatting.
         if: matrix.jdk-version == 25 && matrix.flavor == 'core'
         id: spotless-check
@@ -145,10 +143,7 @@ jobs:
             }
 
       - name: Build with Gradle (flavor=${{ matrix.flavor }})
-        # STIRLING_FLAVOR is read by settings.gradle and expands into the
-        # right combination of DISABLE_ADDITIONAL_FEATURES + ENABLE_SAAS
-        # so we don't have to set them by hand. The saas flavor pulls in
-        # the app/saas subproject (unit tests only - no runtime tests).
+        # STIRLING_FLAVOR selects the local backend feature set.
         run: task backend:build:ci
         env:
           MAVEN_USER: ${{ secrets.MAVEN_USER }}
@@ -163,8 +158,7 @@ jobs:
         if: always()
         run: |
           # Common + core + proprietary always build (proprietary is
-          # excluded only at runtime, not from the gradle subproject
-          # graph). Saas builds add a fourth report dir.
+          # excluded only at runtime, not from the gradle subproject graph).
           declare -a dirs=(
             "app/core/build/reports/tests/"
             "app/core/build/test-results/"
@@ -173,9 +167,6 @@ jobs:
             "app/proprietary/build/reports/tests/"
             "app/proprietary/build/test-results/"
           )
-          if [ "${{ matrix.flavor }}" = "saas" ]; then
-            dirs+=("app/saas/build/reports/tests/" "app/saas/build/test-results/")
-          fi
           for dir in "${dirs[@]}"; do
             if [ ! -d "$dir" ]; then
               echo "Missing $dir"
@@ -197,41 +188,10 @@ jobs:
           retention-days: 3
           if-no-files-found: warn
 
-      - name: Install uv
-        if: always() && matrix.flavor == 'saas'
-        uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
-        with:
-          enable-cache: true
-          cache-dependency-glob: |
-            engine/pyproject.toml
-            engine/uv.lock
-
-      - name: JaCoCo coverage step summary
-        # Only the saas leg posts the JUnit summary - it's a strict
-        # superset of the core + proprietary legs (same .exec files plus
-        # the saas subproject). Posting from all three would mean three
-        # near-identical tables crowding out the aggregate report.
-        if: always() && matrix.flavor == 'saas'
-        run: |
-          uv run --project engine --locked --group tools python scripts/coverage-summary.py \
-            --title "Backend JUnit coverage (JDK ${{ matrix.jdk-version }})" \
-            --jacoco "common=app/common/build/reports/jacoco/test/jacocoTestReport.xml" \
-            --jacoco "core=app/core/build/reports/jacoco/test/jacocoTestReport.xml" \
-            --jacoco "proprietary=app/proprietary/build/reports/jacoco/test/jacocoTestReport.xml" \
-            --jacoco "saas=app/saas/build/reports/jacoco/test/jacocoTestReport.xml" \
-            --github-step-summary
-
       - name: Upload raw JUnit .exec for aggregate merge
-        # Same dedup rationale as the summary step: upload from the saas
-        # leg only (the most complete set, includes app/saas/.../test.exec)
-        # so the aggregate workflow merges the union rather than three
-        # overlapping subsets.
-        #
-        # Separate artifact from the HTML reports so the aggregate
-        # workflow can grab just the .exec files with a name pattern
-        # (`jacoco-exec-*`) instead of unpacking the whole test-reports
-        # tarball.
-        if: always() && matrix.flavor == 'saas'
+        # Separate artifact from HTML reports so the aggregate workflow can
+        # collect JaCoCo data without unpacking report archives.
+        if: always() && matrix.flavor == 'proprietary'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: jacoco-exec-junit-jdk-${{ matrix.jdk-version }}

@@ -23,7 +23,7 @@ function entry(
   };
 }
 
-const PROCESSOR = entry("processor");
+const EDITOR = entry("editor");
 const WITHIN = [entry("files"), entry("reader")];
 
 function renderRail(groups: QuickNavEntry[][]) {
@@ -40,9 +40,9 @@ function renderRail(groups: QuickNavEntry[][]) {
 
 describe("QuickNavRailBase — groups", () => {
   it("divides one group from the next", () => {
-    const { labels, dividers } = renderRail([[PROCESSOR], WITHIN]);
+    const { labels, dividers } = renderRail([[EDITOR], WITHIN]);
 
-    expect(labels).toEqual(["processor", "files", "reader"]);
+    expect(labels).toEqual(["editor", "files", "reader"]);
     expect(dividers).toBe(1);
   });
 
@@ -86,7 +86,7 @@ describe("QuickNavRailBase — entry state", () => {
       withProviders(
         <QuickNavRailBase
           groups={[
-            [PROCESSOR],
+            [EDITOR],
             [entry("reader", { pressed: true }), entry("files")],
           ]}
         />,
@@ -97,7 +97,7 @@ describe("QuickNavRailBase — entry state", () => {
       (b) => [b.getAttribute("aria-label"), b.getAttribute("aria-pressed")],
     );
     expect(state).toEqual([
-      ["processor", null],
+      ["editor", null],
       ["reader", "true"],
       ["files", null],
     ]);
@@ -132,17 +132,17 @@ describe("QuickNavRailBase — entry state", () => {
       withProviders(
         <QuickNavRailBase
           groups={[
-            [entry("processor", { disabled: true, reason: "no access" })],
+            [entry("docs", { disabled: true, reason: "unavailable" })],
             WITHIN,
           ]}
         />,
       ),
     );
 
-    const processor = container.querySelector('[aria-label="processor"]');
-    expect(processor).not.toBeNull();
-    expect(processor?.getAttribute("aria-disabled")).toBe("true");
+    const docs = container.querySelector('[aria-label="docs"]');
+    expect(docs).not.toBeNull();
+    expect(docs?.getAttribute("aria-disabled")).toBe("true");
     // aria-disabled, not the disabled attribute: it stays focusable for its tooltip.
-    expect(processor?.hasAttribute("disabled")).toBe(false);
+    expect(docs?.hasAttribute("disabled")).toBe(false);
   });
 });

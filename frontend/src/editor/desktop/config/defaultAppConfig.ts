@@ -5,6 +5,14 @@ import type { AppConfig } from "@editor/types/appConfig";
  */
 export const DESKTOP_DEFAULT_APP_CONFIG: AppConfig = {
   enableLogin: false,
+  defaultHideUnavailableTools: true,
+  defaultHideUnavailableConversions: true,
   premiumEnabled: false,
   runningProOrHigher: false,
+  aiEngineEnabled: false,
+  storageEnabled: false,
+  storageSharingEnabled: false,
+  storageShareLinksEnabled: false,
+  storageShareEmailEnabled: false,
+  storageGroupSigningEnabled: false,
 };

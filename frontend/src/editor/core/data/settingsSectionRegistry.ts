@@ -12,7 +12,7 @@ import { NavKey } from "@editor/components/shared/config/types";
  *
  * Layering mirrors the nav builders (`configNavSections`): core lists the
  * always-present sections; higher layers shadow this module to add their own
- * (proprietary admin sections, saas cloud sections, …). A section only belongs
+ * (proprietary administration sections, for example). A section only belongs
  * in a layer's registry if that layer's settings nav can actually render it -
  * otherwise search would deep-link to a tab that doesn't exist.
  *
@@ -44,13 +44,10 @@ export interface SettingsSectionEntry {
    */
   adminArea?: boolean;
   /**
-   * Section only mounts for a signed-in (non-anonymous) account — mirrors the
-   * SaaS nav builder's `!isAnonymous` gate. Distinct from `requiresLogin`,
-   * which keys off the local backend's login mode rather than auth state.
+   * Section only mounts for a signed-in (non-anonymous) account. Distinct from
+   * `requiresLogin`, which keys off the local backend's login mode.
    */
   requiresAccount?: boolean;
-  /** Section is the processor's; only a session that can enter it sees it. */
-  requiresPortalAccess?: boolean;
 }
 
 /** Core (OSS) sections — always present in every build. */

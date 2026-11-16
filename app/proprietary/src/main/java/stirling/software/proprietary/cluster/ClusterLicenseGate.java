@@ -10,16 +10,16 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Runtime license gate for cluster mode. Cluster mode requires a SERVER or ENTERPRISE license; the
- * SaaS flavor bypasses (no {@code runningProOrHigher} bean is published). The Valkey connection
- * config {@code @DependsOn} this bean, so it runs before any Valkey bean is constructed.
+ * Runtime license gate for cluster mode. Cluster mode requires a SERVER or ENTERPRISE license. The
+ * Valkey connection config {@code @DependsOn} this bean, so it runs before any Valkey bean is
+ * constructed.
  */
 @Configuration
 @ConditionalOnProperty(name = "cluster.enabled", havingValue = "true")
 @Slf4j
 public class ClusterLicenseGate {
 
-    @Autowired(required = false)
+    @Autowired
     @Qualifier("runningProOrHigher")
     private Boolean runningProOrHigher;
 
@@ -29,10 +29,7 @@ public class ClusterLicenseGate {
 
     @PostConstruct
     void verifyLicense() {
-        if (runningProOrHigher == null) {
-            return; // saas flavor - licensed via Stripe elsewhere
-        }
-        if (!runningProOrHigher && !licenseChecker.isTeamOfflineExpired()) {
+        if (!runningProOrHigher) {
             throw new IllegalStateException(
                     "Cluster mode (cluster.enabled=true) requires a SERVER or"
                             + " ENTERPRISE license. Configure stirling.premium.key with a valid"

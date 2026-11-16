@@ -26,7 +26,7 @@ const LicenseContext = createContext<LicenseContextValue | undefined>(
 
 interface LicenseProviderProps {
   children: ReactNode;
-  /** Hosted billing has no installation licence to read or refresh. */
+  /** Disable local license reads for hosts that do not expose licensing. */
   enabled?: boolean;
 }
 

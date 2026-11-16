@@ -62,20 +62,12 @@ pub fn resolve_dropped_file_paths(files: Vec<DroppedFile>) -> Vec<Option<String>
     matching_paths(&files, std::mem::take(&mut *snapshot()))
 }
 
-/// Starts capturing OS file-drop paths for this webview so resolve_dropped_file_paths
-/// can hand them to the matching DOM files. No-op off macOS (Windows resolves the
-/// DOM File directly through WebView2's AdditionalObjects bridge).
-#[cfg(target_os = "macos")]
+/// Starts capturing dropped file paths so the frontend can resolve them to DOM files.
 pub fn install_drag_path_capture(webview: *mut std::ffi::c_void) {
     macos_capture::install(webview);
 }
 
-#[cfg(not(target_os = "macos"))]
-pub fn install_drag_path_capture(_webview: *mut std::ffi::c_void) {}
-
-/// Frontend startup calls this so the capture is installed on the live WKWebView
-/// (webview creation lifecycle hooks proved unreliable). Idempotent; no-op off macOS.
-#[cfg(target_os = "macos")]
+/// Installs the capture on the live WKWebView. Repeated calls are safe.
 #[tauri::command]
 pub fn install_drag_capture(webview: tauri::WebviewWindow) {
     if let Err(error) = webview.with_webview(|platform| install_drag_path_capture(platform.inner()))
@@ -84,17 +76,12 @@ pub fn install_drag_capture(webview: tauri::WebviewWindow) {
     }
 }
 
-#[cfg(not(target_os = "macos"))]
-#[tauri::command]
-pub fn install_drag_capture() {}
-
 // Tauri keeps dragDropEnabled=false so the webview's own HTML5 drag-and-drop
 // (in-page reordering, the drop zones) keeps working; that also means wry never
 // reports the dropped paths to us. wry's WryWebView still overrides
 // performDragOperation: and reads those paths off the dragging pasteboard before
 // forwarding the drop on to WebKit, so we swizzle that method to record the same
 // paths and then call straight through.
-#[cfg(target_os = "macos")]
 mod macos_capture {
     use super::snapshot;
     use objc2::runtime::{AnyObject, Bool, Imp, ProtocolObject, Sel};

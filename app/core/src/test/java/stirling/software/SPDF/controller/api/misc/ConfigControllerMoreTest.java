@@ -12,8 +12,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -88,31 +86,6 @@ class ConfigControllerMoreTest {
     @DisplayName("getAppConfig")
     class GetAppConfig {
 
-        @ParameterizedTest
-        @CsvSource({
-            "false,true,true,false,false",
-            "true,true,true,true,true",
-            "true,false,true,false,false",
-            "true,true,false,true,false"
-        })
-        void storageAndSigningRespectLoginAndOptOuts(
-                boolean login,
-                boolean storage,
-                boolean signing,
-                boolean expectedStorage,
-                boolean expectedSigning) {
-            applicationProperties.getSecurity().setEnableLogin(login);
-            if (!storage) applicationProperties.getStorage().setEnabled(false);
-            if (!signing) applicationProperties.getStorage().getSigning().setEnabled(false);
-
-            Map<String, Object> body =
-                    bodyOf(newController().getAppConfig(mock(HttpServletRequest.class)));
-
-            assertThat(body).containsEntry("storageEnabled", expectedStorage);
-            assertThat(body).containsEntry("storageGroupSigningEnabled", expectedSigning);
-            assertThat(body).containsEntry("storageSharingEnabled", false);
-        }
-
         @Test
         @DisplayName("returns wired config values with all services present")
         void returnsConfigWithServices() {
@@ -153,8 +126,6 @@ class ConfigControllerMoreTest {
 
             Map<String, Object> body = bodyOf(resp);
             assertThat(body).containsEntry("enableLogin", false);
-            assertThat(body).containsEntry("storageEnabled", false);
-            assertThat(body).containsEntry("storageGroupSigningEnabled", false);
             assertThat(body).containsEntry("isAdmin", false);
             assertThat(body).containsEntry("isNewUser", false);
             assertThat(body).containsEntry("serverCertificateEnabled", false);
@@ -196,25 +167,6 @@ class ConfigControllerMoreTest {
 
             assertThat(body).containsEntry("runningProOrHigher", false);
             assertThat(body).containsEntry("SSOAutoLogin", true);
-        }
-
-        @Test
-        @DisplayName("includes Google Drive backend settings when enabled")
-        void googleDriveEnabled() {
-            ApplicationProperties.Premium.ProFeatures.GoogleDrive gd =
-                    applicationProperties.getPremium().getProFeatures().getGoogleDrive();
-            gd.setEnabled(true);
-            gd.setClientId("cid");
-            gd.setApiKey("key");
-            gd.setAppId("aid");
-
-            HttpServletRequest request = mock(HttpServletRequest.class);
-            ResponseEntity<Map<String, Object>> resp = newController().getAppConfig(request);
-
-            Map<String, Object> body = bodyOf(resp);
-            assertThat(body).containsEntry("googleDriveEnabled", true);
-            assertThat(body).containsEntry("googleDriveClientId", "cid");
-            assertThat(body).containsEntry("googleDriveApiKey", "key");
         }
 
         @Test

@@ -31,10 +31,8 @@ import stirling.software.common.service.TaskManager;
 import stirling.software.proprietary.model.api.ai.AiEngineStatus;
 import stirling.software.proprietary.service.AiEngineClient;
 import stirling.software.proprietary.service.AiEngineEndpointResolver;
-import stirling.software.proprietary.service.AiEngineRouter;
 import stirling.software.proprietary.service.AiFeatureGate;
 import stirling.software.proprietary.service.AiWorkflowService;
-import stirling.software.proprietary.service.CloudStatusProbe;
 
 import tools.jackson.databind.json.JsonMapper;
 
@@ -45,8 +43,6 @@ import tools.jackson.databind.json.JsonMapper;
 class AiEngineControllerStatusTest {
 
     private AiEngineClient engine;
-    private AiEngineRouter router;
-    private CloudStatusProbe cloudProbe;
     private AiEngineController controller;
 
     @BeforeEach
@@ -54,12 +50,9 @@ class AiEngineControllerStatusTest {
         ApplicationProperties props = new ApplicationProperties();
         props.getAiEngine().setEnabled(true);
         engine = mock(AiEngineClient.class);
-        router = mock(AiEngineRouter.class);
-        cloudProbe = mock(CloudStatusProbe.class);
         when(engine.get(eq("/health"), any(), any()))
                 .thenReturn("{\"smartModel\":\"smart\",\"fastModel\":\"fast\"}");
         when(engine.get(eq("/api/v1/agents/capabilities"), any(), any())).thenReturn("{}");
-        when(engine.get(eq("/status"), any(), any())).thenReturn("{\"sharingEnabled\":true}");
         controller =
                 new AiEngineController(
                         engine,
@@ -71,8 +64,6 @@ class AiEngineControllerStatusTest {
                         mock(AiEngineEndpointResolver.class),
                         mock(AiFeatureGate.class),
                         props,
-                        router,
-                        cloudProbe,
                         null);
     }
 
@@ -123,19 +114,6 @@ class AiEngineControllerStatusTest {
 
         verify(engine).get("/health", null, AiEngineController.PROBE_TIMEOUT);
         verify(engine).get("/api/v1/agents/capabilities", null, AiEngineController.PROBE_TIMEOUT);
-        verify(engine, never()).get(anyString(), any());
-    }
-
-    @Test
-    void cloudProbesUseTheShortTimeout() throws Exception {
-        when(router.isCloudMode()).thenReturn(true);
-        when(cloudProbe.isUp()).thenReturn(true);
-
-        AiEngineStatus status = controller.status();
-
-        assertEquals(Boolean.TRUE, status.getCloudSharingEnabled());
-        verify(engine).get("/status", null, AiEngineController.PROBE_TIMEOUT);
-        verify(engine).get("/health", null, AiEngineController.PROBE_TIMEOUT);
         verify(engine, never()).get(anyString(), any());
     }
 

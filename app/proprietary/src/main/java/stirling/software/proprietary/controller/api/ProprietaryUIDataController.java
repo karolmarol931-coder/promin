@@ -33,7 +33,6 @@ import stirling.software.common.model.enumeration.TeamRole;
 import stirling.software.common.model.oauth2.GitHubProvider;
 import stirling.software.common.model.oauth2.GoogleProvider;
 import stirling.software.common.model.oauth2.KeycloakProvider;
-import stirling.software.proprietary.access.service.ResourceAccessService;
 import stirling.software.proprietary.audit.AuditEventType;
 import stirling.software.proprietary.audit.AuditLevel;
 import stirling.software.proprietary.config.AuditConfigurationProperties;
@@ -80,7 +79,6 @@ public class ProprietaryUIDataController {
     private final PersistentAuditEventRepository auditRepository;
     private final MfaService mfaService;
     private final LoginAttemptService loginAttemptService;
-    private final ResourceAccessService resourceAccessService;
     private final InviteTokenRepository inviteTokenRepository;
     private final stirling.software.proprietary.service.OrgOwnerService orgOwnerService;
 
@@ -99,7 +97,6 @@ public class ProprietaryUIDataController {
             PersistentAuditEventRepository auditRepository,
             MfaService mfaService,
             LoginAttemptService loginAttemptService,
-            ResourceAccessService resourceAccessService,
             InviteTokenRepository inviteTokenRepository,
             stirling.software.proprietary.service.OrgOwnerService orgOwnerService) {
         this.orgOwnerService = orgOwnerService;
@@ -117,7 +114,6 @@ public class ProprietaryUIDataController {
         this.auditRepository = auditRepository;
         this.mfaService = mfaService;
         this.loginAttemptService = loginAttemptService;
-        this.resourceAccessService = resourceAccessService;
         this.inviteTokenRepository = inviteTokenRepository;
     }
 
@@ -350,35 +346,19 @@ public class ProprietaryUIDataController {
         boolean premiumEnabled = licenseSettingsService.hasPaidLicense();
         long pendingInvites = inviteTokenRepository.countActiveInvites(LocalDateTime.now());
 
-        // Resolve portal access for the whole roster. The teamLead display flag counts a
-        // LEADER membership on any team (mirrors /me), but the portal default policy only
-        // admits leaders of their own active team, so the bulk check gets the narrower set.
         List<TeamMembership> leaderMemberships =
                 teamMembershipRepository.findByRoleFetchingUserAndTeam(TeamRole.LEADER);
         Set<Long> leaderUserIds =
                 leaderMemberships.stream()
                         .map(row -> row.getUser().getId())
                         .collect(Collectors.toSet());
-        Set<Long> activeTeamLeaderUserIds =
-                leaderMemberships.stream()
-                        .filter(
-                                row ->
-                                        row.getUser().getTeam() != null
-                                                && row.getTeam()
-                                                        .getId()
-                                                        .equals(row.getUser().getTeam().getId()))
-                        .map(row -> row.getUser().getId())
-                        .collect(Collectors.toSet());
-        Set<Long> portalAccessUserIds =
-                resourceAccessService.usersWithPortalAccess(sortedUsers, activeTeamLeaderUserIds);
         Long ownerId = orgOwnerService.ownerId().orElse(null);
         List<AdminUserSummary> userSummaries =
                 sortedUsers.stream()
                         .map(
                                 user -> {
                                     AdminUserSummary summary =
-                                            convertUserToSummary(
-                                                    user, leaderUserIds, portalAccessUserIds);
+                                            convertUserToSummary(user, leaderUserIds);
                                     summary.setOrgOwner(
                                             java.util.Objects.equals(ownerId, user.getId()));
                                     return summary;
@@ -605,20 +585,13 @@ public class ProprietaryUIDataController {
         return copy;
     }
 
-    /**
-     * Convert a User to AdminUserSummary (excludes sensitive fields); portal access is passed in.
-     */
-    private AdminUserSummary convertUserToSummary(
-            User user, Set<Long> leaderUserIds, Set<Long> portalAccessUserIds) {
+    /** Convert a User to AdminUserSummary without sensitive fields. */
+    private AdminUserSummary convertUserToSummary(User user, Set<Long> leaderUserIds) {
         AdminUserSummary summary = new AdminUserSummary();
         summary.setId(user.getId());
         summary.setTeamLead(leaderUserIds.contains(user.getId()));
-        // Portal access (same policy /me uses).
-        summary.setPortalAccess(portalAccessUserIds.contains(user.getId()));
         summary.setUsername(user.getUsername());
         summary.setEmail(user.getEmail());
-        summary.setSupabaseId(
-                user.getSupabaseId() == null ? null : user.getSupabaseId().toString());
         summary.setRoleName(user.getRoleName());
         summary.setRolesAsString(user.getRolesAsString());
         summary.setEnabled(user.isEnabled());

@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 
 const viewer = { activeFileIndex: 0 };
@@ -34,13 +34,19 @@ const parameters = {
   parameters: { angle: 0 },
   rotateClockwise: vi.fn(),
   rotateAnticlockwise: vi.fn(),
-} as never;
+  updateParameter: vi.fn(),
+};
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  parameters.parameters.angle = 0;
+});
 
 const renderAt = (activeFileIndex: number) => {
   viewer.activeFileIndex = activeFileIndex;
   return render(
     <MantineProvider>
-      <RotateSettings parameters={parameters} />
+      <RotateSettings parameters={parameters as never} />
     </MantineProvider>,
   );
 };
@@ -60,10 +66,37 @@ describe("RotateSettings preview", () => {
     viewer.activeFileIndex = 1;
     rerender(
       <MantineProvider>
-        <RotateSettings parameters={parameters} />
+        <RotateSettings parameters={parameters as never} />
       </MantineProvider>,
     );
 
     expect(screen.getByAltText("Preview of beta.pdf")).toBeInTheDocument();
+  });
+
+  it("shows the normalized angle and resets it to zero", () => {
+    parameters.parameters.angle = -90;
+    renderAt(0);
+
+    expect(screen.getByText("Rotation: 270°")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+    expect(parameters.updateParameter).toHaveBeenCalledWith("angle", 0);
+  });
+
+  it("rotates with arrow keys only when the panel itself has focus", () => {
+    renderAt(0);
+    const panel = screen.getByRole("region", { name: "Rotation controls" });
+
+    fireEvent.keyDown(document.body, { key: "ArrowRight" });
+    expect(parameters.rotateClockwise).not.toHaveBeenCalled();
+
+    panel.focus();
+    fireEvent.keyDown(panel, { key: "ArrowRight" });
+    expect(parameters.rotateClockwise).toHaveBeenCalledOnce();
+
+    fireEvent.keyDown(
+      screen.getByRole("button", { name: "Rotate Anticlockwise" }),
+      { key: "ArrowLeft" },
+    );
+    expect(parameters.rotateAnticlockwise).not.toHaveBeenCalled();
   });
 });

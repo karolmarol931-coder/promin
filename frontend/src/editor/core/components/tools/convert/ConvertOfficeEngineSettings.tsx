@@ -12,7 +12,7 @@ interface ConvertOfficeEngineSettingsProps {
   disabled?: boolean;
 }
 
-/** Picks Stirling Office Convert or LibreOffice for this conversion; starts from the server setting. */
+/** Picks Promin Office Convert or LibreOffice for this conversion; starts from the server setting. */
 const ConvertOfficeEngineSettings = ({
   parameters,
   onParameterChange,
@@ -30,7 +30,7 @@ const ConvertOfficeEngineSettings = ({
       data-testid="stirling-office-convert-switch"
       label={t(
         "convert.stirlingOfficeConvert",
-        "Use Stirling Office Convert (beta)",
+        "Use Promin Office Convert (beta)",
       )}
       description={t(
         "convert.stirlingOfficeConvertDescription",

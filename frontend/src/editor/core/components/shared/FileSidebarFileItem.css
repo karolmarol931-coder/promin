@@ -165,13 +165,15 @@
 }
 
 .file-sidebar-file-name {
-  display: block;
+  display: -webkit-box;
   font-size: 13px;
   font-weight: 500;
   color: var(--c-text);
-  white-space: nowrap;
+  line-height: 1.25;
   overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .file-sidebar-file-item.selected .file-sidebar-file-name {

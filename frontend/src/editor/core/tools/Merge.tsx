@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Stack, Text } from "@mantine/core";
+import { Accordion, Stack, Text } from "@mantine/core";
 import { Button } from "@editor/ui/Button";
 import { createToolFlow } from "@editor/components/tools/shared/createToolFlow";
 import MergeSettings from "@editor/components/tools/merge/MergeSettings";
@@ -10,27 +10,52 @@ import { useMergeOperation } from "@editor/hooks/tools/merge/useMergeOperation";
 import { useBaseTool } from "@editor/hooks/tools/shared/useBaseTool";
 import { BaseToolProps, ToolComponent } from "@editor/types/tool";
 import { useMergeTips } from "@editor/components/tooltips/useMergeTips";
-import { useFileManagement, useAllFiles } from "@editor/contexts/FileContext";
 import {
   useNavigationState,
   useNavigationActions,
 } from "@editor/contexts/NavigationContext";
+import type { FileId } from "@editor/types/file";
+import {
+  moveMergeFile,
+  orderMergeFiles,
+  reorderMergeFile,
+  reconcileMergeFileOrder,
+  sortMergeFiles,
+  type MergeMoveDirection,
+  type MergeSortType,
+} from "@editor/tools/merge/fileOrder";
 
 const Merge = (props: BaseToolProps) => {
   const { t } = useTranslation();
   const mergeTips = useMergeTips();
 
-  // File selection hooks for custom sorting
-  const { fileIds, fileStubs } = useAllFiles();
-  const { reorderFiles } = useFileManagement();
+  const [fileOrder, setFileOrder] = useState<FileId[]>([]);
+  const orderFiles = useCallback(
+    (files: Parameters<typeof orderMergeFiles>[0]) =>
+      orderMergeFiles(files, fileOrder),
+    [fileOrder],
+  );
 
   const base = useBaseTool(
     "merge",
     useMergeParameters,
     useMergeOperation,
     props,
-    { minFiles: 2, ignoreViewerScope: true },
+    { minFiles: 2, ignoreViewerScope: true, orderFiles },
   );
+
+  const reconciledOrder = reconcileMergeFileOrder(
+    fileOrder,
+    base.selectedFiles,
+  );
+  useEffect(() => {
+    if (
+      reconciledOrder.length !== fileOrder.length ||
+      reconciledOrder.some((id, index) => id !== fileOrder[index])
+    ) {
+      setFileOrder(reconciledOrder);
+    }
+  }, [fileOrder, reconciledOrder]);
 
   const { workbench } = useNavigationState();
   const { actions: navActions } = useNavigationActions();
@@ -43,91 +68,33 @@ const Merge = (props: BaseToolProps) => {
       navActions.setWorkbench("fileEditor");
     }
   }, []);
-  const naturalCompare = useCallback((a: string, b: string): number => {
-    const isDigit = (char: string) => char >= "0" && char <= "9";
-
-    const getChunk = (
-      s: string,
-      length: number,
-      marker: number,
-    ): { chunk: string; newMarker: number } => {
-      let chunk = "";
-      const c = s.charAt(marker);
-      chunk += c;
-      marker++;
-
-      if (isDigit(c)) {
-        while (marker < length && isDigit(s.charAt(marker))) {
-          chunk += s.charAt(marker);
-          marker++;
-        }
-      } else {
-        while (marker < length && !isDigit(s.charAt(marker))) {
-          chunk += s.charAt(marker);
-          marker++;
-        }
-      }
-      return { chunk, newMarker: marker };
-    };
-
-    const len1 = a.length;
-    const len2 = b.length;
-    let marker1 = 0;
-    let marker2 = 0;
-
-    while (marker1 < len1 && marker2 < len2) {
-      const { chunk: chunk1, newMarker: newMarker1 } = getChunk(
-        a,
-        len1,
-        marker1,
-      );
-      marker1 = newMarker1;
-
-      const { chunk: chunk2, newMarker: newMarker2 } = getChunk(
-        b,
-        len2,
-        marker2,
-      );
-      marker2 = newMarker2;
-
-      let result: number;
-      if (isDigit(chunk1.charAt(0)) && isDigit(chunk2.charAt(0))) {
-        const num1 = parseInt(chunk1, 10);
-        const num2 = parseInt(chunk2, 10);
-        result = num1 - num2;
-      } else {
-        result = chunk1.localeCompare(chunk2);
-      }
-
-      if (result !== 0) {
-        return result;
-      }
-    }
-
-    return len1 - len2;
-  }, []);
-
-  // Custom file sorting logic for merge tool
   const sortFiles = useCallback(
-    (sortType: "filename" | "dateModified", ascending: boolean = true) => {
-      const sortedStubs = [...fileStubs].sort((stubA, stubB) => {
-        let comparison = 0;
-        switch (sortType) {
-          case "filename":
-            comparison = naturalCompare(stubA.name, stubB.name);
-            break;
-          case "dateModified":
-            comparison = stubA.lastModified - stubB.lastModified;
-            break;
-        }
-        return ascending ? comparison : -comparison;
-      });
-
-      const selectedIds = sortedStubs.map((record) => record.id);
-      const deselectedIds = fileIds.filter((id) => !selectedIds.includes(id));
-      reorderFiles([...selectedIds, ...deselectedIds]);
+    (sortType: MergeSortType, ascending: boolean = true) => {
+      setFileOrder(
+        sortMergeFiles(base.selectedFiles, sortType, ascending).map(
+          (file) => file.fileId,
+        ),
+      );
     },
-    [fileStubs, fileIds, reorderFiles, naturalCompare],
+    [base.selectedFiles],
+  );
+
+  const moveFile = useCallback(
+    (fileId: FileId, direction: MergeMoveDirection) => {
+      setFileOrder((currentOrder) =>
+        moveMergeFile(currentOrder, fileId, direction),
+      );
+    },
+    [],
+  );
+
+  const reorderFile = useCallback(
+    (fileId: FileId, targetFileId: FileId, afterTarget: boolean) => {
+      setFileOrder((currentOrder) =>
+        reorderMergeFile(currentOrder, fileId, targetFileId, afterTarget),
+      );
+    },
+    [],
   );
 
   return createToolFlow({
@@ -138,28 +105,36 @@ const Merge = (props: BaseToolProps) => {
     },
     steps: [
       {
-        title: t("merge.sortFiles.title", "Sort Files"),
-        isCollapsed: base.settingsCollapsed,
-        content: (
-          <MergeFileSorter
-            onSortFiles={sortFiles}
-            disabled={!base.hasFiles || base.endpointLoading}
-          />
-        ),
-      },
-      {
-        title: t("merge.settings.title", "Settings"),
+        title: t("merge.sortFiles.title", "Arrange files"),
         isCollapsed: base.settingsCollapsed,
         onCollapsedClick: base.settingsCollapsed
           ? base.handleSettingsReset
           : undefined,
         tooltip: mergeTips,
         content: (
-          <MergeSettings
-            parameters={base.params.parameters}
-            onParameterChange={base.params.updateParameter}
-            disabled={base.endpointLoading}
-          />
+          <Stack gap="sm">
+            <MergeFileSorter
+              files={base.selectedFiles}
+              onSortFiles={sortFiles}
+              onMoveFile={moveFile}
+              onReorderFile={reorderFile}
+              disabled={!base.hasFiles || base.endpointLoading}
+            />
+            <Accordion variant="contained" radius="sm">
+              <Accordion.Item value="settings">
+                <Accordion.Control>
+                  {t("merge.settings.moreOptions", "More options")}
+                </Accordion.Control>
+                <Accordion.Panel>
+                  <MergeSettings
+                    parameters={base.params.parameters}
+                    onParameterChange={base.params.updateParameter}
+                    disabled={base.endpointLoading}
+                  />
+                </Accordion.Panel>
+              </Accordion.Item>
+            </Accordion>
+          </Stack>
         ),
       },
     ],

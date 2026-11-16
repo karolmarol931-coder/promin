@@ -47,10 +47,9 @@ describe("icon map", () => {
   });
 
   it("leaves brand marks their own colours", () => {
-    const svg = renderIcon("googledrive");
+    const svg = renderIcon("google");
     expect(svg.getAttribute("stroke-width")).toBeNull();
     expect(svg.getAttribute("fill")).toBeNull();
-    expect(svg.querySelector('[fill="#0066DA"]')).not.toBeNull();
   });
 
   it("is decorative by default and labelled when given a title", () => {
@@ -78,20 +77,20 @@ describe("filled state", () => {
 
   it("does not touch a brand mark", () => {
     expect(
-      renderIcon("googledrive", { filled: true }).getAttribute("fill"),
+      renderIcon("google", { filled: true }).getAttribute("fill"),
     ).toBeNull();
   });
 });
 
 describe("colorless brand marks", () => {
   it("dims a brand mark on request", () => {
-    expect(classes(renderIcon("googledrive", { colorless: true }))).toContain(
+    expect(classes(renderIcon("google", { colorless: true }))).toContain(
       "icon-colorless",
     );
   });
 
   it("keeps the call site's own class", () => {
-    const svg = renderIcon("googledrive", {
+    const svg = renderIcon("google", {
       colorless: true,
       className: "file-source__mark",
     });
@@ -100,7 +99,7 @@ describe("colorless brand marks", () => {
   });
 
   it("is inert without the prop, and on a stroke icon", () => {
-    expect(classes(renderIcon("googledrive"))).not.toContain("icon-colorless");
+    expect(classes(renderIcon("google"))).not.toContain("icon-colorless");
     expect(classes(renderIcon("circle", { colorless: true }))).not.toContain(
       "icon-colorless",
     );
@@ -110,7 +109,7 @@ describe("colorless brand marks", () => {
 describe("isIconName", () => {
   it("accepts mapped names and rejects everything else", () => {
     expect(isIconName("circle")).toBe(true);
-    expect(isIconName("googledrive")).toBe(true);
+    expect(isIconName("google")).toBe(true);
     expect(isIconName("not-an-icon")).toBe(false);
     expect(isIconName(42)).toBe(false);
     expect(isIconName(undefined)).toBe(false);

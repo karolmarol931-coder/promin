@@ -20,7 +20,6 @@ import {
 } from "@editor/components/shared/config/configSections/security/securitySettingsTransformers";
 import { LegalDocumentsCard } from "@editor/components/shared/config/configSections/security/LegalDocumentsCard";
 import { LoginAgreementCard } from "@editor/components/shared/config/configSections/security/LoginAgreementCard";
-import { AnalyticsTrackingCard } from "@editor/components/shared/config/configSections/security/AnalyticsTrackingCard";
 import { SearchEngineVisibilityCard } from "@editor/components/shared/config/configSections/security/SearchEngineVisibilityCard";
 import "@editor/components/shared/config/configSections/security/AdminSecurityPage.css";
 
@@ -141,17 +140,6 @@ export default function AdminLegalPrivacyPage() {
           )}
         >
           <LoginAgreementCard {...legalCard} />
-        </SettingsCard>
-
-        <SettingsCard
-          id="adminPrivacy"
-          title={t("admin.settings.privacy.analytics", "Analytics & Tracking")}
-          description={t(
-            "admin.settings.privacy.description",
-            "What this server discloses about itself, and what it reports.",
-          )}
-        >
-          <AnalyticsTrackingCard {...privacyCard} />
         </SettingsCard>
 
         <SettingsCard

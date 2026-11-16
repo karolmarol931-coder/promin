@@ -138,8 +138,8 @@ describe("useMergeOperation", () => {
 
     const config = getToolConfig();
     const mockFiles = [
+      new File(["z"], "z.pdf", { type: "application/pdf" }),
       new File(["a"], "a.pdf", { type: "application/pdf" }),
-      new File(["b"], "b.pdf", { type: "application/pdf" }),
     ];
     const formData = config.buildFormData(
       { removeDigitalSignature: false, generateTableOfContents: false },
@@ -147,8 +147,9 @@ describe("useMergeOperation", () => {
     );
 
     expect(formData.get("clientFileIds")).toBe(
-      JSON.stringify(["a.pdf", "b.pdf"]),
+      JSON.stringify(["z.pdf", "a.pdf"]),
     );
+    expect(formData.getAll("fileInput")).toEqual(mockFiles);
   });
 });
 

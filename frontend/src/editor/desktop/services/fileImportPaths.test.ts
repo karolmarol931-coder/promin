@@ -59,7 +59,7 @@ async function importFiles(files: File[]) {
     {
       files,
       skipMetadataHydration: true,
-      skipUploadTracking: true,
+
       skipWorkspaceDispatch: true,
     },
     { current: state },
@@ -186,50 +186,5 @@ describe("desktop imports retain a save target on the initial stored record", ()
     dropFiles([file]);
     const [stub] = await importFiles([file]);
     expect(stub.localFilePath).toBeUndefined();
-  });
-
-  it("uses WebView2's actual DOM file paths on Windows", async () => {
-    vi.stubGlobal("crypto", {
-      ...crypto,
-      randomUUID: () => "file-drop-request",
-    });
-    let listener: ((event: MessageEvent) => void) | undefined;
-    const removeEventListener = vi.fn();
-    const postMessageWithAdditionalObjects = vi.fn(
-      (message: string, files: File[]) => {
-        const request = JSON.parse(message);
-        expect(files).toHaveLength(1);
-        listener?.(
-          new MessageEvent("message", {
-            data: {
-              type: "stirling-file-drop-result",
-              requestId: request.requestId,
-              paths: [PATH],
-            },
-          }),
-        );
-      },
-    );
-    vi.stubGlobal("chrome", {
-      webview: {
-        postMessageWithAdditionalObjects,
-        addEventListener: (
-          _type: string,
-          handler: (event: MessageEvent) => void,
-        ) => {
-          listener = handler;
-        },
-        removeEventListener,
-      },
-    });
-    const file = new File([BYTES], "report.pdf");
-    expect(await importFiles([file])).toEqual([
-      expect.objectContaining({ localFilePath: PATH }),
-    ]);
-    expect(removeEventListener).toHaveBeenCalledWith("message", listener);
-    expect(invoke).not.toHaveBeenCalledWith(
-      "resolve_dropped_file_paths",
-      expect.anything(),
-    );
   });
 });

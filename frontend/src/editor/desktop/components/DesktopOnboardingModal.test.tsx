@@ -1,120 +1,58 @@
+import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import type { ReactNode } from "react";
-import { MemoryRouter } from "react-router-dom";
 import { DesktopOnboardingModal } from "@editor/components/DesktopOnboardingModal";
 
-const { isAuthenticated } = vi.hoisted(() => ({
-  isAuthenticated: vi.fn<() => Promise<boolean>>(),
-}));
-const { automationEnabled, switchToLocal } = vi.hoisted(() => ({
-  automationEnabled: vi.fn(() => false),
-  switchToLocal: vi.fn().mockResolvedValue(undefined),
-}));
-vi.mock("@editor/components/policies/usePoliciesEnabled", () => ({
-  usePoliciesEnabled: automationEnabled,
-}));
-
-vi.mock("@editor/services/authService", () => ({
-  authService: { isAuthenticated },
-}));
-
-vi.mock("@editor/services/connectionModeService", () => ({
-  connectionModeService: { switchToLocal },
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (_key: string, fallback: string) => fallback,
+  }),
 }));
 
 vi.mock("@editor/components/onboarding/OnboardingSlideShell", () => ({
   default: ({
     opened,
+    title,
     body,
-    onClose,
+    buttons,
+    onAction,
   }: {
     opened: boolean;
-    body: ReactNode;
-    onClose: () => void;
+    title: string;
+    body: string;
+    buttons: Array<{ label: string }>;
+    onAction: () => void;
   }) =>
     opened ? (
       <div role="dialog">
-        Desktop onboarding{body}
-        <button onClick={onClose}>Continue</button>
+        <h1>{title}</h1>
+        <p>{body}</p>
+        <button onClick={onAction}>{buttons[0].label}</button>
       </div>
     ) : null,
   ShellHero: () => null,
 }));
 
-vi.mock("@editor/components/SetupWizard", () => ({
-  SetupWizard: ({ onComplete }: { onComplete: () => void }) => (
-    <div>
-      Sign in to a server<button onClick={onComplete}>Skip sign-in</button>
-    </div>
-  ),
-}));
-
-vi.mock("@editor/components/onboarding/slides/WelcomeSlide", () => ({
-  default: () => ({ title: "Welcome", body: null }),
-}));
-
-vi.mock(
-  "@editor/components/onboarding/classificationDemo/ClassificationDemoModal",
-  () => ({
-    ClassificationDemoModal: () => <div role="dialog">Downloads demo</div>,
-  }),
-);
-
-function renderModal() {
-  return render(
-    <MemoryRouter>
-      <DesktopOnboardingModal />
-    </MemoryRouter>,
-  );
-}
-
 describe("DesktopOnboardingModal", () => {
-  beforeEach(() => {
-    localStorage.clear();
-    sessionStorage.clear();
-    isAuthenticated.mockReset().mockResolvedValue(true);
-    automationEnabled.mockReturnValue(false);
-  });
+  beforeEach(() => localStorage.clear());
 
-  it("shows onboarding to a new desktop user", async () => {
-    renderModal();
+  it("explains that document processing stays on this Mac", () => {
+    render(<DesktopOnboardingModal />);
 
-    expect(await screen.findByRole("dialog")).toBeInTheDocument();
-  });
-
-  it("honours the shared onboarding bypass", async () => {
-    sessionStorage.setItem("onboarding::bypass-all", "true");
-
-    renderModal();
-
-    await waitFor(() =>
-      expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
+    expect(screen.getByRole("dialog")).toHaveTextContent("Welcome to Promin");
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "Your PDFs stay on this Mac.",
     );
+    expect(screen.queryByText(/sign in|server/i)).toBeNull();
   });
 
-  it("requires the sign-in prompt before skipping and withholds the demo", async () => {
-    isAuthenticated.mockResolvedValue(false);
-    renderModal();
-    fireEvent.click(await screen.findByText("Continue"));
-    expect(screen.getByText("Sign in to a server")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Skip sign-in"));
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
-    expect(
-      localStorage.getItem("stirling-desktop-classification-demo-seen"),
-    ).toBeNull();
-  });
+  it("dismisses the welcome once the user continues", () => {
+    render(<DesktopOnboardingModal />);
 
-  it("offers the deferred demo after a skipped user later signs in", async () => {
-    localStorage.setItem("stirling-desktop-onboarding-seen.v2", "true");
-    const view = renderModal();
-    expect(screen.queryByText("Downloads demo")).not.toBeInTheDocument();
-    automationEnabled.mockReturnValue(true);
-    view.rerender(
-      <MemoryRouter>
-        <DesktopOnboardingModal />
-      </MemoryRouter>,
+    fireEvent.click(screen.getByRole("button", { name: "Get started" }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(localStorage.getItem("promin-desktop-onboarding-seen.v1")).toBe(
+      "true",
     );
-    expect(await screen.findByText("Downloads demo")).toBeInTheDocument();
   });
 });

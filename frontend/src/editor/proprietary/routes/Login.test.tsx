@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { BrowserRouter, MemoryRouter } from "react-router-dom";
 import { MantineProvider } from "@mantine/core";
 import Login from "@editor/routes/Login";
+import { EDITOR_BASENAME } from "@editor/routes/editorBasename";
 import { useAuth } from "@editor/auth/UseSession";
 import { springAuth } from "@editor/auth/spring/springAuthClient";
 import { PreferencesProvider } from "@editor/contexts/PreferencesContext";
@@ -117,7 +118,6 @@ describe("Login", () => {
       displayName: null,
       isAnonymous: false,
       isAdmin: false,
-      portalAccess: false,
       role: null,
       loading: false,
       error: null,
@@ -173,7 +173,6 @@ describe("Login", () => {
       displayName: mockSession.user.username,
       isAnonymous: false,
       isAdmin: false,
-      portalAccess: false,
       role: mockSession.user.role,
       loading: false,
       error: null,
@@ -190,7 +189,9 @@ describe("Login", () => {
     );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/editor", { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith(EDITOR_BASENAME, {
+        replace: true,
+      });
     });
   });
 
@@ -214,7 +215,6 @@ describe("Login", () => {
         displayName: mockSession.user.username,
         isAnonymous: false,
         isAdmin: false,
-        portalAccess: false,
         role: mockSession.user.role,
         loading: false,
         error: null,
@@ -250,10 +250,8 @@ describe("Login", () => {
       });
     });
 
-    // A full-page 401 redirect drops router state and Spring can strip ?from=,
-    // leaving the return path only in the sessionStorage stash. Without reading
-    // it here a processor user refreshing /editor falls through to the role
-    // router and lands on the processor.
+    // A full-page 401 can drop router state and the ?from= query, so the return
+    // path remains in session storage until login consumes it.
     it("returns to the stashed path when there is no ?from=", async () => {
       signedIn();
       sessionStorage.setItem("stirling_post_login_path", "/compress");
@@ -279,7 +277,9 @@ describe("Login", () => {
       renderAtLogin(`?from=${encodeURIComponent(from)}`);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith("/editor", { replace: true });
+        expect(mockNavigate).toHaveBeenCalledWith(EDITOR_BASENAME, {
+          replace: true,
+        });
       });
       expect(mockNavigate).not.toHaveBeenCalledWith(from, expect.anything());
     });
@@ -292,7 +292,6 @@ describe("Login", () => {
       displayName: null,
       isAnonymous: false,
       isAdmin: false,
-      portalAccess: false,
       role: null,
       loading: true,
       error: null,
@@ -693,7 +692,9 @@ describe("Login", () => {
     );
 
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith("/editor", { replace: true });
+      expect(mockNavigate).toHaveBeenCalledWith(EDITOR_BASENAME, {
+        replace: true,
+      });
     });
   });
 

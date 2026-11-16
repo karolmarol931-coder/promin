@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import React, { useCallback, useEffect, useState, type ReactNode } from "react";
 import {
   Modal,
   Stack,
@@ -349,7 +343,7 @@ function EmailWarningAlert({
         <Text size="sm">
           {t(
             "storageShare.emailWarningBody",
-            "This looks like an email address. If this person is not already a Stirling PDF user, they will not be able to access the file.",
+            "This looks like an email address. If this person is not already a Promin user, they will not be able to access the file.",
           )}
         </Text>
         <Group justify="flex-end" gap="sm">
@@ -803,23 +797,7 @@ const ShareManagementModal: React.FC<ShareManagementModalProps> = ({
         )
       : null;
 
-  const shareBaseUrl = useMemo(() => {
-    const frontendUrl = (config?.frontendUrl || "").trim();
-    if (frontendUrl) {
-      try {
-        const parsed = new URL(frontendUrl);
-        if (parsed.protocol === "http:" || parsed.protocol === "https:") {
-          const normalized = frontendUrl.endsWith("/")
-            ? frontendUrl.slice(0, -1)
-            : frontendUrl;
-          return `${normalized}/share/`;
-        }
-      } catch {
-        // invalid URL — fall through to default
-      }
-    }
-    return absoluteWithBasePath("/share/");
-  }, [config?.frontendUrl]);
+  const shareBaseUrl = absoluteWithBasePath("/share/");
 
   const loadShareLinks = useCallback(async () => {
     if (!file.remoteStorageId) {

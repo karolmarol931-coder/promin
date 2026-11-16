@@ -84,6 +84,48 @@ class SvgSanitizerTest {
     }
 
     @Test
+    void testSanitize_offlineModeOverridesDisabledSanitizationAndAllowlist() throws IOException {
+        applicationProperties.getSystem().setDisableSanitize(true);
+        applicationProperties.getSystem().setOfflineMode(true);
+        applicationProperties
+                .getSystem()
+                .getHtml()
+                .getUrlSecurity()
+                .getAllowedDomains()
+                .add("example.invalid");
+        String input =
+                "<svg xmlns=\"http://www.w3.org/2000/svg\"><image"
+                        + " href=\"https://example.invalid/image.png\"/><script>evil</script>"
+                        + "<circle r=\"10\"/></svg>";
+
+        byte[] result = sanitizer.sanitize(input.getBytes(StandardCharsets.UTF_8));
+
+        String output = new String(result, StandardCharsets.UTF_8);
+        assertFalse(output.contains("https://example.invalid"));
+        assertFalse(output.contains("script"));
+        assertTrue(output.contains("circle"));
+        verifyNoInteractions(ssrfProtectionService);
+    }
+
+    @Test
+    void testSanitize_offlineModeRemovesExternalStylesheetProcessingInstruction()
+            throws IOException {
+        applicationProperties.getSystem().setOfflineMode(true);
+        String input =
+                "<?xml-stylesheet type=\"text/css\""
+                        + " href=\"https://example.invalid/style.css\"?>"
+                        + "<svg xmlns=\"http://www.w3.org/2000/svg\"><circle r=\"10\"/></svg>";
+
+        byte[] result = sanitizer.sanitize(input.getBytes(StandardCharsets.UTF_8));
+
+        String output = new String(result, StandardCharsets.UTF_8);
+        assertFalse(output.contains("xml-stylesheet"));
+        assertFalse(output.contains("https://example.invalid"));
+        assertTrue(output.contains("circle"));
+        verifyNoInteractions(ssrfProtectionService);
+    }
+
+    @Test
     void testSanitize_removesForeignObject() throws IOException {
         String svg =
                 "<svg xmlns=\"http://www.w3.org/2000/svg\"><foreignObject><body>evil</body></foreignObject><rect width=\"10\" height=\"10\"/></svg>";

@@ -1,5 +1,5 @@
 /**
- * FileContext - Manages PDF files for Stirling PDF multi-tool workflow
+ * FileContext - Manages PDF files for Promin multi-tool workflow
  *
  * Handles file state, memory management, and resource cleanup for large PDFs (up to 100GB+).
  * Users upload PDFs once and chain tools (split → merge → compress → view) without reloading.
@@ -496,7 +496,7 @@ function FileContextInner({
         skipAutoUnzip?: boolean;
         /** Persist to IDB without dispatching to workspace state. */
         skipWorkspaceDispatch?: boolean;
-        skipUploadTracking?: boolean;
+
         derivedFromTool?: boolean;
         /** Folder every added file is born into (see AddFileOptions). */
         folderId?: string;
@@ -556,7 +556,6 @@ function FileContextInner({
           fileName: string,
         ) => Promise<boolean>;
         allowDuplicates?: boolean;
-        skipUploadTracking?: boolean;
       },
     ): Promise<StirlingFile[]> => {
       const stirlingFiles = await addFiles(

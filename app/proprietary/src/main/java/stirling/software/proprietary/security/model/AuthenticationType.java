@@ -5,7 +5,5 @@ public enum AuthenticationType {
     @Deprecated(since = "1.0.2")
     SSO,
     OAUTH2,
-    SAML2,
-    /** Supabase anonymous session. Saas profile only, no email yet. */
-    ANONYMOUS
+    SAML2
 }

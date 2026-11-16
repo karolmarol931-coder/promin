@@ -3,12 +3,6 @@
   "compilerOptions": {
     "paths": {
       "@editor/*": ["./src/editor/proprietary/*", "./src/editor/core/*"],
-      "@editor/portal/*": [
-        "./src/editor/proprietary/portal/*",
-        "./src/editor/core/portal/*",
-        "./src/processor/proprietary/*"
-      ],
-      "@processor/*": ["./src/processor/proprietary/*"],
       "@editor-proprietary/*": ["./src/editor/proprietary/*"],
       "@editor-core/*": ["./src/editor/core/*"]
     }
@@ -16,7 +10,6 @@
   "exclude": [
     "src/editor/core/**/*.test.ts*",
     "src/editor/core/**/*.spec.ts*",
-    "src/editor/desktop",
-    "src/editor/cloud"
+    "src/editor/desktop"
   ]
 }

@@ -24,7 +24,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import stirling.software.common.model.ApplicationProperties;
 import stirling.software.common.model.enumeration.Role;
-import stirling.software.proprietary.access.service.ResourceAccessService;
 import stirling.software.proprietary.config.AuditConfigurationProperties;
 import stirling.software.proprietary.controller.api.ProprietaryUIDataController.AccountData;
 import stirling.software.proprietary.controller.api.ProprietaryUIDataController.AdminSettingsData;
@@ -66,7 +65,6 @@ class ProprietaryUIDataControllerMoreTest {
     @Mock private PersistentAuditEventRepository auditRepository;
     @Mock private MfaService mfaService;
     @Mock private LoginAttemptService loginAttemptService;
-    @Mock private ResourceAccessService resourceAccessService;
 
     @Mock
     private stirling.software.proprietary.security.repository.InviteTokenRepository
@@ -104,7 +102,6 @@ class ProprietaryUIDataControllerMoreTest {
                         auditRepository,
                         mfaService,
                         loginAttemptService,
-                        resourceAccessService,
                         inviteTokenRepository,
                         org.mockito.Mockito.mock(
                                 stirling.software.proprietary.service.OrgOwnerService.class));

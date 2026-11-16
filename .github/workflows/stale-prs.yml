@@ -5,8 +5,6 @@ name: Stale PR triage
 # live in .github/scripts/stale-prs.ts.
 
 on:
-  schedule:
-    - cron: "40 7 * * *"
   workflow_dispatch:
     inputs:
       dry_run:

@@ -29,8 +29,6 @@ import {
   type ProcessingFolderTarget,
 } from "@editor/components/policies/processingFolderSetup";
 import { ProcessingFolderWizard } from "@editor/components/policies/ProcessingFolderWizard";
-import { PORTAL_BASENAME } from "@editor/routes/portalBasename";
-import { HAS_PORTAL } from "@editor/routes/hasPortal";
 import apiClient from "@editor/services/apiClient";
 import { assemblePolicies } from "@editor/policies/overview";
 import type { WirePolicy } from "@editor/policies/types";
@@ -177,14 +175,6 @@ export function ProcessingFolderSetupFlow({
       )}
       destinationsLoading={sources.loading}
       destinationsError={sources.error}
-      onCreateDestination={
-        HAS_PORTAL
-          ? () => {
-              onClose();
-              navigate(`${PORTAL_BASENAME}/sources/new`);
-            }
-          : undefined
-      }
       folders={folders.folders}
       loading={folders.loading || processing.loading || presets.loading}
       loadError={processing.loadError ?? presets.error}

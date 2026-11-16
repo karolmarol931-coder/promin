@@ -21,7 +21,6 @@ vi.mock("react-router-dom", () => ({
   useLocation: () => h.location,
   useNavigate: () => h.navigate,
 }));
-vi.mock("@editor/utils/scarfTracking", () => ({ firePixel: vi.fn() }));
 vi.mock("@editor/contexts/AppConfigContext", () => ({
   useAppConfig: () => ({ config: { premiumEnabled: true } }),
 }));

@@ -10,7 +10,7 @@ import {
 import { ToolId } from "@editor/types/toolId";
 import { useToolSections } from "@editor/hooks/useToolSections";
 import NoToolsFound from "@editor/components/tools/shared/NoToolsFound";
-import { useToolWorkflow } from "@editor/contexts/ToolWorkflowContext";
+import { useToolWorkflowData } from "@editor/contexts/ToolWorkflowContext";
 import { Icon } from "@editor/ui/Icon";
 import Badge from "@editor/components/shared/Badge";
 import "@editor/components/tools/ToolPanel.css";
@@ -39,7 +39,7 @@ const FullscreenToolList = ({
   onSelect,
 }: FullscreenToolListProps) => {
   const { t } = useTranslation();
-  const { toolRegistry, favoriteTools } = useToolWorkflow();
+  const { toolRegistry, favoriteTools } = useToolWorkflowData();
 
   const { sections, searchGroups } = useToolSections(
     filteredTools,

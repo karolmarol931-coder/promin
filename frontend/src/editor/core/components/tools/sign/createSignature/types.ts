@@ -3,7 +3,7 @@ import type {
   SignatureScope,
 } from "@editor/types/signature";
 
-export type CreateTab = "draw" | "type" | "upload" | "phone";
+export type CreateTab = "draw" | "type" | "upload";
 
 export type SaveScope = Exclude<SignatureScope, "localStorage">;
 

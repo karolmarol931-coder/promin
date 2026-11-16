@@ -72,7 +72,7 @@ vi.mock("@editor/services/policyApi", () => ({
   runStoredPolicy: vi.fn(),
   getPolicyRun: vi.fn(),
   downloadPolicyOutput: vi.fn(),
-  resolvePolicyRunTarget: () => "saas",
+  resolvePolicyRunTarget: () => "local",
 }));
 vi.mock("@editor/services/fileStorage", () => ({
   fileStorage: {
@@ -116,7 +116,7 @@ function completeRun(
     fileId,
     fileName: "doc.pdf",
     fileSize: 100,
-    target: "saas",
+    target: "local",
     status: "PENDING",
     outputs: [],
     error: null,
@@ -171,7 +171,6 @@ describe("auto-run ordered chaining", () => {
       "backend-comp",
       expect.anything(),
       "unlocked",
-      "background",
     );
     expect(getFile).not.toHaveBeenCalledWith("locked");
   });
@@ -199,7 +198,6 @@ describe("auto-run ordered chaining", () => {
       "backend-comp",
       expect.anything(),
       "pdf",
-      "background",
     );
   });
 
@@ -218,7 +216,6 @@ describe("auto-run ordered chaining", () => {
       "backend-comp",
       expect.anything(),
       "pdf",
-      "background",
     );
   });
 
@@ -238,7 +235,6 @@ describe("auto-run ordered chaining", () => {
       "backend-archive",
       expect.anything(),
       "image",
-      "background",
     );
   });
   it("dispatches only matching files from a mixed upload", async () => {
@@ -263,7 +259,6 @@ describe("auto-run ordered chaining", () => {
       "backend-sec",
       expect.anything(),
       "pdf",
-      "background",
     );
     expect(getFile).not.toHaveBeenCalledWith("image");
     expect(getFile).not.toHaveBeenCalledWith("word");
@@ -328,7 +323,6 @@ describe("auto-run ordered chaining", () => {
       "backend-comp",
       expect.anything(),
       "image",
-      "background",
     );
     expect(getRun("run-image")?.fileName).toBe("page.png");
   });
@@ -344,12 +338,10 @@ describe("auto-run ordered chaining", () => {
 
     // The first policy (order 0) runs on the upload; the second waits for the chain.
     expect(runStored).toHaveBeenCalledTimes(1);
-    // Recorded against a document this browser can resolve, which is what makes its failure actionable.
     expect(runStored).toHaveBeenCalledWith(
       "backend-sec",
       [{ size: 100 }],
       "file-1",
-      "background",
     );
   });
 
@@ -368,7 +360,6 @@ describe("auto-run ordered chaining", () => {
       "backend-comp",
       [{ size: 100 }],
       "file-1-v2",
-      "background",
     );
   });
 
@@ -387,13 +378,11 @@ describe("auto-run ordered chaining", () => {
       "backend-cls",
       expect.anything(),
       expect.anything(),
-      "background",
     );
   });
 
   it("never dispatches on a file marked derivedFromTool", async () => {
-    // A policy run is billed, so this gate is what stops `importOutputs` re-enforcing a policy on
-    // its own output forever. If this fails, fix the gate rather than the test.
+    // The output marker prevents auto-run from processing its own output again.
     setFileStubs([
       { id: "file-1", name: "unlocked.pdf", derivedFromTool: true },
     ]);
@@ -437,7 +426,7 @@ describe("auto-run ordered chaining", () => {
       fileId: "f2",
       fileName: "d.pdf",
       fileSize: 1,
-      target: "saas",
+      target: "local",
       status: "RUNNING",
       outputs: [],
       error: null,

@@ -1,5 +1,6 @@
 import { test, expect } from "@editor/tests/helpers/stub-test-base";
 import { waitForEditorReady } from "@editor/tests/stubbed/editorReady";
+import { revealPickerTool } from "@editor/tests/helpers/ui-helpers";
 import path from "path";
 
 // qpdf --encrypt scan-password scan-password 256 -- scanned-no-ocr.pdf scanned-no-ocr-encrypted.pdf
@@ -26,10 +27,7 @@ for (const source of ["workbench", "disk"] as const) {
         .fill("scan-password");
       await page.getByRole("button", { name: "Open PDF", exact: true }).click();
       await expect(page.getByRole("dialog")).toHaveCount(0);
-      await page
-        .getByRole("link", { name: "PDF Text Editor", exact: true })
-        .first()
-        .click();
+      await (await revealPickerTool(page, "pdfTextEditor")).click();
     } else {
       await page.goto("/pdf-text-editor");
       await page.getByTestId("pdf-editor-file-input").setInputFiles(SCAN);

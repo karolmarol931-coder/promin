@@ -2,7 +2,6 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { SettingsCard } from "@editor/components/shared/config/SettingsCard";
 import { Stack, Loader } from "@mantine/core";
-import { StatusBadge } from "@editor/ui/StatusBadge";
 import { alert } from "@editor/components/toast";
 import RestartConfirmationModal from "@editor/components/shared/config/RestartConfirmationModal";
 import { useRestartServer } from "@editor/components/shared/config/useRestartServer";
@@ -87,8 +86,7 @@ export default function AdminAiSection() {
 
       const deltaSettings: Record<string, unknown> = {
         "aiEngine.enabled": s.enabled ?? false,
-        "aiEngine.mode": s.mode ?? "SELF_HOSTED",
-        "aiEngine.cloudDocumentIndexing": s.cloudDocumentIndexing ?? false,
+        "aiEngine.mode": "SELF_HOSTED",
         "aiEngine.url": s.url ?? "",
         // Timeouts must be >= 1s; a 0 would make every engine call fail/deadlock.
         "aiEngine.timeoutSeconds": clampMin(s.timeoutSeconds, 1),
@@ -214,20 +212,6 @@ export default function AdminAiSection() {
   }
 
   const card = { settings, setSettings, isFieldPending, loginEnabled };
-  // Stirling Cloud picks the models and holds the provider keys, so these sections describe an
-  // engine this server no longer talks to. Shown but inert, rather than hidden, so an admin can
-  // still see what their own engine is set to before switching back.
-  const cloudManaged = settings.enabled === true && settings.mode === "CLOUD";
-  const managedNote = t(
-    "admin.settings.ai.managedByCloud",
-    "Managed by Stirling Cloud in this mode.",
-  );
-  // The badge slot sits in the card heading, so it takes a chip rather than a sentence.
-  const managedBadge = cloudManaged ? (
-    <StatusBadge tone="neutral" size="sm" showDot={false}>
-      {t("admin.settings.ai.managedByCloudShort", "Managed by Stirling Cloud")}
-    </StatusBadge>
-  ) : undefined;
 
   return (
     <div className="settings-section-container">
@@ -237,7 +221,7 @@ export default function AdminAiSection() {
           title={t("admin.settings.ai.status.title", "Status")}
           description={t(
             "admin.settings.ai.status.description",
-            "Whether the engine is reachable, whether it accepts this server, and what it is running.",
+            "Whether the configured local AI engine is reachable and what it is running.",
           )}
         >
           <AiStatusCard settings={settings} />
@@ -248,11 +232,11 @@ export default function AdminAiSection() {
           title={t("admin.settings.ai.general.connection", "Connection")}
           description={t(
             "admin.settings.ai.general.description",
-            "Choose where AI runs. Changes here apply on restart.",
+            "Configure the AI engine running alongside the local app. Changes here apply on restart.",
           )}
         >
           <AiConnectionCard {...card} />
-          <AiAboutNotice cloud={cloudManaged} />
+          <AiAboutNotice />
         </SettingsCard>
 
         <SettingsCard
@@ -272,52 +256,32 @@ export default function AdminAiSection() {
         <SettingsCard
           id="adminAiModels"
           title={t("settings.ai.models", "Models & Providers")}
-          description={
-            cloudManaged
-              ? managedNote
-              : t(
-                  "admin.settings.ai.models.description",
-                  "Choose the LLM provider and the smart/fast models the AI engine uses. Applied to the AI engine when saved.",
-                )
-          }
-          badge={managedBadge}
+          description={t(
+            "admin.settings.ai.models.description",
+            "Choose the LLM provider and the smart/fast models the AI engine uses. Applied to the AI engine when saved.",
+          )}
         >
-          <fieldset
-            disabled={cloudManaged}
-            style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}
-          >
-            <AiModelsCard
-              {...card}
-              apiKeyDirty={apiKeyDirty}
-              setApiKeyDirty={setApiKeyDirty}
-            />
-          </fieldset>
+          <AiModelsCard
+            {...card}
+            apiKeyDirty={apiKeyDirty}
+            setApiKeyDirty={setApiKeyDirty}
+          />
         </SettingsCard>
 
         <SettingsCard
           id="adminAiDocuments"
           title={t("settings.ai.documents", "Documents & RAG")}
-          description={
-            cloudManaged
-              ? managedNote
-              : t(
-                  "admin.settings.ai.documents.description",
-                  "Configure the embedding model and retrieval settings used to answer questions over documents. Applied to the AI engine when saved.",
-                )
-          }
-          badge={managedBadge}
+          description={t(
+            "admin.settings.ai.documents.description",
+            "Configure the embedding model and retrieval settings used to answer questions over documents. Applied to the AI engine when saved.",
+          )}
         >
-          <fieldset
-            disabled={cloudManaged}
-            style={{ border: 0, margin: 0, padding: 0, minWidth: 0 }}
-          >
-            <AiDocumentsCard
-              {...card}
-              embeddingModelChanged={embeddingModelChanged}
-              embeddingApiKeyDirty={embeddingApiKeyDirty}
-              setEmbeddingApiKeyDirty={setEmbeddingApiKeyDirty}
-            />
-          </fieldset>
+          <AiDocumentsCard
+            {...card}
+            embeddingModelChanged={embeddingModelChanged}
+            embeddingApiKeyDirty={embeddingApiKeyDirty}
+            setEmbeddingApiKeyDirty={setEmbeddingApiKeyDirty}
+          />
         </SettingsCard>
 
         <SettingsCard

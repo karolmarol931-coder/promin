@@ -1,19 +1,13 @@
-import { useCallback, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "@editor/ui/Modal";
 import { Button } from "@editor/ui/Button";
 import { Icon } from "@editor/ui/Icon";
 import { SegmentedControl } from "@editor/ui/SegmentedControl";
 import { uniqueName } from "@editor/utils/uniqueName";
-import {
-  PHONE_DRAWING_CLEANUP,
-  cleanUpSignatureImage,
-} from "@editor/utils/signatureImage";
-import type { MobileSignaturePayload } from "@editor/components/tools/sign/MobileSignatureModal";
 import { DrawSignaturePanel } from "@editor/components/tools/sign/createSignature/DrawSignaturePanel";
 import { TypeSignaturePanel } from "@editor/components/tools/sign/createSignature/TypeSignaturePanel";
 import { UploadSignaturePanel } from "@editor/components/tools/sign/createSignature/UploadSignaturePanel";
-import { PhoneSignaturePanel } from "@editor/components/tools/sign/createSignature/PhoneSignaturePanel";
 import {
   SaveSignatureOptions,
   toSaveChoice,
@@ -45,7 +39,6 @@ interface CreateSignatureModalProps {
     save: SaveChoice | null,
   ) => Promise<void>;
   limits: SaveLibraryLimits;
-  showPhoneTab: boolean;
   existingLabels: string[];
 }
 
@@ -54,16 +47,14 @@ export function CreateSignatureModal({
   onClose,
   onCreate,
   limits,
-  showPhoneTab,
   existingLabels,
 }: CreateSignatureModalProps) {
   const { t } = useTranslation();
-  const tabs = createTabs(showPhoneTab);
+  const tabs = createTabs();
   const [tab, setTab] = useState<CreateTab>(
     tabs.includes(initialTab) ? initialTab : "draw",
   );
   const { ready, handlers } = useTabReadiness();
-  const [phoneResult, setPhoneResult] = useState<string | null>(null);
   const [saveState, setSaveState] = useState<SaveOptionsState>({
     enabled: limits.canSave || limits.canShare,
     label: null,
@@ -77,43 +68,7 @@ export function CreateSignatureModal({
 
   const defaultLabel = uniqueName(defaultSignatureName(t, tab), existingLabels);
 
-  const handlePhoneReceived = useCallback(
-    async (payload: MobileSignaturePayload) => {
-      if (payload.kind === "photo") {
-        uploadRef.current?.loadSource(payload.dataUrl, "phone-photo.png");
-        setTab("upload");
-        return;
-      }
-      if (payload.kind === "text") {
-        typeRef.current?.setName(payload.text, {
-          fontFamily: payload.fontFamily,
-          textColor: payload.color,
-        });
-        setTab("type");
-        return;
-      }
-      try {
-        const dataUrl = await cleanUpSignatureImage(
-          payload.dataUrl,
-          PHONE_DRAWING_CLEANUP,
-        );
-        setPhoneResult(dataUrl);
-        handlers.phone(true);
-      } catch (error) {
-        setPhoneResult(null);
-        handlers.phone(false);
-        throw error;
-      }
-    },
-    [handlers],
-  );
-
   async function currentResult(): Promise<CreatedSignature | null> {
-    if (tab === "phone") {
-      return phoneResult
-        ? { source: "phone", type: "canvas", dataUrl: phoneResult }
-        : null;
-    }
     const panels = { draw: drawRef, type: typeRef, upload: uploadRef };
     return (await panels[tab].current?.getResult()) ?? null;
   }
@@ -205,15 +160,6 @@ export function CreateSignatureModal({
             onReadyChange={handlers.upload}
           />
         </div>
-        {showPhoneTab && (
-          <div hidden={tab !== "phone"}>
-            <PhoneSignaturePanel
-              active={tab === "phone"}
-              received={phoneResult}
-              onReceived={handlePhoneReceived}
-            />
-          </div>
-        )}
         <SaveSignatureOptions
           value={saveState}
           onChange={setSaveState}

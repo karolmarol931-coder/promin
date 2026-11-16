@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import {
   Stack,
   Text,
+  TextInput,
   Group,
   Box,
   Popover,
@@ -19,7 +20,6 @@ interface FormatOption {
   labelKey?: string;
   group: string;
   enabled?: boolean;
-  usesCloud?: boolean;
 }
 
 interface GroupedFormatDropdownProps {
@@ -48,6 +48,7 @@ const GroupedFormatDropdown = ({
   const { t } = useTranslation();
   const resolvedPlaceholder = placeholder ?? t("dropdownList.selectOption");
   const [dropdownOpened, setDropdownOpened] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const theme = useMantineTheme();
 
   const getOptionLabel = (option: FormatOption) =>
@@ -59,8 +60,13 @@ const GroupedFormatDropdown = ({
 
   const groupedOptions = useMemo(() => {
     const groups: Record<string, FormatOption[]> = {};
+    const normalizedQuery = searchQuery.trim().toLocaleLowerCase();
 
     options.forEach((option) => {
+      const searchableText =
+        `${getOptionLabel(option)} ${option.value}`.toLocaleLowerCase();
+      if (normalizedQuery && !searchableText.includes(normalizedQuery)) return;
+
       if (!groups[option.group]) {
         groups[option.group] = [];
       }
@@ -68,7 +74,11 @@ const GroupedFormatDropdown = ({
     });
 
     return groups;
-  }, [options]);
+  }, [options, searchQuery, t]);
+
+  const hasVisibleOptions = Object.values(groupedOptions).some(
+    (groupOptions) => groupOptions.length > 0,
+  );
 
   const selectedLabel = useMemo(() => {
     if (!value) return resolvedPlaceholder;
@@ -78,15 +88,20 @@ const GroupedFormatDropdown = ({
       : value.toUpperCase();
   }, [value, options, resolvedPlaceholder, t]);
 
+  const closeDropdown = () => {
+    setDropdownOpened(false);
+    setSearchQuery("");
+  };
+
   const handleOptionSelect = (selectedValue: string) => {
     onChange(selectedValue);
-    setDropdownOpened(false);
+    closeDropdown();
   };
 
   return (
     <Popover
       opened={dropdownOpened}
-      onDismiss={() => setDropdownOpened(false)}
+      onDismiss={closeDropdown}
       position="bottom-start"
       withArrow
       shadow="sm"
@@ -103,7 +118,9 @@ const GroupedFormatDropdown = ({
           fullWidth
           name={name}
           data-testid={name}
-          onClick={() => setDropdownOpened(!dropdownOpened)}
+          onClick={() =>
+            dropdownOpened ? closeDropdown() : setDropdownOpened(true)
+          }
           disabled={disabled}
           style={{
             padding: "0.5rem 0.75rem",
@@ -146,48 +163,53 @@ const GroupedFormatDropdown = ({
         }}
       >
         <Stack gap="md">
-          {Object.entries(groupedOptions).map(([groupName, groupOptions]) => (
-            <Box key={groupName}>
-              <Text
-                size="sm"
-                fw={600}
-                mb="xs"
-                style={{ color: "var(--dropdown-group-label)" }}
-              >
-                {getGroupLabel(groupName)}
-              </Text>
-              <Group gap="xs" style={{ flexWrap: "wrap" }}>
-                {groupOptions.map((option) => (
-                  <Button
-                    key={option.value}
-                    data-testid={`format-option-${option.value}`}
-                    variant={value === option.value ? "primary" : "secondary"}
-                    size="sm"
-                    onClick={() => handleOptionSelect(option.value)}
-                    disabled={option.enabled === false}
-                    rightSection={
-                      option.usesCloud ? (
-                        <Icon
-                          name="cloud"
-                          size={"0.625rem"}
-                          style={{ marginLeft: "0.25rem", opacity: 0.7 }}
-                        />
-                      ) : undefined
-                    }
-                    style={{
-                      fontSize: "0.75rem",
-                      height: "2rem",
-                      padding: "0 0.75rem",
-                      flexShrink: 0,
-                      position: "relative",
-                    }}
-                  >
-                    {getOptionLabel(option)}
-                  </Button>
-                ))}
-              </Group>
-            </Box>
-          ))}
+          <TextInput
+            aria-label={t("convert.formatSearchPlaceholder")}
+            placeholder={t("convert.formatSearchPlaceholder")}
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.currentTarget.value)}
+            size="sm"
+            autoComplete="off"
+          />
+          {hasVisibleOptions ? (
+            Object.entries(groupedOptions).map(([groupName, groupOptions]) => (
+              <Box key={groupName}>
+                <Text
+                  size="sm"
+                  fw={600}
+                  mb="xs"
+                  style={{ color: "var(--dropdown-group-label)" }}
+                >
+                  {getGroupLabel(groupName)}
+                </Text>
+                <Group gap="xs" style={{ flexWrap: "wrap" }}>
+                  {groupOptions.map((option) => (
+                    <Button
+                      key={option.value}
+                      data-testid={`format-option-${option.value}`}
+                      variant={value === option.value ? "primary" : "secondary"}
+                      size="sm"
+                      onClick={() => handleOptionSelect(option.value)}
+                      disabled={option.enabled === false}
+                      style={{
+                        fontSize: "0.75rem",
+                        height: "2rem",
+                        padding: "0 0.75rem",
+                        flexShrink: 0,
+                        position: "relative",
+                      }}
+                    >
+                      {getOptionLabel(option)}
+                    </Button>
+                  ))}
+                </Group>
+              </Box>
+            ))
+          ) : (
+            <Text size="sm" c="dimmed" ta="center">
+              {t("convert.formatSearchNoResults")}
+            </Text>
+          )}
         </Stack>
       </Popover.Dropdown>
     </Popover>

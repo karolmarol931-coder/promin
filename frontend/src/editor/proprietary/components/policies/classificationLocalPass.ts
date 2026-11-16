@@ -1,15 +1,13 @@
 /**
  * The Classification policy's browser-side fast path, as a {@link LocalPass} the generic local-pass
  * engine runs. Everything classification-specific lives here: the heuristic, the label/confidence it
- * writes, metering, and the browser-local run it records. The engine only sees the generic result
+ * writes and the browser-local run it records. The engine only sees the generic result
  * (fields to write + whether the AI server run is still needed).
  */
 
 import { fileStorage } from "@editor/services/fileStorage";
 import { classifyFileHeuristically } from "@editor/services/heuristic/heuristicClassification";
-import { meterAutomationRun } from "@editor/services/automationMeter";
 import {
-  isDispatched,
   markDispatched,
   recordRunStart,
   updateRun,
@@ -27,10 +25,6 @@ import type { LocalPass } from "@editor/components/policies/policyLocalPass";
  *  The stub can surface in the file list a beat before its bytes are committed. */
 const FILE_WAIT_TRIES = 20;
 const FILE_WAIT_MS = 250;
-
-/** Audit step label for a metered classify run; mirrors the AI classify tool so both paths read
- *  alike in the trail. */
-const CLASSIFY_STEP = "/api/v1/ai/tools/classify-and-label";
 
 /** localStorage flag: set to "true" for a full per-file scoring breakdown in the console. */
 const DEBUG_FLAG = "stirling-classification-debug";
@@ -51,12 +45,7 @@ export const classificationLocalPass: LocalPass = {
   // A file that did inherit (or was classified) carries a label array and is skipped.
   eligible: (stub) => stub.classificationLabels === undefined,
   run: async (fileId, stub) => {
-    const verdict = await classifyStub(
-      fileId,
-      stub.name,
-      stub.size ?? 0,
-      stub.processedFile?.totalPages ?? 0,
-    );
+    const verdict = await classifyStub(fileId, stub.name, stub.size ?? 0);
     // Bytes never landed (file removed mid-wait): leave unclassified so a reload retries.
     if (verdict == null) return null;
     return {
@@ -66,26 +55,21 @@ export const classificationLocalPass: LocalPass = {
       },
       // A confident local verdict stands; anything less asks the AI engine, which overwrites it.
       needsServerRun: localVerdictNeedsEscalation(verdict.confidence),
-      // Billed by the engine only if it does not escalate (see meter's contract).
-      meter: verdict.meter,
     };
   },
 };
 
-/** One file's local classification verdict. {@link meter} is present only when the run should be
- *  charged (first pass, not a heal re-run); the engine fires it iff no server run follows. */
+/** One file's local classification verdict. */
 interface ClassificationVerdict {
   labels: string[];
   confidence: HeuristicConfidence;
-  meter?: () => void;
 }
 
-/** Classify one file, metering exactly once; null = no verdict, retried later. */
+/** Classify one file; null = no verdict, retried later. */
 async function classifyStub(
   fileId: FileId,
   fileName: string,
   fileSize: number,
-  pageCount: number,
 ): Promise<ClassificationVerdict | null> {
   let file: StirlingFile | null = null;
   for (let i = 0; i < FILE_WAIT_TRIES; i++) {
@@ -101,12 +85,10 @@ async function classifyStub(
   }
   const debug = isClassificationDebug();
   const startedAt = performance.now();
-  // A local run is still a billable policy run, so it belongs in the activity feed; recorded only
-  // once the bytes are in hand, so a file whose bytes never land leaves no phantom row.
+  // Record the run only after the file bytes are available, so missing files leave no phantom row.
 
   // Read before recordRunStart, which takes the dispatch key itself and would otherwise always
-  // answer "already dispatched", silently stopping metering.
-  const alreadyMetered = isDispatched(CLASSIFICATION_POLICY_KEY, fileId);
+  // answer "already dispatched", silently stopping run tracking.
   const runId = `local-${CLASSIFICATION_POLICY_KEY}-${fileId}-${Date.now()}`;
   recordRunStart({
     runId,
@@ -132,22 +114,9 @@ async function classifyStub(
         : `core only, ${result.language ?? "language unknown"}`;
     const verdict = labels.length > 0 ? labels.join(", ") : "no label";
     console.debug(
-      `[Classify] ${fileName} -> ${verdict} (${result.confidence}, score ${result.score}, ${scoredAgainst}, ${ms}ms)` +
-        (alreadyMetered ? " [heal: not re-metered]" : ""),
+      `[Classify] ${fileName} -> ${verdict} (${result.confidence}, score ${result.score}, ${scoredAgainst}, ${ms}ms)`,
     );
     if (debug && result.explain) logExplanation(fileName, result);
-    // The billable classify run. The engine fires this only when no server run follows: an AI
-    // escalation bills the run, or - when the verdict stands, or the AI engine is off so nothing
-    // escalates - this local pass does. Never both. First pass only; a heal re-run of an
-    // undelivered result is not a new charge.
-    const meter = alreadyMetered
-      ? undefined
-      : () =>
-          meterAutomationRun({
-            automationName: "Classification",
-            operations: [CLASSIFY_STEP],
-            inputs: [{ pages: pageCount, bytes: fileSize }],
-          });
     markDispatched(CLASSIFICATION_POLICY_KEY, fileId);
     // Labels, no output file - the same settle shape the server-run classification uses.
     updateRun(runId, {
@@ -155,10 +124,10 @@ async function classifyStub(
       imported: true,
       outputFileIds: [fileId],
     });
-    return { labels, confidence: result.confidence, meter };
+    return { labels, confidence: result.confidence };
   } catch (err) {
     // Never persist a verdict for an unreadable file - the failure may be
-    // environmental, so it must stay eligible to retry (and meter) later.
+    // environmental, so it must stay eligible to retry later.
     console.warn(`[Classify] ${fileName}: could not be read, will retry`, err);
     updateRun(runId, {
       status: "FAILED",

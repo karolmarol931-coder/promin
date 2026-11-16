@@ -14,7 +14,6 @@ const mocks = vi.hoisted(() => ({
   get: vi.fn(),
   post: vi.fn(),
   exportPdf: vi.fn(),
-  checkCredits: vi.fn(),
   ensureReady: vi.fn(),
   assertAllowed: vi.fn(),
   extractZipFiles: vi.fn(),
@@ -33,9 +32,6 @@ vi.mock("@editor/services/policyFileGuard", () => ({
 }));
 vi.mock("@editor/hooks/useEndpointConfig", () => ({
   useEndpointEnabled: () => ({ enabled: mocks.enabled }),
-}));
-vi.mock("@editor/hooks/useCreditCheck", () => ({
-  useCreditCheck: () => ({ checkCredits: mocks.checkCredits }),
 }));
 vi.mock("@editor/hooks/tools/shared/useToolResources", () => ({
   useToolResources: () => ({ extractZipFiles: mocks.extractZipFiles }),
@@ -123,7 +119,6 @@ describe("editor inline OCR", () => {
       blob: new Blob(["%PDF-1.7\ncurrent edits"], { type: "application/pdf" }),
       filename: "scan_edited.pdf",
     });
-    mocks.checkCredits.mockResolvedValue(null);
     mocks.ensureReady.mockResolvedValue(true);
     mocks.assertAllowed.mockImplementation(() => {});
     vi.spyOn(Blob.prototype, "arrayBuffer").mockImplementation(
@@ -136,7 +131,7 @@ describe("editor inline OCR", () => {
   afterEach(() => vi.restoreAllMocks());
 
   it.each(["session", "native"])(
-    "blocks protected %s documents before exporting or checking credits",
+    "blocks protected %s documents before exporting or making requests",
     async (source) => {
       if (source === "session") protectSource();
       const { result, store, onComplete } = await setup(
@@ -146,7 +141,6 @@ describe("editor inline OCR", () => {
       expect(result.current.available).toBe(true);
       expect(result.current.blockedReason).toContain("protection");
       await act(() => result.current.runOcr());
-      expect(mocks.checkCredits).not.toHaveBeenCalled();
       expect(mocks.exportPdf).not.toHaveBeenCalled();
       expect(mocks.get).not.toHaveBeenCalled();
       expect(mocks.post).not.toHaveBeenCalled();

@@ -27,14 +27,7 @@
   overflow: clip;
 }
 
-/* The desktop title-bar row. Normal flow (first row of the frame column), so it
-   reserves its own height for the whole app and nothing below it can reach the
-   window-controls corner.
-
-   Three columns: search sits in the fixed centre column, centred on the strip;
-   the view switcher and global actions hug it from the equal side columns, so
-   the empty space (and the OS controls) fall on the outer edges rather than
-   between the clusters. */
+/* Three columns keep search centered between the view switcher and global actions. */
 .strip {
   position: relative;
   display: grid;
@@ -43,23 +36,12 @@
   column-gap: 8px;
   flex-shrink: 0;
   height: var(--titlebar-h, 2.5rem);
-  padding-inline: 8px;
+  padding-inline: 4.75rem;
   background: var(--c-surface);
   border-bottom: 1px solid var(--c-border-subtle);
   user-select: none;
   -webkit-user-select: none;
   z-index: 60;
-}
-
-/* The OS controls live in the reserved corners: macOS traffic lights top-left
-   (drawn by the OS over the overlay title bar), Windows controls top-right.
-   Reserve the SAME width on both sides so the centre column stays on the true
-   window midpoint whichever corner an OS actually uses. */
-.strip[data-os="macos"] {
-  padding-inline: 4.75rem;
-}
-.strip[data-os="windows"] {
-  padding-inline: 8.625rem; /* three 46px controls */
 }
 
 /* Portal targets: the view switcher hugs the search from the left column, the
@@ -83,53 +65,4 @@
   align-items: center;
   justify-content: center;
   min-width: 0;
-}
-
-.controls {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 100%;
-  display: flex;
-  align-items: stretch;
-  /* Keep minimize/maximize/close in that order regardless of app direction. */
-  direction: ltr;
-}
-
-.button {
-  width: 46px;
-  height: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--c-text-muted);
-  font-size: 15px;
-  line-height: 1;
-  cursor: default;
-  transition:
-    background-color 0.12s ease,
-    color 0.12s ease;
-}
-
-/* Clicks (and the drag hit test) resolve to the button, never its glyph. */
-.button svg {
-  pointer-events: none;
-}
-
-.button:hover {
-  background: var(--c-hover);
-  color: var(--c-text);
-}
-
-.close:hover {
-  background: var(--c-danger);
-  color: #fff;
-}
-
-.restoreIcon {
-  /* The overlapping-squares glyph reads large next to the others. */
-  font-size: 13px;
 }

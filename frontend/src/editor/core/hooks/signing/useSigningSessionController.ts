@@ -294,7 +294,7 @@ export function useSigningSessionController(
       response.headers,
       `${documentName}_signed.pdf`,
     );
-    await fileActions.addFiles([signedFile], { skipUploadTracking: true });
+    await fileActions.addFiles([signedFile], {});
     alert({
       alertType: "success",
       title: t("success"),
@@ -320,7 +320,7 @@ export function useSigningSessionController(
       response.headers,
       `${documentName}_signed.pdf`,
     );
-    await fileActions.addFiles([signedFile], { skipUploadTracking: true });
+    await fileActions.addFiles([signedFile], {});
     alert({
       alertType: "success",
       title: t("success"),

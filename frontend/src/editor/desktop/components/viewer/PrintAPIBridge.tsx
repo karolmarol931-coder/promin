@@ -1,13 +1,10 @@
 import { useEffect } from "react";
-import { usePrintCapability } from "@embedpdf/plugin-print/react";
 import { useViewer } from "@editor/contexts/ViewerContext";
 import { useDocumentReady } from "@editor/components/viewer/hooks/useDocumentReady";
 import { printPdfNatively } from "@editor/services/nativePrintService";
-import { DesktopOs, getDesktopOs } from "@editor/services/platformService";
 import { PrintAPIBridgeProps } from "@editor-core/components/viewer/PrintAPIBridge";
 
 export function PrintAPIBridge({ file, url, fileName }: PrintAPIBridgeProps) {
-  const { provides: print } = usePrintCapability();
   const { registerBridge } = useViewer();
   const documentReady = useDocumentReady();
 
@@ -18,15 +15,9 @@ export function PrintAPIBridge({ file, url, fileName }: PrintAPIBridgeProps) {
         api: {
           print: () => {
             void (async () => {
-              // macOS desktop uses a native print path because Tauri/WKWebView does not
-              // reliably support iframe-based PDF printing yet:
+              // WKWebView does not reliably support iframe-based PDF printing yet:
               // https://github.com/tauri-apps/tauri/issues/13451#issuecomment-4045138142
-              if ((await getDesktopOs()) === DesktopOs.Mac) {
-                await printPdfNatively(file, url, fileName);
-                return;
-              }
-
-              print?.print?.();
+              await printPdfNatively(file, url, fileName);
             })().catch((error) => {
               console.error("[Desktop Print] Print failed", error);
             });
@@ -38,7 +29,7 @@ export function PrintAPIBridge({ file, url, fileName }: PrintAPIBridgeProps) {
     return () => {
       registerBridge("print", null);
     };
-  }, [documentReady, file, fileName, print, registerBridge, url]);
+  }, [documentReady, file, fileName, registerBridge, url]);
 
   return null;
 }

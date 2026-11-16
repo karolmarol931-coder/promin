@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,13 +24,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import stirling.software.SPDF.config.swagger.MultiFileResponse;
 import stirling.software.SPDF.model.PipelineConfig;
-import stirling.software.SPDF.model.PipelineOperation;
 import stirling.software.SPDF.model.PipelineResult;
 import stirling.software.SPDF.model.api.HandleDataRequest;
 import stirling.software.common.annotations.AutoJobPostMapping;
 import stirling.software.common.annotations.api.PipelineApi;
 import stirling.software.common.enumeration.ResourceWeight;
-import stirling.software.common.service.PostHogService;
 import stirling.software.common.util.GeneralUtils;
 import stirling.software.common.util.PipelineLimits;
 import stirling.software.common.util.TempFile;
@@ -42,12 +39,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DatabindException;
 import tools.jackson.databind.ObjectMapper;
 
-/** Absent from the desktop bundle for the same reason as {@link PipelineDirectoryProcessor}. */
 @PipelineApi
-@ConditionalOnProperty(
-        name = "STIRLING_PDF_TAURI_MODE",
-        havingValue = "false",
-        matchIfMissing = true)
 @Slf4j
 @RequiredArgsConstructor
 public class PipelineController {
@@ -55,8 +47,6 @@ public class PipelineController {
     private final PipelineProcessor processor;
 
     private final ObjectMapper objectMapper;
-
-    private final PostHogService postHogService;
 
     private final TempFileManager tempFileManager;
 
@@ -79,15 +69,6 @@ public class PipelineController {
         }
         PipelineConfig config = objectMapper.readValue(jsonString, PipelineConfig.class);
         log.info("Received POST request to /handleData with {} files", files.length);
-
-        List<String> operationNames =
-                config.getOperations().stream().map(PipelineOperation::getOperation).toList();
-
-        Map<String, Object> properties = new HashMap<>();
-        properties.put("operations", operationNames);
-        properties.put("fileCount", files.length);
-
-        postHogService.captureEvent("pipeline_api_event", properties);
 
         List<Resource> inputFiles = null;
         PipelineResult result = null;

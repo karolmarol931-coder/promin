@@ -9,17 +9,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.Environment;
 
 import stirling.software.common.configuration.AppConfig;
-import stirling.software.common.model.ApplicationProperties;
 
 @ExtendWith(MockitoExtension.class)
 public class SPDFApplicationTest {
-
-    @Mock private Environment env;
-
-    @Mock private ApplicationProperties applicationProperties;
 
     @InjectMocks private SPDFApplication sPDFApplication;
 
@@ -49,14 +43,10 @@ public class SPDFApplicationTest {
 
     @Test
     public void testInit() {
-        when(appConfig.getBackendUrl()).thenReturn("http://localhost");
-        when(appConfig.getContextPath()).thenReturn("/app");
         when(appConfig.getServerPort()).thenReturn("8080");
 
         sPDFApplication.init();
 
-        assertEquals("http://localhost:8080", SPDFApplication.getStaticBaseUrl());
-        assertEquals("/app", SPDFApplication.getStaticContextPath());
         assertEquals("8080", SPDFApplication.getStaticPort());
     }
 

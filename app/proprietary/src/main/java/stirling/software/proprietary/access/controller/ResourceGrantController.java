@@ -29,12 +29,12 @@ import stirling.software.proprietary.security.database.repository.UserRepository
 import stirling.software.proprietary.security.model.User;
 import stirling.software.proprietary.security.repository.TeamRepository;
 
-/** Admin endpoints to grant/revoke access to gated resources (the portal, integration configs). */
+/** Admin endpoints to grant/revoke access to integration configurations. */
 @RestController
 @RequestMapping("/api/v1/admin/access")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
-@Tag(name = "Access Control", description = "Manage resource access grants (portal, integrations)")
+@Tag(name = "Access Control", description = "Manage resource access grants")
 public class ResourceGrantController {
 
     private final ResourceAccessService accessService;
@@ -69,9 +69,7 @@ public class ResourceGrantController {
                                     "error",
                                     "resourceType, principalType and principalId are required"));
         }
-        // PORTAL is a singleton (empty resourceId); every other type must name a resource.
-        boolean portal = request.resourceType() == ResourceType.PORTAL;
-        if (!portal && (request.resourceId() == null || request.resourceId().isBlank())) {
+        if (request.resourceId() == null || request.resourceId().isBlank()) {
             return ResponseEntity.badRequest()
                     .body(Map.of("error", "resourceId is required for " + request.resourceType()));
         }
@@ -82,11 +80,10 @@ public class ResourceGrantController {
         }
         AccessPermission permission =
                 request.permission() == null ? AccessPermission.USE : request.permission();
-        String resourceId = portal ? "" : request.resourceId();
         ResourceGrant grant =
                 accessService.grant(
                         request.resourceType(),
-                        resourceId,
+                        request.resourceId(),
                         request.principalType(),
                         principalId,
                         permission,

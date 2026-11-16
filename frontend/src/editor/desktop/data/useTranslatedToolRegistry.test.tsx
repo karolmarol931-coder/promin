@@ -7,7 +7,7 @@ const state = vi.hoisted(() => ({
 vi.mock("@editor/hooks/useLocalProcessingOnly", () => ({
   useLocalProcessingOnly: () => state.localOnly,
 }));
-vi.mock("@editor/hooks/useEndpointConfig", () => ({
+vi.mock("@editor/hooks/useEndpointAvailability", () => ({
   useMultipleEndpointsEnabled: () => ({ endpointStatus: state.status }),
 }));
 vi.mock("@editor-core/data/useTranslatedToolRegistry", () => {

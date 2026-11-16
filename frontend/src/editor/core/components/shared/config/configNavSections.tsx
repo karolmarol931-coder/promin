@@ -28,8 +28,7 @@ export interface ConfigColors {
 export const PREFERENCES_ITEM_KEY = "general";
 
 /**
- * The Preferences group. A plain builder rather than a hook so the SaaS nav,
- * which is assembled outside a component, renders the same page.
+ * The Preferences group, built as data so settings layers can compose it.
  */
 export function createPreferencesNavSection(
   t: TFunction<"translation", undefined>,
@@ -44,7 +43,7 @@ export function createPreferencesNavSection(
         label: t("settings.general.title", "General"),
         description: t(
           "settings.preferences.description",
-          "How the editor looks and behaves for you, and your account.",
+          "Change how the editor looks and works.",
         ),
         icon: "sliders-horizontal",
         component: <PreferencesSection {...props} />,

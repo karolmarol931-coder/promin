@@ -64,7 +64,9 @@ public class RotationController {
             PDPageTree pages = document.getPages();
 
             for (PDPage page : pages) {
-                page.setRotation(page.getRotation() + angle);
+                int currentRotation = Math.floorMod(page.getRotation(), 360);
+                int requestedRotation = Math.floorMod(angle, 360);
+                page.setRotation((currentRotation + requestedRotation) % 360);
             }
 
             // Return the rotated PDF as a response

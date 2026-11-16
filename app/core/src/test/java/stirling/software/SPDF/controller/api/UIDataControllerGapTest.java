@@ -77,9 +77,8 @@ class UIDataControllerGapTest {
     class FooterData {
 
         @Test
-        @DisplayName("maps all legal and analytics fields onto the response body")
+        @DisplayName("maps legal fields onto the response body")
         void mapsAllFields() {
-            when(system.getEnableAnalytics()).thenReturn(Boolean.TRUE);
             when(legal.getTermsAndConditions()).thenReturn("https://terms");
             when(legal.getPrivacyPolicy()).thenReturn("https://privacy");
             when(legal.getAccessibilityStatement()).thenReturn("https://a11y");
@@ -92,7 +91,6 @@ class UIDataControllerGapTest {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             UIDataController.FooterData body = response.getBody();
             assertNotNull(body);
-            assertEquals(Boolean.TRUE, body.getAnalyticsEnabled());
             assertEquals("https://terms", body.getTermsAndConditions());
             assertEquals("https://privacy", body.getPrivacyPolicy());
             assertEquals("https://a11y", body.getAccessibilityStatement());
@@ -103,7 +101,6 @@ class UIDataControllerGapTest {
         @Test
         @DisplayName("propagates null/false values from configuration")
         void handlesNulls() {
-            when(system.getEnableAnalytics()).thenReturn(Boolean.FALSE);
             when(legal.getTermsAndConditions()).thenReturn(null);
             when(legal.getPrivacyPolicy()).thenReturn(null);
             when(legal.getAccessibilityStatement()).thenReturn(null);
@@ -116,7 +113,6 @@ class UIDataControllerGapTest {
             assertEquals(HttpStatus.OK, response.getStatusCode());
             UIDataController.FooterData body = response.getBody();
             assertNotNull(body);
-            assertEquals(Boolean.FALSE, body.getAnalyticsEnabled());
             assertNull(body.getTermsAndConditions());
             assertNull(body.getPrivacyPolicy());
             assertNull(body.getAccessibilityStatement());
@@ -411,8 +407,6 @@ class UIDataControllerGapTest {
         @Test
         @DisplayName("getFooterData never touches the signature or user services")
         void footerDataIsIndependentOfUserState() {
-            when(system.getEnableAnalytics()).thenReturn(null);
-
             controller(userService).getFooterData();
 
             verify(signatureService, never())

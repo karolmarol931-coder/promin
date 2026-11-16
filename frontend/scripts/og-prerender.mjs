@@ -7,11 +7,11 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const SITE_NAME = "Stirling PDF";
+const SITE_NAME = "Promin";
 const APP_SUFFIX = ` - ${SITE_NAME}`;
 // Public project home - a safe, verifiable sameAs signal for structured data.
 const GITHUB_URL = "https://github.com/Stirling-Tools/Stirling-PDF";
-const LOGO_PATH = "/modern-logo/logo512.png";
+const LOGO_PATH = "/promin/logo512.png";
 
 export const escapeHtml = (value) =>
   String(value)
@@ -80,7 +80,7 @@ export function buildOgTags(entry, { ogBase = "", pageUrlPath = null } = {}) {
   const lines = [
     "<!-- og:start -->",
     '<meta property="og:type" content="website" />',
-    '<meta property="og:site_name" content="Stirling PDF" />',
+    `<meta property="og:site_name" content="${SITE_NAME}" />`,
     `<meta property="og:title" content="${title}" />`,
     `<meta property="og:description" content="${description}" />`,
     pageUrl ? `<meta property="og:url" content="${pageUrl}" />` : null,
@@ -355,7 +355,7 @@ export async function prerenderOg({
     canonicalPath: homePath,
     isHome: true,
   });
-  // Home <title> stays the brand ("Stirling PDF"); the H1 targets the keyword.
+  // Home <title> stays the brand; the H1 targets the keyword.
   if (injectLanding) {
     home = injectBody(
       home,

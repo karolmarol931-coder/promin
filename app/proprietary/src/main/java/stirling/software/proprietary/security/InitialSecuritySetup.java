@@ -1,13 +1,11 @@
 package stirling.software.proprietary.security;
 
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Component;
 
@@ -41,16 +39,7 @@ public class InitialSecuritySetup {
     private final ApplicationProperties applicationProperties;
     private final DatabaseServiceInterface databaseService;
     private final UserLicenseSettingsService licenseSettingsService;
-    private final Environment environment;
     private final TeamMembershipService teamMembershipService;
-
-    /**
-     * SaaS skips the self-host bootstrap: full-table backfills stall startup at SaaS scale, and
-     * team assignment happens per-user in SupabaseAuthenticationFilter instead.
-     */
-    private boolean isSaas() {
-        return Arrays.asList(environment.getActiveProfiles()).contains("saas");
-    }
 
     // Peers racing a cold shared DB collide on a different row each pass, and each collision means
     // a peer committed that row - so a bounded loop converges; one retry is not enough.
@@ -103,14 +92,8 @@ public class InitialSecuritySetup {
 
         configureJWTSettings();
         initializeInternalApiUser();
-        if (isSaas()) {
-            log.info(
-                    "SaaS profile active - skipping self-host user-table bootstrap"
-                            + " (default-team backfill, seat-license grandfathering).");
-        } else {
-            assignUsersToDefaultTeamIfMissing();
-            initializeUserLicenseSettings();
-        }
+        assignUsersToDefaultTeamIfMissing();
+        initializeUserLicenseSettings();
     }
 
     private void initializeUserLicenseSettings() {

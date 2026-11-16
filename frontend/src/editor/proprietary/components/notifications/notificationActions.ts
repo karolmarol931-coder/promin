@@ -1,24 +1,15 @@
-import { useCallback, useContext, useEffect, useMemo } from "react";
+import { useCallback, useContext, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
-import { withBasePath } from "@editor/constants/app";
 import {
   FileActionsContext,
   FileStoreContext,
 } from "@editor/contexts/file/contexts";
 import { NavigationActionsContext } from "@editor/contexts/NavigationContext";
 import { ViewerContext } from "@editor/contexts/ViewerContext";
-import { getToolUrlPath } from "@editor/data/toolsTaxonomy";
-import {
-  PORTAL_BASENAME,
-  PORTAL_REVIEW_PATH,
-} from "@editor/routes/portalBasename";
-import { EDITOR_BASENAME } from "@editor/routes/editorBasename";
-import { HAS_PORTAL } from "@editor/routes/hasPortal";
 import { fileStorage } from "@editor/services/fileStorage";
 import { rerunPolicy } from "@editor/services/notificationPolicyRetry";
 import { dispatchNotificationAction } from "@editor/services/notifications";
-import { isValidToolId, type ToolId } from "@editor/types/toolId";
+import { type ToolId } from "@editor/types/toolId";
 import type { FileId } from "@editor/types/file";
 import {
   RESOLUTIONS,
@@ -45,56 +36,8 @@ export {
   type NotificationActionContext,
 };
 
-// The portal mounts as a sibling of AppProviders, so no workbench contexts sit above this hook.
-
-const HANDOFF_KEY = "stirling.notifications.pendingSelection";
-
-const REVIEW_DESTINATION = `${PORTAL_BASENAME}${PORTAL_REVIEW_PATH}`;
-
-/** The document to open on arrival, and the tool to open it into. */
-interface Handoff {
-  fileId: string;
-  tool: ToolId | null;
-}
-
-/** False when storage refused it: navigating anyway lands the user in an empty editor. */
-function stashSelection(fileId: string, tool: ToolId | null = null): boolean {
-  try {
-    window.sessionStorage.setItem(
-      HANDOFF_KEY,
-      JSON.stringify({ fileId, tool }),
-    );
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-function takeSelection(): Handoff | null {
-  try {
-    const stored = window.sessionStorage.getItem(HANDOFF_KEY);
-    if (stored === null) return null;
-    window.sessionStorage.removeItem(HANDOFF_KEY);
-    const { fileId, tool } = JSON.parse(stored) as Record<string, unknown>;
-    if (typeof fileId !== "string" || fileId === "") return null;
-    return {
-      fileId,
-      tool: typeof tool === "string" && isValidToolId(tool) ? tool : null,
-    };
-  } catch {
-    return null;
-  }
-}
-
-/** Not the router's `navigate`: the editor reads its tool on mount and on a history pop. */
-function goToEditor(path: string): void {
-  window.history.pushState({}, "", withBasePath(path));
-  window.dispatchEvent(new PopStateEvent("popstate"));
-}
-
 export function useNotificationActions(): ClientActionRegistry {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   // Raw, because the wrapping hooks throw without a provider. All four are present or none are.
   const fileContext = useContext(FileActionsContext);
   const fileStore = useContext(FileStoreContext);
@@ -128,34 +71,16 @@ export function useNotificationActions(): ClientActionRegistry {
     [fileContext, fileStore, navigation, viewer],
   );
 
-  // One-shot: a later render must not reopen a file the user has moved on from.
-  useEffect(() => {
-    if (!canOpenHere) return;
-    const handoff = takeSelection();
-    if (handoff) void openInWorkbench(handoff.fileId, handoff.tool);
-  }, [canOpenHere, openInWorkbench]);
-
   return useMemo<ClientActionRegistry>(() => {
     const openDocument = async (
       fileId: string | null,
     ): Promise<ClientActionOutcome | void> => {
       if (!fileId) return;
 
-      // In place: "/" is the landing router, which redirects wherever the account belongs.
       if (canOpenHere) {
         return (await openInWorkbench(fileId)) ? undefined : { ok: false };
       }
-
-      if (!stashSelection(fileId)) {
-        return {
-          ok: false,
-          message: t(
-            "notifications.handoffUnavailable",
-            "This browser will not let the processor pass the document to the editor. Open it from the editor instead.",
-          ),
-        };
-      }
-      goToEditor(EDITOR_BASENAME);
+      return unavailable(t);
     };
 
     /** Into the viewer, the only view that scopes the tool to the one document that failed. */
@@ -168,17 +93,7 @@ export function useNotificationActions(): ClientActionRegistry {
           ? undefined
           : unavailable(t);
       }
-      if (fileId && !stashSelection(fileId, tool)) {
-        // Nothing would be open on arrival, so say so rather than navigate regardless.
-        return {
-          ok: false,
-          message: t(
-            "notifications.handoffUnavailable",
-            "This browser will not let the processor pass the document to the editor. Open it from the editor instead.",
-          ),
-        };
-      }
-      goToEditor(tool ? getToolUrlPath(tool) : EDITOR_BASENAME);
+      return unavailable(t);
     };
 
     const openInTool: ClientActionSpec = {
@@ -206,19 +121,10 @@ export function useNotificationActions(): ClientActionRegistry {
       run: (context) => openDocument(context.notification.fileId),
     };
 
-    const viewInProcessor: ClientActionSpec = {
-      // Desktop ships the app without the processor, so the destination is not routed there and
-      // the button navigated to nothing.
-      available: () => HAS_PORTAL,
-      closesPanel: true,
-      run: () => navigate(REVIEW_DESTINATION),
-    };
-
     const heldByServer = (context: NotificationActionContext) =>
       context.notification.documentLocation === "SMART_FOLDER";
 
-    // What the server does on this browser's behalf: the document is in a folder this browser
-    // cannot reach, so all the client does is ask, and the row names which file it is about.
+    // Watched-folder documents stay on disk, so the local backend runs their notification action.
     const askTheServer = (
       actionId: string,
       whenItFails: string,
@@ -269,7 +175,6 @@ export function useNotificationActions(): ClientActionRegistry {
       OPEN_IN_TOOL: retry,
       ...resolutions,
       VIEW_FILE: viewFile,
-      VIEW_IN_PROCESSOR: viewInProcessor,
     };
-  }, [canOpenHere, openInWorkbench, fileContext, fileStore, navigate, t]);
+  }, [canOpenHere, openInWorkbench, fileContext, fileStore, t]);
 }

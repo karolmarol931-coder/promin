@@ -12,19 +12,16 @@ export default function FileManager({ selectedTool }: FileManagerProps) {
   const { isFilesModalOpen, closeFilesModal, supportedFormats } =
     useFilesModalContext();
   const [busy, setBusy] = useState(false);
-  const [externalPickerOpen, setExternalPickerOpen] = useState(false);
   return (
     <LibraryPickerModal
       opened={isFilesModalOpen}
       onClose={closeFilesModal}
       busy={busy}
-      externalPickerOpen={externalPickerOpen}
     >
       {isFilesModalOpen && (
         <LibraryFilePicker
           supportedFormats={supportedFormats ?? selectedTool?.supportedFormats}
           onBusyChange={setBusy}
-          onExternalPickerChange={setExternalPickerOpen}
         />
       )}
     </LibraryPickerModal>

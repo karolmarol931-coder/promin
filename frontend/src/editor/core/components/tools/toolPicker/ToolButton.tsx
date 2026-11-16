@@ -21,8 +21,6 @@ import {
   resolveDisabledMessage,
 } from "@editor/components/tools/fullscreen/shared";
 import { useAppConfig } from "@editor/contexts/AppConfigContext";
-import { CloudBadge } from "@editor/components/shared/CloudBadge";
-import { useWillUseCloud } from "@editor/hooks/useWillUseCloud";
 
 interface ToolButtonProps {
   id: ToolId;
@@ -75,12 +73,6 @@ const ToolButton: React.FC<ToolButtonProps> = ({
   const binding = hotkeys[id];
   const { getToolNavigation } = useToolNavigation();
   const fav = isFavorite(id);
-
-  // Check if this tool will route to SaaS backend (desktop only)
-  const rawEndpoint = tool.operationConfig?.endpoint;
-  const endpointString =
-    typeof rawEndpoint === "string" ? rawEndpoint : undefined;
-  const usesCloud = useWillUseCloud(endpointString);
 
   const handleClick = (id: ToolId) => {
     if (isUnavailable) {
@@ -198,7 +190,6 @@ const ToolButton: React.FC<ToolButtonProps> = ({
             {badgeCount}
           </Badge>
         )}
-        {usesCloud && !visuallyUnavailable && <CloudBadge />}
       </div>
       {showDescription && tool.description && (
         <span

@@ -68,7 +68,7 @@ vi.mock("@editor/services/policyApi", () => ({
   getPolicyRun: mocks.getPolicyRun,
   listPolicyRuns: mocks.listPolicyRuns,
   downloadPolicyOutput: mocks.downloadPolicyOutput,
-  resolvePolicyRunTarget: () => "saas",
+  resolvePolicyRunTarget: () => "local",
 }));
 vi.mock("@editor/services/fileStorage", () => ({
   fileStorage: {
@@ -150,7 +150,7 @@ beforeEach(() => {
     fileId: "file-0",
     fileName: "doc.pdf",
     fileSize: 100,
-    target: "saas",
+    target: "local",
     status: "PENDING",
     outputs: [],
     error: null,

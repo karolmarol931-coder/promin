@@ -4,11 +4,7 @@ import * as path from "node:path";
 import { suppressNativeFilePicker } from "@editor/tests/helpers/ui-helpers";
 
 /**
- * Custom test fixture that:
- *   1. auto-dismisses the cookie consent banner (the banner overlays
- *      the page and intercepts pointer events, causing click timeouts
- *      across all tests);
- *   2. optionally captures V8 JS coverage per test when PW_COVERAGE=1.
+ * Custom test fixture that optionally captures V8 JS coverage per test when PW_COVERAGE=1.
  *
  * Coverage notes:
  *   - Only chromium supports page.coverage.* - the try/catch silently
@@ -41,22 +37,6 @@ const COVERAGE_DIR = path.resolve(
 export const test = base.extend({
   page: async ({ page }, use, testInfo) => {
     suppressNativeFilePicker(page);
-    await page.context().addCookies([
-      {
-        name: "cc_cookie",
-        value: JSON.stringify({
-          categories: ["necessary"],
-          revision: 0,
-          data: null,
-          rfc_cookie: false,
-          consentTimestamp: new Date().toISOString(),
-          consentId: "playwright-test",
-        }),
-        domain: "localhost",
-        path: "/",
-      },
-    ]);
-
     if (COVERAGE_ENABLED) {
       try {
         await page.coverage.startJSCoverage({ resetOnNavigation: false });

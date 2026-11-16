@@ -27,6 +27,7 @@ import javax.imageio.ImageIO;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -515,6 +516,9 @@ class SigningFinalizationServiceMoreTest {
             signed.setLastUpdated(java.time.LocalDateTime.now());
             WorkflowParticipant declined = participant(2L, ParticipantStatus.DECLINED);
             WorkflowSession session = sessionOf(signed, declined);
+            signed.setName("Олена Іваненко");
+            session.setDocumentName("Угода Łódź.pdf");
+            session.getOwner().setUsername("Слава");
             session.getWorkflowMetadata().put("includeSummaryPage", true);
 
             byte[] original = singlePagePdf();
@@ -537,6 +541,11 @@ class SigningFinalizationServiceMoreTest {
             byte[] result = service.finalizeDocument(session, original);
 
             assertThat(result).isNotNull();
+            try (PDDocument finalized = org.apache.pdfbox.Loader.loadPDF(result)) {
+                assertThat(finalized.getNumberOfPages()).isEqualTo(2);
+                assertThat(new PDFTextStripper().getText(finalized))
+                        .contains("Олена Іваненко", "Угода Łódź.pdf", "Слава");
+            }
             // showVisualSignature forced to false when summary page enabled
             verify(pdfSigningService)
                     .signWithKeystore(

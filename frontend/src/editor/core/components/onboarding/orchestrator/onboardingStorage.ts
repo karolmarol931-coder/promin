@@ -31,7 +31,7 @@ function writeJson(key: string, value: unknown): void {
   }
 }
 
-/** Whether a named flow (e.g. "saas", "portal") has been seen/dismissed. */
+/** Whether a named onboarding flow has been seen or dismissed. */
 export function hasSeenFlow(flowId: string): boolean {
   if (typeof window === "undefined") return false;
   try {

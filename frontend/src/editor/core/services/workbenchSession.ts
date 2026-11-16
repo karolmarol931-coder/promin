@@ -1,15 +1,13 @@
-// The tab's last editor session (open files, selection, view), so a processor switch or reload
-// does not cost the user their workbench. sessionStorage on purpose: per-tab, tabs never clobber.
+// The tab's last editor session (open files, selection, view), so an app reload does not lose the
+// workbench. sessionStorage keeps tabs independent.
 
 import type { StirlingFileStub } from "@editor/types/fileContext";
-import { stripBasePath } from "@editor/constants/app";
 
 const SESSION_KEY = "stirling.workbench.session";
 /** Bumped when the record's shape or meaning changes, so an old one is discarded rather than
  *  half-read. v2: `userId` became meaningful - v1 records were written without a real owner and
  *  would otherwise look like they belonged to an anonymous session forever. */
 const SESSION_VERSION = 2;
-const RETURN_PATH_KEY = "stirling.workbench.editorReturnPath";
 
 // All ids are ORIGINAL file ids - a file's stable identity across versions.
 export interface WorkbenchSession {
@@ -153,25 +151,4 @@ export function isSeedableView(
   view: string | undefined,
 ): view is "viewer" | "fileEditor" | "pageEditor" {
   return view !== undefined && SEEDABLE_VIEWS.includes(view);
-}
-
-export function saveEditorReturnPath(): void {
-  try {
-    const path =
-      stripBasePath(window.location.pathname) + window.location.search;
-    sessionStorage.setItem(RETURN_PATH_KEY, path);
-  } catch {
-    // Best-effort: the switch back just lands on the editor root.
-  }
-}
-
-/** One-shot: consumed by the switch back so a stale path cannot linger. */
-export function takeEditorReturnPath(): string | null {
-  try {
-    const path = sessionStorage.getItem(RETURN_PATH_KEY);
-    if (path !== null) sessionStorage.removeItem(RETURN_PATH_KEY);
-    return path;
-  } catch {
-    return null;
-  }
 }

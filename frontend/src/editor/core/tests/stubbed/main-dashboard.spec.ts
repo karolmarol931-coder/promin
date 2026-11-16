@@ -1,5 +1,6 @@
 import { test, expect } from "@editor/tests/helpers/stub-test-base";
 import {
+  expandToolPicker,
   openSettings,
   expandSettingsGroups,
   revealInPicker,
@@ -31,6 +32,7 @@ test.describe("2. Main Dashboard / Home Page", () => {
       await expect(
         page.locator('[data-sidebar="tool-panel"]').first(),
       ).toBeVisible();
+      await expandToolPicker(page);
 
       const categories = [
         "Recommended",

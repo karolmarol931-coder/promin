@@ -4,7 +4,6 @@ import { renderHook } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import {
   context,
-  inProcessor,
   notification,
   offer,
   policyContext,
@@ -48,14 +47,6 @@ vi.mock("@editor/services/notifications", async () => ({
     reportNotificationResolved(...args),
   dispatchNotificationAction: (...args: unknown[]) =>
     dispatchNotificationAction(...args),
-}));
-
-const navigate = vi.fn();
-vi.mock("react-router-dom", async () => ({
-  ...(await vi.importActual<typeof import("react-router-dom")>(
-    "react-router-dom",
-  )),
-  useNavigate: () => navigate,
 }));
 
 // No i18n instance here, and the plugin is stubbed because the contexts below reach `core/i18n`.
@@ -146,13 +137,15 @@ const inEditor = ({ children }: { children: ReactNode }) => (
     </FileActionsContext.Provider>
   </MemoryRouter>
 );
+const withoutWorkbench = ({ children }: { children: ReactNode }) => (
+  <MemoryRouter>{children}</MemoryRouter>
+);
 
 function registry(wrapper = inEditor) {
   return renderHook(() => useNotificationActions(), { wrapper }).result.current;
 }
 
 beforeEach(() => {
-  navigate.mockReset();
   addStirlingFileStubs.mockReset().mockResolvedValue([]);
   setActiveFileId.mockReset();
   setWorkbench.mockReset();
@@ -197,10 +190,8 @@ beforeEach(() => {
     ok: true,
     tracked: true,
   });
-  // Placeable by default: the browser still holds the policy the failure names.
+  // Placeable by default: the workspace still holds the policy the failure names.
   canPlacePolicy.mockReset().mockReturnValue(true);
-  window.sessionStorage.clear();
-  window.history.pushState({}, "", "/");
 });
 
 describe("useNotificationActions", () => {
@@ -217,7 +208,7 @@ describe("useNotificationActions", () => {
     );
   });
 
-  it("opens the document alone when the stashed operation names no tool this build has", async () => {
+  it("opens the document alone when the saved operation names no available tool", async () => {
     await registry().OPEN_IN_TOOL?.run(
       context({
         retryPayload: {
@@ -245,12 +236,12 @@ describe("useNotificationActions", () => {
 
     expect(outcome).toEqual({
       ok: false,
-      message: "This document can no longer be retried from this browser.",
+      message: "This document is no longer available in this workspace.",
     });
     expect(setToolAndWorkbench).not.toHaveBeenCalled();
   });
 
-  it("offers no retry once the document has left this browser", () => {
+  it("offers no retry once the document has left this workspace", () => {
     const actions = registry();
 
     expect(
@@ -283,12 +274,10 @@ describe("useNotificationActions", () => {
     expect(setWorkbench).toHaveBeenCalledWith("viewer");
   });
 
-  it("stays where it is rather than routing through the landing root", async () => {
-    // "/" lands on a page chosen by the reader's role, which reads as the app reloading.
+  it("opens the document in the current app window", async () => {
     await registry().VIEW_FILE?.run(context());
 
-    expect(window.location.pathname).toBe("/");
-    expect(navigate).not.toHaveBeenCalled();
+    expect(setWorkbench).toHaveBeenCalledWith("viewer");
   });
 
   it("does not add a document the workbench is already holding", async () => {
@@ -310,147 +299,9 @@ describe("useNotificationActions", () => {
     expect(outcome).toEqual({ ok: false });
     expect(setWorkbench).not.toHaveBeenCalled();
   });
-
-  it("hands the document over to the editor when there is no workbench above it", async () => {
-    await registry(inProcessor).VIEW_FILE?.run(context());
-
-    // The intent outlives the navigation that mounts the editor.
-    expect(
-      window.sessionStorage.getItem("stirling.notifications.pendingSelection"),
-    ).toBe(JSON.stringify({ fileId: "f-1", tool: null }));
-    // The editor's own URL, not the role router at "/".
-    expect(window.location.pathname).toBe("/editor");
-  });
-
-  it("hands the tool over with the document, so a retry arrives scoped", async () => {
-    await registry(inProcessor).OPEN_IN_TOOL?.run(context());
-
-    expect(
-      window.sessionStorage.getItem("stirling.notifications.pendingSelection"),
-    ).toBe(JSON.stringify({ fileId: "f-1", tool: "removePassword" }));
-    expect(window.location.pathname).toBe("/remove-password");
-  });
-
-  it("picks up a handed-over document as soon as an editor is there", async () => {
-    window.sessionStorage.setItem(
-      "stirling.notifications.pendingSelection",
-      JSON.stringify({ fileId: "f-9", tool: null }),
-    );
-
-    registry();
-    await vi.waitFor(() => expect(setActiveFileId).toHaveBeenCalledWith("f-9"));
-
-    expect(setWorkbench).toHaveBeenCalledWith("viewer");
-    expect(setToolAndWorkbench).not.toHaveBeenCalled();
-    // One-shot: a later mount must not reopen a document the user has moved on from.
-    expect(
-      window.sessionStorage.getItem("stirling.notifications.pendingSelection"),
-    ).toBeNull();
-  });
-
-  it("arrives scoped, so a retry handed over from the processor runs on one file", async () => {
-    window.sessionStorage.setItem(
-      "stirling.notifications.pendingSelection",
-      JSON.stringify({ fileId: "f-9", tool: "removePassword" }),
-    );
-
-    registry();
-
-    // One dispatch, not a workbench change the URL sync could then overwrite with a stale view.
-    await vi.waitFor(() =>
-      expect(setToolAndWorkbench).toHaveBeenCalledWith(
-        "removePassword",
-        "viewer",
-      ),
-    );
-    expect(setWorkbench).not.toHaveBeenCalled();
-  });
-
-  it("ignores a handed-over tool this build does not have", async () => {
-    window.sessionStorage.setItem(
-      "stirling.notifications.pendingSelection",
-      JSON.stringify({ fileId: "f-9", tool: "quarantine" }),
-    );
-
-    registry();
-    await vi.waitFor(() => expect(setWorkbench).toHaveBeenCalledWith("viewer"));
-
-    expect(setToolAndWorkbench).not.toHaveBeenCalled();
-  });
-
-  it("offers no unlock where there is nowhere to put the result", async () => {
-    // No FileContext there, so an unlocked document would have nowhere to go.
-    const actions = registry(inProcessor);
-
-    expect(actions.DECRYPT?.available(context())).toBe(false);
-    expect(actions.VIEW_IN_PROCESSOR?.available(context())).toBe(true);
-    // And it refuses rather than posting a password whose output would be discarded.
-    expect(await actions.DECRYPT?.run(context(), "hunter2")).toEqual({
-      ok: false,
-      message: "This document can no longer be retried from this browser.",
-    });
-    expect(retryWithPassword).not.toHaveBeenCalled();
-  });
-
-  it("says it cannot hand the document over rather than navigating to nothing", async () => {
-    // Spied on the prototype: jsdom's storage is a proxy, so an own-property spy does not take.
-    const setItem = vi
-      .spyOn(Object.getPrototypeOf(window.sessionStorage), "setItem")
-      .mockImplementation(() => {
-        throw new Error("denied");
-      });
-
-    const outcome = await registry(inProcessor).VIEW_FILE?.run(context());
-
-    expect(setItem).toHaveBeenCalledOnce();
-    expect(outcome).toEqual({
-      ok: false,
-      message:
-        "This browser will not let the processor pass the document to the editor. Open it from the editor instead.",
-    });
-    // Still on the page it started on, so the failure is visible.
-    expect(window.location.pathname).toBe("/");
-    setItem.mockRestore();
-  });
-
-  it("links to the processor's review screen", () => {
-    registry().VIEW_IN_PROCESSOR?.run(context());
-
-    expect(navigate).toHaveBeenCalledWith("/processor/review");
-  });
-
-  it("navigates in place even with a loaded workbench, never opening a tab", () => {
-    openFileIds = ["f-1"];
-    const openTab = vi.spyOn(window, "open");
-
-    registry().VIEW_IN_PROCESSOR?.run(context());
-
-    expect(openTab).not.toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith("/processor/review");
-    openTab.mockRestore();
-  });
-
-  it("navigates in place from the processor too", () => {
-    const openTab = vi.spyOn(window, "open");
-
-    registry(inProcessor).VIEW_IN_PROCESSOR?.run(context());
-
-    expect(openTab).not.toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith("/processor/review");
-    openTab.mockRestore();
-  });
-
-  it("offers the processor link whenever the server did", () => {
-    // The server only sends it to someone it will let read the queue.
-    expect(
-      registry(inProcessor).VIEW_IN_PROCESSOR?.available(
-        context({ hasLocalFile: false, retryPayload: null }),
-      ),
-    ).toBe(true);
-  });
 });
 
-/** The other retry shape: nothing is stashed, so everything comes off the row itself. */
+/** Policy notifications rerun the saved policy recorded on the row. */
 describe("retrying an attended policy run", () => {
   it("runs the policy again on the document it already holds", async () => {
     const outcome = await registry().OPEN_IN_TOOL?.run(policyContext());
@@ -464,9 +315,7 @@ describe("retrying an attended policy run", () => {
     expect(retryWithPassword).not.toHaveBeenCalled();
   });
 
-  it("submits nothing when the policy cannot be placed, so an unresolvable row stops billing", async () => {
-    // Same leak as the resolutions, reached through the plain retry: the run is chargeable and
-    // its output is uncollectable, and the row it fails to close keeps the button on offer.
+  it("submits nothing when the policy result cannot be placed", async () => {
     canPlacePolicy.mockReturnValue(false);
     const row = policyContext();
 
@@ -474,13 +323,12 @@ describe("retrying an attended policy run", () => {
 
     expect(await registry().OPEN_IN_TOOL?.run(row)).toEqual({
       ok: false,
-      message: "This document can no longer be retried from this browser.",
+      message: "This document is no longer available in this workspace.",
     });
     expect(rerunPolicy).not.toHaveBeenCalled();
   });
 
-  it("re-runs the policy rather than reopening a tool, even where a stash happens to exist", async () => {
-    // An earlier tool failure may have left a stash, but the row is about the policy.
+  it("re-runs the policy rather than reopening its original tool", async () => {
     await registry().OPEN_IN_TOOL?.run(
       policyContext({
         retryPayload: {
@@ -563,26 +411,25 @@ describe("retrying an attended policy run", () => {
       ),
     ).toBe(false);
 
-    // Document gone from this browser.
+    // The file is no longer on this device.
     expect(
       actions.OPEN_IN_TOOL?.available(policyContext({ hasLocalFile: false })),
     ).toBe(false);
   });
 
-  it("is offered nowhere without an editor to collect the result", () => {
-    // The bell mounts outside the app's providers there, so a run has nowhere to land.
-    const actions = registry(inProcessor);
+  it("is offered nowhere without the workbench providers", () => {
+    const actions = registry(withoutWorkbench);
 
     expect(actions.OPEN_IN_TOOL?.available(policyContext())).toBe(false);
     expect(actions.DECRYPT?.available(policyContext())).toBe(false);
   });
 
-  it("refuses rather than firing a run the processor shell could not collect", async () => {
+  it("refuses to run when the workbench cannot collect the result", async () => {
     expect(
-      await registry(inProcessor).OPEN_IN_TOOL?.run(policyContext()),
+      await registry(withoutWorkbench).OPEN_IN_TOOL?.run(policyContext()),
     ).toEqual({
       ok: false,
-      message: "This document can no longer be retried from this browser.",
+      message: "This document is no longer available in this workspace.",
     });
     expect(rerunPolicy).not.toHaveBeenCalled();
   });
@@ -613,8 +460,8 @@ describe("OPEN_IN_TOOL for a smart folder's document", () => {
     retryPayload: null,
   });
 
-  it("is offered even though this browser holds nothing to open", () => {
-    // The gap this test exists for: the same id opens a tool for a browser-held file, and would
+  it("is offered for a document held by a watched folder", () => {
+    // The same action opens a tool for a local file and asks the backend for a watched-folder file.
     // be dropped for a folder's document if only that half were wired.
     expect(registry().OPEN_IN_TOOL?.available(inFolder())).toBe(true);
   });

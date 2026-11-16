@@ -19,7 +19,6 @@ import { useDocumentMeta } from "@editor/hooks/useDocumentMeta";
 import AuthLayout from "@editor/routes/authShared/AuthLayout";
 import { useBackendProbe } from "@editor/hooks/useBackendProbe";
 import { EDITOR_BASENAME } from "@editor/routes/editorBasename";
-import { resolveLandingPath } from "@editor/utils/loginLanding";
 import { BASE_PATH, withBasePath } from "@editor/constants/app";
 import { updateSupportedLanguages } from "@editor/i18n";
 import SpringLoginForm from "@editor/auth/ui/SpringLoginForm";
@@ -138,7 +137,7 @@ export default function Login() {
       setShowDefaultCredentials(data.showDefaultCredentials ?? false);
       // Apply language configuration from server
       if (data.languages || data.defaultLocale) {
-        updateSupportedLanguages(data.languages, data.defaultLocale);
+        void updateSupportedLanguages(data.languages, data.defaultLocale);
       }
     },
   });
@@ -189,24 +188,7 @@ export default function Login() {
       navigate(returnPath, { replace: true });
       return;
     }
-    // No explicit destination: the editor, unless this account opted in to the
-    // processor. Resolved here rather than by bouncing through "/" so the app
-    // isn't torn down and remounted on the way.
-    let active = true;
-    // Warm the editor chunk while /me resolves so the landing paints at once.
-    void import("@editor/routes/Landing").catch(() => {});
-    void resolveLandingPath().then(
-      (path) => {
-        if (!active) return;
-        navigate(path, { replace: true });
-      },
-      () => {
-        if (active) navigate(EDITOR_BASENAME, { replace: true });
-      },
-    );
-    return () => {
-      active = false;
-    };
+    navigate(EDITOR_BASENAME, { replace: true });
   }, [session, loading, navigate, location.state, searchParams]);
 
   // If backend reports login is disabled, redirect to home (anonymous mode)
@@ -354,12 +336,12 @@ export default function Login() {
 
   // Set document meta
   useDocumentMeta({
-    title: `${t("login.title", "Sign in")} - Stirling PDF`,
+    title: `${t("login.title", "Sign in")} - Promin`,
     description: t(
       "app.description",
       "A free, private PDF editor you can run on any infrastructure.",
     ),
-    ogTitle: `${t("login.title", "Sign in")} - Stirling PDF`,
+    ogTitle: `${t("login.title", "Sign in")} - Promin`,
     ogDescription: t(
       "app.description",
       "A free, private PDF editor you can run on any infrastructure.",
@@ -400,12 +382,12 @@ export default function Login() {
         <div className="auth-logo-block">
           <img
             src={loginHeader}
-            alt="Stirling PDF"
+            alt="Promin"
             className="auth-logo-header auth-logo-header--light"
           />
           <img
             src={withBasePath("/modern-logo/LoginDarkModeHeader.svg")}
-            alt="Stirling PDF"
+            alt="Promin"
             className="auth-logo-header auth-logo-header--dark"
           />
         </div>

@@ -142,7 +142,7 @@ export function FileDetailsActions({
                   disabled={saveToServerDisabled}
                   onClick={() => onSaveToServer?.(localOnlyFiles)}
                 >
-                  {t("filesPage.addToLibrary", "Add to Stirling library…")}
+                  {t("filesPage.addToLibrary", "Add to Promin library…")}
                 </Menu.Item>
               </Tooltip>
             )}

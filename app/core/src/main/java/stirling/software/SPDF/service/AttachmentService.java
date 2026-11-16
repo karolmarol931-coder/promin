@@ -334,6 +334,10 @@ public class AttachmentService implements AttachmentServiceInterface {
 
         fileToRename.setFile(newName);
         fileToRename.setFileUnicode(newName);
+        String generatedDescription = "Embedded attachment: " + keyToRename;
+        if (generatedDescription.equals(fileToRename.getFileDescription())) {
+            fileToRename.setFileDescription("Embedded attachment: " + newName);
+        }
 
         allEmbeddedFiles.remove(keyToRename);
         allEmbeddedFiles.put(newName, fileToRename);

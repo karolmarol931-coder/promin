@@ -2,10 +2,8 @@ package stirling.software.proprietary.policy.config;
 
 /**
  * The current user's policy context, pluggable per deployment so the policy layer (proprietary)
- * needn't know the team model. SaaS: a user may edit policies only if they lead their team, and
- * every user is scoped to their own team. Self-hosted: a global admin may edit, scoped to their
- * (typically single) team. Policies are isolated per team — nobody, admins included, sees or edits
- * another team's policies.
+ * needn't know the team model. Local installations use administrators for policy management and
+ * scope reads to the current user's team. Policies are isolated per team.
  */
 public interface PolicyManagementAuthority {
 

@@ -139,22 +139,22 @@
   gap: 0.25rem;
 }
 
-.tool-picker__view-all {
-  margin-top: 0.75rem;
+.tool-picker__compact .tool-button__description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
-/* The rule only appears once rows scroll beneath the header, so a list at
-   rest has no line separating nothing. Stacked over the scroller, whose
-   negative top margin would otherwise paint rows over the rule. */
-.tool-picker__header {
-  position: relative;
-  z-index: 1;
+.tool-picker__compact .tool-button-container {
+  padding-right: 2rem;
+}
+
+.tool-picker__compact .tool-button-star {
+  opacity: 1;
+}
+
+.tool-picker__compact-footer {
   flex-shrink: 0;
-  background: var(--c-surface);
-  border-bottom: 1px solid transparent;
-  transition: border-color 0.12s ease;
-}
-
-.tool-picker__header[data-scrolled] {
-  border-bottom-color: var(--c-border-subtle);
+  padding: 0 var(--mantine-spacing-sm) var(--mantine-spacing-sm);
 }

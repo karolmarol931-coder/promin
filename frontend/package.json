@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "license": "SEE LICENSE IN https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/refs/heads/main/proprietary/LICENSE",
-  "proxy": "http://localhost:8080",
   "dependencies": {
     "@atlaskit/pragmatic-drag-and-drop": "^2.0.2",
     "@cantoo/pdf-lib": "^2.8.2",
@@ -12,6 +11,7 @@
     "@embedpdf/core": "^2.15.1",
     "@embedpdf/engines": "2.15.1",
     "@embedpdf/models": "^2.15.1",
+    "@embedpdf/pdfium": "2.15.1",
     "@embedpdf/plugin-annotation": "^2.15.1",
     "@embedpdf/plugin-attachment": "^2.15.1",
     "@embedpdf/plugin-bookmark": "^2.15.1",
@@ -42,11 +42,7 @@
     "@mantine/dates": "^8.3.1",
     "@mantine/dropzone": "^8.3.1",
     "@mantine/hooks": "^8.3.1",
-    "@posthog/react": "^1.8.2",
     "@reactour/tour": "^3.8.0",
-    "@stripe/react-stripe-js": "^6.8.0",
-    "@stripe/stripe-js": "^9.10.0",
-    "@supabase/supabase-js": "^2.47.13",
     "@tailwindcss/postcss": "^4.1.13",
     "@tanstack/react-query": "^5.102.0",
     "@tanstack/react-table": "^9.1.2",
@@ -57,7 +53,7 @@
     "@tauri-apps/plugin-http": "^2.5.7",
     "@tauri-apps/plugin-notification": "^2.3.3",
     "@tauri-apps/plugin-shell": "^2.3.5",
-    "@userback/widget": "^0.3.12",
+    "@tauri-apps/plugin-updater": "2.10.0",
     "autoprefixer": "^10.4.21",
     "axios": "^1.20.0",
     "d3": "^7.9.0",
@@ -67,9 +63,7 @@
     "license-report": "^6.8.5",
     "lucide-static": "^1.41.0",
     "pdfjs-dist": "^5.4.149",
-    "peerjs": "^1.5.5",
     "pixelmatch": "^7.1.0",
-    "posthog-js": "^1.405.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
@@ -91,25 +85,7 @@
     "update:minor": "node scripts/update-minor.js",
     "update:major": "npx npm-check-updates -u && npm install",
     "update:interactive": "npx npm-check-updates -i",
-    "update:minor-strict": "npx npm-check-updates -u --target minor && npm install",
-    "tauri:setup-dev-update": "bash scripts/dev-update-test/setup-dev-updater.sh",
-    "tauri:build-dev-update": "bash scripts/dev-update-test/build-dev-update.sh",
-    "tauri:serve-dev-update": "bash scripts/dev-update-test/serve-update.sh",
-    "tauri:test-update-e2e": "bash scripts/dev-update-test/test-update-e2e.sh",
-    "tauri:test-update-e2e:install": "bash scripts/dev-update-test/test-update-e2e.sh --install",
-    "tauri:dev-with-update": "npx tsx scripts/setup-env.mts --desktop && npx tauri dev --config src-tauri/tauri.conf.dev-update.json"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "update:minor-strict": "npx npm-check-updates -u --target minor && npm install"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",
@@ -124,10 +100,6 @@
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/d3": "^7.4.3",
-    "@types/gapi": "^0.0.47",
-    "@types/gapi.client.drive-v3": "^0.0.5",
-    "@types/google.accounts": "^0.0.18",
-    "@types/google.picker": "^0.0.51",
     "@types/node": "^24.5.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",

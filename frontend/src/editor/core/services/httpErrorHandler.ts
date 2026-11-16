@@ -7,14 +7,12 @@ import {
 } from "@editor/services/errorUtils";
 import { showSpecialErrorToast } from "@editor/services/specialErrorToasts";
 import axios from "axios";
-import { handleSaaSError } from "@editor/services/saasErrorInterceptor";
 import {
   clampText,
   extractAxiosErrorMessage,
 } from "@editor/services/httpErrorUtils";
 import { stripBasePath, withBasePath } from "@editor/constants/app";
 import { isSafePostLoginRedirect } from "@editor/services/postLoginRedirect";
-import { reportAccountLinkBlock } from "@editor/services/accountLinkBlock";
 
 // Module-scoped state to reduce global variable usage
 const recentSpecialByEndpoint: Record<string, number> = {};
@@ -83,18 +81,6 @@ if (typeof window !== "undefined") {
  */
 export async function handleHttpError(error: unknown): Promise<boolean> {
   const axiosError = axios.isAxiosError(error) ? error : undefined;
-  if (axiosError?.response?.status === 402) {
-    const body = await normalizeAxiosErrorData(axiosError.response.data).catch(
-      () => undefined,
-    );
-    if (
-      reportAccountLinkBlock(
-        { status: 402, body },
-        axiosError.config?.accountLinkBlockContext,
-      )
-    )
-      return true;
-  }
   const skipAuthRedirect = axiosError?.config?.skipAuthRedirect === true;
   // Check if this error should skip the global toast (component will handle it)
   if (axiosError?.config?.suppressErrorToast === true) {
@@ -113,11 +99,8 @@ export async function handleHttpError(error: unknown): Promise<boolean> {
       pathname.includes("/auth/") ||
       pathname.includes("/invite/");
 
-    const isPublicMobilePage =
-      pathname.includes("/mobile-scanner") || pathname.includes("/mobile-sign");
-
     // If not on auth page, redirect to login with expired session message
-    if (!isAuthPage && !isPublicMobilePage && !skipAuthRedirect) {
+    if (!isAuthPage && !skipAuthRedirect) {
       if (loginRedirectRecentlyFired()) {
         console.warn(
           "[httpErrorHandler] 401 redirect already fired moments ago — suppressing repeat to avoid a login loop:",
@@ -150,8 +133,6 @@ export async function handleHttpError(error: unknown): Promise<boolean> {
     console.debug("[httpErrorHandler] Suppressing 401 on auth page:", pathname);
     return true;
   }
-
-  if (handleSaaSError(error)) return true;
 
   // Compute title/body (friendly) from the error object
   const { title, body } = extractAxiosErrorMessage(error);

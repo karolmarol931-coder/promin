@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 
 import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -151,6 +152,32 @@ class SanitizeControllerTest {
     @Nested
     @DisplayName("Remove JavaScript Tests")
     class RemoveJavaScriptTests {
+
+        @Test
+        @DisplayName("Should not add empty page additional actions while sanitizing JavaScript")
+        void testDoesNotCreateEmptyPageActions() throws Exception {
+            MockMultipartFile pdfFile =
+                    new MockMultipartFile(
+                            "fileInput",
+                            "test.pdf",
+                            MediaType.APPLICATION_PDF_VALUE,
+                            simplePdfBytes);
+
+            SanitizePdfRequest request = new SanitizePdfRequest();
+            request.setFileInput(pdfFile);
+            request.setRemoveJavaScript(true);
+
+            when(pdfDocumentFactory.load(any(MultipartFile.class), anyBoolean()))
+                    .thenAnswer(inv -> Loader.loadPDF(simplePdfBytes));
+
+            ResponseEntity<Resource> response = sanitizeController.sanitizePDF(request);
+
+            try (PDDocument sanitized = Loader.loadPDF(drainBody(response))) {
+                for (PDPage page : sanitized.getPages()) {
+                    assertNull(page.getCOSObject().getDictionaryObject(COSName.AA));
+                }
+            }
+        }
 
         @Test
         @DisplayName("Should remove JavaScript from PDF")

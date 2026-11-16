@@ -53,8 +53,6 @@ const state = vi.hoisted(() => ({
   maxSelectable: null as number | null,
   viewMode: "list" as "list" | "grid",
   storageEnabled: false,
-  driveError: null as string | null,
-  clearDriveError: vi.fn(),
   processingRecord: undefined as ProcessingFolderState | undefined,
   listProcessingFiles: vi.fn(),
 }));
@@ -100,13 +98,6 @@ vi.mock("@editor/contexts/AppConfigContext", () => ({
 vi.mock("@editor/hooks/useSharingEnabled", () => ({
   useSharingEnabled: () => ({ sharingEnabled: false }),
 }));
-vi.mock("@editor/hooks/useGoogleDrivePicker", () => ({
-  useGoogleDrivePicker: () => ({
-    isEnabled: false,
-    error: state.driveError,
-    clearError: state.clearDriveError,
-  }),
-}));
 vi.mock("@editor/hooks/useIsMobile", () => ({
   useIsMobile: () => false,
   useIsTouch: () => false,
@@ -126,9 +117,6 @@ vi.mock("@editor/hooks/useServerProcessingBlock", () => ({
 vi.mock("@editor/hooks/useLazyThumbnail", () => ({
   useLazyThumbnail: () => undefined,
   useDiskThumbnail: () => undefined,
-}));
-vi.mock("@editor/components/shared/MobileUploadModal", () => ({
-  default: () => null,
 }));
 vi.mock("@editor/components/toast", () => ({ alert: state.alert }));
 vi.mock("@editor/services/localFolderContents", () => ({
@@ -177,7 +165,6 @@ const show = (
         supportedFormats={supportedFormats}
         destination={destination}
         onBusyChange={vi.fn()}
-        onExternalPickerChange={vi.fn()}
       />
     </MantineProvider>,
     {
@@ -197,12 +184,8 @@ beforeEach(() => {
   state.maxSelectable = null;
   state.viewMode = "list";
   state.storageEnabled = false;
-  state.driveError = null;
   state.processingRecord = undefined;
   state.listProcessingFiles.mockResolvedValue([]);
-  state.clearDriveError.mockImplementation(() => {
-    state.driveError = null;
-  });
   state.listDirectory.mockImplementation(async () => ({
     files: state.diskFiles,
     directories: [],
@@ -234,9 +217,7 @@ describe("library file picker", () => {
       ]);
       const user = userEvent.setup();
       show();
-      await user.click(
-        screen.getByRole("button", { name: "Stirling library" }),
-      );
+      await user.click(screen.getByRole("button", { name: "Promin library" }));
       await user.click(screen.getByText("Processing"));
       await waitFor(() => expect(state.listProcessingFiles).toHaveBeenCalled());
       const queuedItem = screen
@@ -293,9 +274,7 @@ describe("library file picker", () => {
       await user.click(screen.getByRole("menuitem", { name: "Oldest first" }));
       expect(fileOrder()).toEqual(["Old.pdf", "New.pdf"]);
 
-      await user.click(
-        screen.getByRole("button", { name: "Stirling library" }),
-      );
+      await user.click(screen.getByRole("button", { name: "Promin library" }));
       expect(fileOrder()).toEqual(["Old.pdf", "New.pdf"]);
       expect(
         screen.getByText(new Date(newlyAdded.lastModified).toLocaleString()),
@@ -373,31 +352,6 @@ describe("library file picker", () => {
     expect(state.moveFolder).not.toHaveBeenCalled();
   });
 
-  it("dismisses a Drive error without losing selected files", async () => {
-    state.driveError = "Drive access denied";
-    const user = userEvent.setup();
-    const view = show();
-    await user.click(screen.getByText("One.pdf"));
-    const alert = screen.getByRole("alert");
-    expect(alert).toHaveTextContent("Drive access denied");
-    await user.click(within(alert).getByRole("button"));
-    expect(state.clearDriveError).toHaveBeenCalledOnce();
-    view.rerender(
-      <MantineProvider env="test">
-        <LibraryFilePicker
-          onBusyChange={vi.fn()}
-          onExternalPickerChange={vi.fn()}
-        />
-      </MantineProvider>,
-    );
-    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Add 1 files" }));
-    expect(state.selected).toHaveBeenCalledExactlyOnceWith(
-      [state.files[0]],
-      [],
-    );
-  });
-
   it("shows the selected file's folder when browsing Recents", async () => {
     state.folders = [folder("invoices", "Invoices")];
     state.files = [file("filed", "Filed.pdf", "invoices")];
@@ -426,7 +380,7 @@ describe("library file picker", () => {
       await user.click(screen.getByText("One.pdf"));
       await user.click(
         screen.getByRole("button", {
-          name: "Stirling library",
+          name: "Promin library",
           pressed: false,
         }),
       );
@@ -462,7 +416,7 @@ describe("library file picker", () => {
     expect(screen.getByText("Unfiled.pdf")).toBeInTheDocument();
     await user.click(screen.getByText("One.pdf"));
     await user.click(
-      screen.getByRole("button", { name: "Stirling library", pressed: false }),
+      screen.getByRole("button", { name: "Promin library", pressed: false }),
     );
     expect(screen.queryByText("One.pdf")).not.toBeInTheDocument();
     expect(screen.queryByText("Unfiled.pdf")).not.toBeInTheDocument();
@@ -563,7 +517,7 @@ describe("library file picker", () => {
       target: { files: [new File(["PDF"], "New.pdf")] },
     });
     await user.click(
-      screen.getAllByRole("button", { name: "Stirling library" })[0],
+      screen.getAllByRole("button", { name: "Promin library" })[0],
     );
     await user.click(screen.getByRole("textbox", { name: "Filter by source" }));
     await user.click(await screen.findByRole("option", { name: "Cloud" }));
@@ -637,7 +591,7 @@ describe("library file picker", () => {
     show();
     await user.click(screen.getByText("One.pdf"));
     await user.click(
-      screen.getByRole("button", { name: "Stirling library", pressed: false }),
+      screen.getByRole("button", { name: "Promin library", pressed: false }),
     );
     await user.click(screen.getByText("Documents"));
     await user.click(await screen.findByText("Missing.pdf"));
@@ -738,7 +692,7 @@ describe("library file picker", () => {
     await user.click(await screen.findByRole("option", { name: "Local" }));
     await user.click(screen.getByText("One.pdf"));
     await user.click(
-      screen.getByRole("button", { name: "Stirling library", pressed: false }),
+      screen.getByRole("button", { name: "Promin library", pressed: false }),
     );
     await user.click(screen.getByText("Invoices"));
     await user.click(screen.getByRole("button", { name: "Search filenames" }));
@@ -758,7 +712,7 @@ describe("library file picker", () => {
     ).toHaveValue("Local");
     expect(screen.getByText("One.pdf")).toBeInTheDocument();
     await user.click(
-      screen.getByRole("button", { name: "Stirling library", pressed: false }),
+      screen.getByRole("button", { name: "Promin library", pressed: false }),
     );
     await user.click(screen.getByRole("button", { name: "Search filenames" }));
     expect(
@@ -914,15 +868,15 @@ describe("library file picker", () => {
     const user = userEvent.setup();
     show();
     await user.click(
-      screen.getByRole("button", { name: "Stirling library", pressed: false }),
+      screen.getByRole("button", { name: "Promin library", pressed: false }),
     );
     await user.click(screen.getByText("A", { exact: true }));
     await user.click(await screen.findByText("A.pdf"));
     expect(
-      screen.getAllByRole("button", { name: "Stirling library" }),
+      screen.getAllByRole("button", { name: "Promin library" }),
     ).toHaveLength(1);
     await user.click(
-      screen.getByRole("button", { name: "Stirling library", pressed: true }),
+      screen.getByRole("button", { name: "Promin library", pressed: true }),
     );
     await user.click(screen.getByText("B", { exact: true }));
     await user.click(await screen.findByText("B.pdf"));
@@ -955,7 +909,7 @@ describe("library file picker", () => {
     const user = userEvent.setup();
     const view = show();
     await user.click(
-      screen.getByRole("button", { name: "Stirling library", pressed: false }),
+      screen.getByRole("button", { name: "Promin library", pressed: false }),
     );
     await user.click(screen.getByText("Documents"));
     await user.click(await screen.findByText("Disk.pdf"));
@@ -1053,10 +1007,7 @@ describe("library file picker", () => {
     state.viewMode = "grid";
     view.rerender(
       <MantineProvider env="test">
-        <LibraryFilePicker
-          onBusyChange={vi.fn()}
-          onExternalPickerChange={vi.fn()}
-        />
+        <LibraryFilePicker onBusyChange={vi.fn()} />
       </MantineProvider>,
     );
     expect(

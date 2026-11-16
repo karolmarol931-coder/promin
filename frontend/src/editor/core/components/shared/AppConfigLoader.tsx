@@ -16,7 +16,7 @@ export default function AppConfigLoader() {
     if (!loading && config) {
       // Update supported languages and apply default locale from server config
       // Priority: localStorage > config.defaultLocale > browser detection > fallback
-      updateSupportedLanguages(config.languages, config.defaultLocale);
+      void updateSupportedLanguages(config.languages, config.defaultLocale);
     }
   }, [config, loading]);
 

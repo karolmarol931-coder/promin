@@ -49,7 +49,7 @@ class SamlEligibilityTest {
         ObjectProvider<LicenseKeyChecker> provider = mock(ObjectProvider.class);
         when(provider.getIfAvailable()).thenReturn(checker);
         ApplicationProperties properties = new ApplicationProperties();
-        var eligibility = new UserLicenseSettingsService(null, users, properties, provider, null);
+        var eligibility = new UserLicenseSettingsService(null, users, properties, provider);
         var handler =
                 new CustomSaml2AuthenticationSuccessHandler(
                         mock(LoginAttemptService.class),

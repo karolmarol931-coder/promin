@@ -181,8 +181,7 @@ function read(): RunState {
               importedFileIds: Array.isArray(r.importedFileIds)
                 ? r.importedFileIds
                 : [],
-              // Records predating per-run targets all executed on SaaS.
-              target: r.target === "local" ? "local" : "saas",
+              target: "local",
             }))
           : [];
       return {

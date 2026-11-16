@@ -5,7 +5,6 @@ import { ensureBackendReady } from "@editor/services/backendReadinessGuard";
 import { assertFilesNotBlocked } from "@editor/services/policyFileGuard";
 import { useEndpointEnabled } from "@editor/hooks/useEndpointConfig";
 import { usePdfAccess } from "@editor/hooks/usePdfAccess";
-import { useCreditCheck } from "@editor/hooks/useCreditCheck";
 import { useToolResources } from "@editor/hooks/tools/shared/useToolResources";
 import {
   buildOCRFormData,
@@ -46,7 +45,6 @@ export function useEditorOcr({
   const { enabled } = useEndpointEnabled("ocr-pdf");
   usePdfAccess(fileId);
   const blockedReason = getEditorOcrBlockedReason(store.document, fileId, t);
-  const { checkCredits } = useCreditCheck("ocr", OCR_ENDPOINT);
   const { extractZipFiles } = useToolResources();
   const [running, setRunning] = useState(false);
   const requestRef = useRef<AbortController | null>(null);
@@ -101,9 +99,6 @@ export function useEditorOcr({
     try {
       assertEditorOcrAllowed(doc, fileId, t);
       assertFilesNotBlocked([fileId ?? undefined]);
-      const creditError = await checkCredits(OCR_ENDPOINT);
-      if (!isCurrent()) return;
-      if (creditError) throw new Error(creditError);
       if (!(await ensureBackendReady(OCR_ENDPOINT))) {
         throw new Error(
           t(
@@ -187,7 +182,6 @@ export function useEditorOcr({
     enabled,
     fileId,
     fileName,
-    checkCredits,
     i18n.language,
     extractZipFiles,
     onComplete,

@@ -24,11 +24,7 @@ import jakarta.persistence.EntityManagerFactory;
 import stirling.software.common.model.ApplicationProperties;
 import stirling.software.common.model.enumeration.Role;
 import stirling.software.common.model.enumeration.TeamRole;
-import stirling.software.proprietary.access.model.DefaultAccessPolicy;
 import stirling.software.proprietary.access.repository.ResourceGrantRepository;
-import stirling.software.proprietary.access.service.DefaultPrincipalResolver;
-import stirling.software.proprietary.access.service.MembershipTeamLeadLookup;
-import stirling.software.proprietary.access.service.ResourceAccessService;
 import stirling.software.proprietary.config.AuditConfigurationProperties;
 import stirling.software.proprietary.model.Team;
 import stirling.software.proprietary.model.TeamMembership;
@@ -187,16 +183,6 @@ class AdminSettingsPerfHarness {
         ReflectionTestUtils.setField(
                 sessionRegistry, "defaultMaxInactiveInterval", SESSION_TIMEOUT);
 
-        ResourceAccessService resourceAccessService =
-                new ResourceAccessService(
-                        resourceGrantRepository,
-                        new MembershipTeamLeadLookup(teamMembershipRepository),
-                        new DefaultPrincipalResolver());
-        ReflectionTestUtils.setField(
-                resourceAccessService,
-                "portalDefaultPolicy",
-                DefaultAccessPolicy.ADMINS_AND_TEAM_LEADS);
-
         UserLicenseSettingsService licenseSettingsService = mock(UserLicenseSettingsService.class);
         UserLicenseSettings licenseSettings = mock(UserLicenseSettings.class);
         lenient().when(licenseSettings.getLicenseMaxUsers()).thenReturn(0);
@@ -223,7 +209,6 @@ class AdminSettingsPerfHarness {
                 mock(PersistentAuditEventRepository.class),
                 mock(MfaService.class),
                 loginAttemptService,
-                resourceAccessService,
                 mock(InviteTokenRepository.class),
                 org.mockito.Mockito.mock(
                         stirling.software.proprietary.service.OrgOwnerService.class));

@@ -175,7 +175,7 @@ export function useTrackSave(
         if (splitEntries.length > 0) {
           const added = await actions.addFiles(
             splitEntries.map((entry) => entry.file),
-            { selectFiles: false, skipUploadTracking: true },
+            { selectFiles: false },
           );
           // addFiles preserves input order (PDFs, auto-unzip skipped), so each
           // new file lines up with the split track it was built from.

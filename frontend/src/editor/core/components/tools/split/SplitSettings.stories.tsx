@@ -49,7 +49,11 @@ function SplitSettingsDemo({
 
 /** No method chosen yet — shows the "select a method first" placeholder. */
 export const NoMethodSelected: Story = {
-  render: () => <SplitSettingsDemo initialParameters={defaultParameters} />,
+  render: () => (
+    <SplitSettingsDemo
+      initialParameters={{ ...defaultParameters, method: null }}
+    />
+  ),
 };
 
 /** Split by pages: a single page-range text input. */

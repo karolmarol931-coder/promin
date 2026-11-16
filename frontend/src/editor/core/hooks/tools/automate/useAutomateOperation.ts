@@ -5,18 +5,11 @@ import {
 import { useCallback } from "react";
 import { executeAutomationSequence } from "@editor/utils/automationExecutor";
 import { useToolRegistry } from "@editor/contexts/ToolRegistryContext";
-import { useFileContext } from "@editor/contexts/FileContext";
 import { AutomateParameters } from "@editor/types/automation";
-import {
-  meterAutomationRun,
-  type AutomationMeterInput,
-} from "@editor/services/automationMeter";
-import { isStirlingFile } from "@editor/types/fileContext";
 
 export function useAutomateOperation() {
   const { allTools } = useToolRegistry();
   const toolRegistry = allTools;
-  const { selectors } = useFileContext();
 
   const customProcessor = useCallback(
     async (params: AutomateParameters, files: File[]) => {
@@ -56,35 +49,12 @@ export function useAutomateOperation() {
         `✅ Automation completed, returning ${finalResults.length} files`,
       );
 
-      // Meter the completed run. Charged on the input set's doc-units (once
-      // per run) so an Automate workflow costs the same as the equivalent policy.
-      // Best-effort and post-success - never blocks the returned result.
-      try {
-        const inputs: AutomationMeterInput[] = files.map((file) => ({
-          pages: isStirlingFile(file)
-            ? (selectors.getStirlingFileStub(file.fileId)?.processedFile
-                ?.totalPages ?? 0)
-            : 0,
-          bytes: file.size ?? 0,
-        }));
-        meterAutomationRun({
-          source: "AUTOMATE",
-          automationName: automationConfig.name,
-          operations: automationConfig.operations.map(
-            (operation) => operation.operation,
-          ),
-          inputs,
-        });
-      } catch (meterError) {
-        console.warn("Automation metering skipped:", meterError);
-      }
-
       return {
         files: finalResults,
         consumedAllInputs: true,
       };
     },
-    [toolRegistry, selectors],
+    [toolRegistry],
   );
 
   return useToolOperation<AutomateParameters>(

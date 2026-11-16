@@ -1,4 +1,3 @@
-#[cfg(target_os = "macos")]
 mod macos {
     use std::path::Path;
     use std::sync::mpsc;
@@ -58,11 +57,4 @@ mod macos {
     }
 }
 
-#[cfg(target_os = "macos")]
 pub use macos::print_pdf_file_native;
-
-#[cfg(not(target_os = "macos"))]
-#[tauri::command]
-pub fn print_pdf_file_native(_file_path: String, _title: Option<String>) -> Result<(), String> {
-    Err("Native PDF printing is only implemented on macOS".to_string())
-}

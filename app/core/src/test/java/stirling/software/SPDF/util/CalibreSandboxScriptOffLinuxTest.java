@@ -15,14 +15,14 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import stirling.software.common.util.CheckProgramInstall;
 import stirling.software.common.util.GeneralUtils;
 
-@DisabledOnOs(OS.LINUX)
+@EnabledOnOs(OS.MAC)
 class CalibreSandboxScriptOffLinuxTest {
 
     @TempDir Path workDir;

@@ -30,7 +30,7 @@ public class OpenApiConfig {
 
     private final ApplicationProperties applicationProperties;
 
-    private static final String DEFAULT_TITLE = "Stirling PDF API";
+    private static final String DEFAULT_TITLE = "Promin API";
     private static final String DEFAULT_DESCRIPTION =
             "API documentation for all Server-Side processing.\n"
                     + "Please note some functionality might be UI only and missing from here.";
@@ -54,7 +54,7 @@ public class OpenApiConfig {
                         .termsOfService("https://www.stirlingpdf.com/terms")
                         .contact(
                                 new Contact()
-                                        .name("Stirling Software")
+                                        .name("Promin Partner")
                                         .url("https://www.stirlingpdf.com")
                                         .email("contact@stirlingpdf.com"))
                         .description(DEFAULT_DESCRIPTION);

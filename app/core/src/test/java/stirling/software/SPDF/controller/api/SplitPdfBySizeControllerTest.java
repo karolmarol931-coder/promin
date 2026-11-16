@@ -14,13 +14,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
@@ -30,6 +34,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -44,6 +50,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import stirling.software.SPDF.model.api.general.SplitPdfBySizeOrCountRequest;
 import stirling.software.common.service.CustomPDFDocumentFactory;
 import stirling.software.common.util.TempFileManager;
+import stirling.software.jpdfium.PdfDocument;
+import stirling.software.jpdfium.PdfSplit;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -79,6 +87,47 @@ class SplitPdfBySizeControllerTest {
             doc.save(pdfPath.toFile());
             return Files.readAllBytes(pdfPath);
         }
+    }
+
+    private byte[] createPdfWithContent(int numPages) throws IOException {
+        Random random = new Random(17);
+        StringBuilder text = new StringBuilder();
+        String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for (int i = 0; i < 2400; i++) {
+            text.append(alphabet.charAt(random.nextInt(alphabet.length())));
+        }
+
+        try (PDDocument doc = new PDDocument()) {
+            for (int i = 0; i < numPages; i++) {
+                PDPage page = new PDPage(PDRectangle.A4);
+                doc.addPage(page);
+                try (PDPageContentStream content = new PDPageContentStream(doc, page)) {
+                    content.beginText();
+                    content.setFont(new PDType1Font(Standard14Fonts.FontName.COURIER), 8);
+                    content.newLineAtOffset(36, 760);
+                    for (int offset = 0; offset < text.length(); offset += 100) {
+                        content.showText(
+                                text.substring(offset, Math.min(offset + 100, text.length())));
+                        content.newLineAtOffset(0, -12);
+                    }
+                    content.endText();
+                }
+            }
+            Path pdfPath = tempDir.resolve("size-input.pdf");
+            doc.save(pdfPath.toFile());
+            return Files.readAllBytes(pdfPath);
+        }
+    }
+
+    private long serializedRangeSize(byte[] pdfBytes, int from, int to) throws IOException {
+        Path sourcePath = tempDir.resolve("size-probe-source.pdf");
+        Path outputPath = tempDir.resolve("size-probe-output.pdf");
+        Files.write(sourcePath, pdfBytes);
+        try (PdfDocument source = PdfDocument.open(sourcePath);
+                PdfDocument split = PdfSplit.extractPageRange(source, from, to)) {
+            split.save(outputPath);
+        }
+        return Files.size(outputPath);
     }
 
     private List<byte[]> unzip(Resource zipResource) throws IOException {
@@ -246,5 +295,39 @@ class SplitPdfBySizeControllerTest {
             total += count;
         }
         assertThat(total).isEqualTo(20);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 3})
+    @DisplayName("Should keep size-based output within the limit when each page fits")
+    void shouldKeepSizeBasedOutputWithinLimit(int pageCount) throws Exception {
+        byte[] pdfBytes = createPdfWithContent(pageCount);
+        long maxSinglePageSize = 0;
+        for (int page = 0; page < pageCount; page++) {
+            maxSinglePageSize =
+                    Math.max(maxSinglePageSize, serializedRangeSize(pdfBytes, page, page));
+        }
+        long byteLimit = maxSinglePageSize;
+        if (pageCount > 1) {
+            assertThat(serializedRangeSize(pdfBytes, 0, 1)).isGreaterThan(byteLimit);
+        }
+
+        MockMultipartFile file =
+                new MockMultipartFile(
+                        "fileInput", "input.pdf", MediaType.APPLICATION_PDF_VALUE, pdfBytes);
+        SplitPdfBySizeOrCountRequest request = new SplitPdfBySizeOrCountRequest();
+        request.setFileInput(file);
+        request.setSplitType(0);
+        request.setSplitValue(byteLimit + "B");
+
+        ResponseEntity<Resource> response = controller.autoSplitPdf(request);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        List<byte[]> outputs = unzip(response.getBody());
+        assertThat(outputs).hasSize(pageCount);
+        assertThat(pageCountsOf(outputs)).containsOnly(1);
+        assertThat(outputs)
+                .allSatisfy(
+                        output -> assertThat((long) output.length).isLessThanOrEqualTo(byteLimit));
     }
 }

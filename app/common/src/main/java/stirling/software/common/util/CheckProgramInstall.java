@@ -44,7 +44,7 @@ public class CheckProgramInstall {
                     ProcessExecutor.getInstance(ProcessExecutor.Processes.PYTHON_OPENCV)
                             .runCommandWithOutputHandling(
                                     Arrays.asList(pythonCommand, "--version"));
-            return true; // Command succeeded, Python is available
+            return result.getRc() == 0 && result.getMessages().contains("Python");
         } catch (IOException | InterruptedException e) {
             return false; // Command failed, Python is not available
         }

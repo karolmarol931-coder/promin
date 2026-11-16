@@ -12,7 +12,6 @@ import { renderToolButtons } from "@editor/components/tools/shared/renderToolBut
 import ToolButton from "@editor/components/tools/toolPicker/ToolButton";
 import { LazyToolSection } from "@editor/components/tools/toolPicker/LazyToolSection";
 import { useToolWorkflowData } from "@editor/contexts/ToolWorkflowContext";
-import { useIsScrolled } from "@editor/hooks/useIsScrolled";
 import { ToolId } from "@editor/types/toolId";
 import { getSubcategoryLabel } from "@editor/data/toolsTaxonomy";
 import { ToolPickerFooterExtensions } from "@editor/components/tools/toolPicker/ToolPickerFooterExtensions";
@@ -29,8 +28,6 @@ interface ToolPickerProps {
   compact?: boolean;
   /** Called when the user clicks "View all tools" in compact mode. */
   onShowAllTools?: () => void;
-  /** Pinned above the list; gains a rule once rows scroll beneath it. */
-  header?: React.ReactNode;
 }
 
 const EMPTY_FILTERED_TOOLS: ToolPickerProps["filteredTools"] = [];
@@ -68,13 +65,9 @@ const ToolPicker = ({
   isSearching = false,
   compact = false,
   onShowAllTools,
-  header,
 }: ToolPickerProps) => {
   const { t } = useTranslation();
 
-  const { scrolled, scrollRef } = useIsScrolled();
-  // The lazy sections observe against the scroller itself, so they need a
-  // stable ref alongside the callback ref that drives the header divider.
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   const { sections: visibleSections } = useToolSections(filteredTools);
@@ -95,6 +88,15 @@ const ToolPicker = ({
     return items;
   }, [quickSection]);
 
+  const favoriteToolIds = useMemo<Set<string>>(
+    () => new Set(favoriteToolItems.map(({ id }) => id)),
+    [favoriteToolItems],
+  );
+  const compactRecommendedItems = useMemo(
+    () => recommendedItems.filter(({ id }) => !favoriteToolIds.has(id)),
+    [favoriteToolIds, recommendedItems],
+  );
+
   const allSection = useMemo(
     () => visibleSections.find((s) => s.key === "all"),
     [visibleSections],
@@ -107,19 +109,8 @@ const ToolPicker = ({
 
   return (
     <Box h="100%" style={CONTAINER_STYLE}>
-      {header && (
-        <div
-          className="tool-picker__header"
-          data-scrolled={scrolled || undefined}
-        >
-          {header}
-        </div>
-      )}
       <Box
-        ref={(el: HTMLDivElement | null) => {
-          scrollerRef.current = el;
-          return scrollRef(el);
-        }}
+        ref={scrollerRef}
         style={SCROLLABLE_STYLE}
         className="tool-picker-scrollable"
       >
@@ -143,31 +134,34 @@ const ToolPicker = ({
             )}
           </Stack>
         ) : compact ? (
-          /* Resting state: flat list of pinned + recommended only. */
           <Box className="tool-picker__compact">
-            <div style={HEADER_TEXT_STYLE}>
-              {t("toolPanel.toolsHeader", "PDF Tools")}
-            </div>
-            {favoriteToolItems.length === 0 && recommendedItems.length === 0 ? (
-              <NoToolsFound />
-            ) : (
-              <div className="tool-picker__compact-list">
-                {favoriteToolItems.map(({ id, tool }) => (
-                  <ToolButton
-                    key={`fav-${id}`}
-                    id={id}
-                    tool={tool}
-                    isSelected={selectedToolKey === id}
-                    onSelect={onSelect}
-                    hasStars
-                    showDescription
-                  />
-                ))}
-                {recommendedItems
-                  .filter(
-                    ({ id }) => !favoriteToolItems.some((fav) => fav.id === id),
-                  )
-                  .map(({ id, tool }) => (
+            {favoriteToolItems.length > 0 && (
+              <>
+                <div style={HEADER_TEXT_STYLE}>
+                  {t("toolPanel.fullscreen.favorites", "Favourites")}
+                </div>
+                <div className="tool-picker__compact-list">
+                  {favoriteToolItems.map(({ id, tool }) => (
+                    <ToolButton
+                      key={`fav-${id}`}
+                      id={id}
+                      tool={tool}
+                      isSelected={selectedToolKey === id}
+                      onSelect={onSelect}
+                      hasStars
+                      showDescription
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+            {compactRecommendedItems.length > 0 && (
+              <>
+                <div style={HEADER_TEXT_STYLE}>
+                  {t("toolPanel.fullscreen.recommended", "Recommended")}
+                </div>
+                <div className="tool-picker__compact-list">
+                  {compactRecommendedItems.map(({ id, tool }) => (
                     <ToolButton
                       key={`rec-${id}`}
                       id={id as ToolId}
@@ -178,20 +172,13 @@ const ToolPicker = ({
                       showDescription
                     />
                   ))}
-              </div>
+                </div>
+              </>
             )}
-            {onShowAllTools && (
-              <Button
-                variant="tertiary"
-                size="sm"
-                fullWidth
-                onClick={onShowAllTools}
-                className="tool-picker__view-all"
-                aria-label={t("toolPanel.viewAllTools", "View all tools")}
-              >
-                {t("toolPanel.viewAllTools", "View all tools")}
-              </Button>
-            )}
+            {favoriteToolItems.length === 0 &&
+            compactRecommendedItems.length === 0 ? (
+              <NoToolsFound />
+            ) : null}
           </Box>
         ) : (
           <>
@@ -270,6 +257,19 @@ const ToolPicker = ({
           </>
         )}
       </Box>
+      {compact && onShowAllTools && (
+        <div className="tool-picker__compact-footer">
+          <Button
+            variant="tertiary"
+            size="sm"
+            fullWidth
+            onClick={onShowAllTools}
+            aria-label={t("toolPanel.viewAllTools", "View all tools")}
+          >
+            {t("toolPanel.viewAllTools", "View all tools")}
+          </Button>
+        </div>
+      )}
       <ToolPickerFooterExtensions />
     </Box>
   );

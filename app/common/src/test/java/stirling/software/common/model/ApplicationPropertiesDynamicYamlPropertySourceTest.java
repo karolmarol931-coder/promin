@@ -23,8 +23,6 @@ class ApplicationPropertiesDynamicYamlPropertySourceTest {
                 \
                 ui:
                   appName: "My App"
-                system:
-                  enableAnalytics: true
                 """;
         Path tmp = Files.createTempFile("spdf-settings-", ".yml");
         Files.writeString(tmp, yaml);
@@ -39,7 +37,6 @@ class ApplicationPropertiesDynamicYamlPropertySourceTest {
             props.dynamicYamlPropertySource(env);
 
             assertEquals("My App", env.getProperty("ui.appName"));
-            assertEquals("true", env.getProperty("system.enableAnalytics"));
         }
     }
 

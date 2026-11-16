@@ -43,7 +43,6 @@ type AddFilesOptions = {
   selectFiles?: boolean;
   skipWorkspaceDispatch?: boolean;
   autoUnzip?: boolean;
-  skipUploadTracking?: boolean;
 };
 const addFiles = vi.fn<
   (files: File[], options: AddFilesOptions) => Promise<StirlingFile[]>
@@ -118,7 +117,6 @@ describe("duplicateStoredFile", () => {
       selectFiles: false,
       skipWorkspaceDispatch: true,
       autoUnzip: false,
-      skipUploadTracking: true,
     });
   });
 

@@ -5,12 +5,10 @@ import static stirling.software.proprietary.failure.FailureActionId.DISMISS;
 import static stirling.software.proprietary.failure.FailureActionId.OPEN_IN_TOOL;
 import static stirling.software.proprietary.failure.FailureActionId.REPAIR;
 import static stirling.software.proprietary.failure.FailureActionId.VIEW_FILE;
-import static stirling.software.proprietary.failure.FailureActionId.VIEW_IN_PROCESSOR;
 import static stirling.software.proprietary.failure.FailureActionSlot.OVERFLOW;
 import static stirling.software.proprietary.failure.FailureActionSlot.SECONDARY;
 import static stirling.software.proprietary.failure.FailureAudience.ANYONE_WHO_SEES;
 import static stirling.software.proprietary.failure.FailureAudience.OWNER;
-import static stirling.software.proprietary.failure.FailureAudience.TEAM_REVIEWER;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,7 +39,6 @@ public enum FailureKind {
             // The password is the fix; the owner's own document is the runner-up.
             resolution(DECRYPT, OWNER),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(OPEN_IN_TOOL, OWNER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
@@ -61,7 +58,6 @@ public enum FailureKind {
             // it only helps when the upload itself truncated them.
             resolution(REPAIR, OWNER),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(OPEN_IN_TOOL, OWNER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
@@ -74,7 +70,6 @@ public enum FailureKind {
             fallback("This document did not meet the compliance standard the policy checks for."),
             // No automated fix: the document itself has to change, so looking at it leads.
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /**
@@ -89,7 +84,6 @@ public enum FailureKind {
             errorCodes("E076"),
             fallback("This document is damaged beyond what the repair tools can fix."),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /**
@@ -104,7 +98,6 @@ public enum FailureKind {
             errorCodes("E006", "E014", "E018", "E061", "E075"),
             fallback("This document is not a format the step can open, so it could not be read."),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(OPEN_IN_TOOL, OWNER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
@@ -123,7 +116,6 @@ public enum FailureKind {
             errorCodes("E010", "E015", "E021", "E034"),
             fallback("This document could not be opened, so the pipeline could not read it."),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(OPEN_IN_TOOL, OWNER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
@@ -136,7 +128,6 @@ public enum FailureKind {
             errorCodes("E005", "E012", "E016", "E020", "E032"),
             fallback("This document has no content in it, so there was nothing to work on."),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(OPEN_IN_TOOL, OWNER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
@@ -153,7 +144,6 @@ public enum FailureKind {
             fallback("The document behind this run could not be reached, so it was not processed."),
             // No VIEW_FILE and no OPEN_IN_TOOL: both would open a tool on a document that is not
             // there, which is the failure itself.
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /**
@@ -172,7 +162,6 @@ public enum FailureKind {
             fallback("This server is missing software the step needs, so it could not be run."),
             // Nothing for an owner to press: their document is fine, and a retry fails the same
             // way until someone installs the binary.
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, SECONDARY),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /**
@@ -188,7 +177,6 @@ public enum FailureKind {
             fallback("This folder could not be read, so nothing in it was processed."),
             // No document to view: the sweep never got as far as one. Fixing it means fixing the
             // folder, which happens outside Stirling.
-            global(VIEW_IN_PROCESSOR, OWNER, SECONDARY),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /**
@@ -204,7 +192,6 @@ public enum FailureKind {
             fallback(
                     "A page in this document could not be drawn, so the pipeline could not finish."),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(OPEN_IN_TOOL, OWNER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
@@ -223,7 +210,6 @@ public enum FailureKind {
             fallback("A tool this step relies on could not process this document."),
             global(OPEN_IN_TOOL, OWNER, SECONDARY),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /** The thread running the step was interrupted: a shutdown or a cancel, not the document. */
@@ -237,7 +223,6 @@ public enum FailureKind {
                     "This step was stopped before it finished, so the document was not processed."),
             global(OPEN_IN_TOOL, OWNER, SECONDARY),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /**
@@ -254,7 +239,6 @@ public enum FailureKind {
             fallback(
                     "A page in this document was too large to render at the requested resolution."),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /**
@@ -269,7 +253,6 @@ public enum FailureKind {
             errorCodes("E086"),
             fallback("An image in this document is larger than this server can process."),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /**
@@ -285,7 +268,6 @@ public enum FailureKind {
             fallback(
                     "Part of this document decompresses to more data than this server can process."),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     /**
@@ -302,7 +284,6 @@ public enum FailureKind {
             fallback("This step's settings are not valid, so it could not run."),
             // Nothing for an owner to press: their document is fine, and only whoever can edit the
             // policy can change the settings.
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, SECONDARY),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW)),
 
     UNKNOWN(
@@ -315,7 +296,6 @@ public enum FailureKind {
             // No known fix to declare, so a plain retry leads: these are often one-offs.
             resolution(OPEN_IN_TOOL, OWNER),
             global(VIEW_FILE, OWNER, SECONDARY),
-            global(VIEW_IN_PROCESSOR, TEAM_REVIEWER, OVERFLOW),
             global(DISMISS, ANYONE_WHO_SEES, OVERFLOW));
 
     private static final String KEY_PREFIX = "portal.failures.kind.";

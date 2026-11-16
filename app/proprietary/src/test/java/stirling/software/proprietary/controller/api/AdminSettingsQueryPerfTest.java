@@ -175,7 +175,6 @@ class AdminSettingsQueryPerfTest {
                         .filter(u -> "admin".equals(u.getUsername()))
                         .findFirst()
                         .orElseThrow();
-        assertTrue(adminSummary.isPortalAccess(), "admin should have portal access");
         assertEquals("admin@example.com", adminSummary.getEmail());
     }
 

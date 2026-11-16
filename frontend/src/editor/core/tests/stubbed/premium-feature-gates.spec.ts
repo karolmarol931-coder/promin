@@ -1,9 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import {
-  bypassOnboarding,
-  mockAppApis,
-  seedCookieConsent,
-} from "@editor/tests/helpers/api-stubs";
+import { bypassOnboarding, mockAppApis } from "@editor/tests/helpers/api-stubs";
 
 /**
  * Stubbed premium-feature gating. Several tools and admin surfaces only
@@ -18,7 +14,6 @@ async function setUpEndpointAvailability(
   page: Page,
   overrides: Record<string, { enabled: boolean }>,
 ) {
-  await seedCookieConsent(page);
   await bypassOnboarding(page);
   await mockAppApis(page, { endpointsAvailability: overrides });
   await page.goto("/editor");
@@ -49,7 +44,6 @@ test.describe("Premium / endpoint gating", () => {
   test("non-admin user does not see admin-only settings sections", async ({
     page,
   }) => {
-    await seedCookieConsent(page);
     await bypassOnboarding(page);
     // Seed JWT so the orchestrator's auth-gated effect treats the user as
     // logged-in — without this the orchestrator returns early and the

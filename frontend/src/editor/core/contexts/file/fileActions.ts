@@ -30,7 +30,6 @@ import { StirlingFile } from "@editor/types/fileContext";
 import { fileStorage } from "@editor/services/fileStorage";
 import { zipFileService } from "@editor/services/zipFileService";
 import { FileAnalyzer } from "@editor/services/fileAnalyzer";
-import { trackPdfUploaded } from "@editor/services/analytics";
 import {
   reportBulkAddProgress,
   clearBulkAddProgress,
@@ -302,7 +301,7 @@ interface AddFileOptions {
     fileName: string,
   ) => Promise<boolean>; // Optional callback to confirm extraction of large ZIP files
   allowDuplicates?: boolean;
-  skipUploadTracking?: boolean;
+
   /** When true, marks every added stub as derivedFromTool so the policy
    *  auto-run skips it — used for policy outputs imported via addFiles. */
   derivedFromTool?: boolean;
@@ -659,10 +658,6 @@ export async function addFiles(
     // addFiles only resolves once every file is durably stored.
     if (enablePersistence && persistPromises.length > 0) {
       await Promise.all(persistPromises);
-    }
-
-    if (!options.skipUploadTracking && stirlingFiles.length > 0) {
-      trackPdfUploaded(stirlingFiles);
     }
 
     return stirlingFiles;

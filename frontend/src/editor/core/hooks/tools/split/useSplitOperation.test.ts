@@ -8,12 +8,143 @@ import {
 import {
   SplitParameters,
   defaultParameters,
+  validateSplitParameters,
 } from "@editor/hooks/tools/split/useSplitParameters";
 import { SPLIT_METHODS } from "@editor/constants/splitConstants";
 
 const params = (overrides: Partial<SplitParameters>): SplitParameters => ({
   ...defaultParameters,
   ...overrides,
+});
+
+describe("validateSplitParameters", () => {
+  test.each(["2", "1,3", "1,3,5-10", "2n+1", "all"])(
+    "accepts supported page cuts: %s",
+    (pages) => {
+      expect(
+        validateSplitParameters(
+          params({ method: SPLIT_METHODS.BY_PAGES, pages }),
+        ),
+      ).toBe(true);
+    },
+  );
+
+  test.each(["", "0", "1,,2", "2-1", "-2", "abc"])(
+    "rejects malformed page cuts: %s",
+    (pages) => {
+      expect(
+        validateSplitParameters(
+          params({ method: SPLIT_METHODS.BY_PAGES, pages }),
+        ),
+      ).toBe(false);
+    },
+  );
+
+  test.each(["5,2", "2,2", "2-4,4", "all,2"])(
+    "rejects page cuts that the backend cannot safely order: %s",
+    (pages) => {
+      expect(
+        validateSplitParameters(
+          params({ method: SPLIT_METHODS.BY_PAGES, pages }),
+          10,
+        ),
+      ).toBe(false);
+    },
+  );
+
+  test.each(["2,5", "2-4,5", "2,10"])(
+    "accepts ascending page cuts: %s",
+    (pages) => {
+      expect(
+        validateSplitParameters(
+          params({ method: SPLIT_METHODS.BY_PAGES, pages }),
+          10,
+        ),
+      ).toBe(true);
+    },
+  );
+
+  test("rejects a cut after the last page and accepts a real cut", () => {
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_PAGES, pages: "2" }),
+        2,
+      ),
+    ).toBe(false);
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_PAGES, pages: "2" }),
+        3,
+      ),
+    ).toBe(true);
+  });
+
+  test("rejects split-all and page functions that cannot cut a one-page PDF", () => {
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_PAGES, pages: "all" }),
+        1,
+      ),
+    ).toBe(false);
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_PAGES, pages: "n" }),
+        1,
+      ),
+    ).toBe(false);
+  });
+
+  test("rejects a page function when all its cuts fall after the final page", () => {
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_PAGES, pages: "2n+1" }),
+        3,
+      ),
+    ).toBe(false);
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_PAGES, pages: "2n+1" }),
+        4,
+      ),
+    ).toBe(true);
+  });
+
+  test.each([
+    { method: SPLIT_METHODS.BY_SIZE, splitValue: "500KB", valid: true },
+    { method: SPLIT_METHODS.BY_SIZE, splitValue: "0MB", valid: false },
+    { method: SPLIT_METHODS.BY_SIZE, splitValue: "large", valid: false },
+    { method: SPLIT_METHODS.BY_PAGE_COUNT, splitValue: "5", valid: true },
+    { method: SPLIT_METHODS.BY_PAGE_COUNT, splitValue: "0", valid: false },
+    { method: SPLIT_METHODS.BY_DOC_COUNT, splitValue: "3", valid: true },
+    { method: SPLIT_METHODS.BY_DOC_COUNT, splitValue: "2.5", valid: false },
+  ])("validates numeric split settings: %o", ({ valid, ...overrides }) => {
+    expect(
+      validateSplitParameters(params(overrides as Partial<SplitParameters>)),
+    ).toBe(valid);
+  });
+
+  test("rejects invalid section and poster divisions", () => {
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_SECTIONS, hDiv: "0" }),
+      ),
+    ).toBe(false);
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_SECTIONS, hDiv: "301" }),
+      ),
+    ).toBe(false);
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_POSTER, xFactor: "11" }),
+      ),
+    ).toBe(false);
+    expect(
+      validateSplitParameters(
+        params({ method: SPLIT_METHODS.BY_POSTER, xFactor: "2.5" }),
+      ),
+    ).toBe(false);
+  });
 });
 
 describe("splitToApiParams", () => {

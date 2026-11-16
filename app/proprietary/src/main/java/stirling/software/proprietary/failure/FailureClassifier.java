@@ -86,7 +86,7 @@ public class FailureClassifier {
 
     /**
      * Pull {@code errorCode} from a Problem Details body, or null when the body is absent, not
-     * JSON, or has no such property (an entitlement sentinel has {@code error} instead).
+     * JSON, or has no such property.
      */
     private String errorCodeFromBody(RestClientResponseException exception) {
         String body = exception.getResponseBodyAsString();

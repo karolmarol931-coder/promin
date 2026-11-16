@@ -24,14 +24,8 @@ export interface PlatformBridge {
   clearPlatformAuthAfterSignOut(): Promise<void>;
   /** Clear platform-specific cached auth when the login page initialises. */
   clearPlatformAuthOnLoginInit(): Promise<void>;
-  /** Whether the active backend is a desktop SaaS gateway (Supabase-managed). */
-  isDesktopSaaSAuthMode(): Promise<boolean>;
   /** Whether the active backend exposes /api/v1/auth/logout. */
   shouldCallBackendLogout(): Promise<boolean>;
-  /** Resolve the current user from platform storage (desktop only). */
-  getPlatformSessionUser(): Promise<PlatformSessionUser | null>;
-  /** Refresh the session through the platform layer (desktop only). */
-  refreshPlatformSession(): Promise<boolean>;
   /** Persist the token to platform-specific storage (Tauri store). */
   savePlatformToken(token: string): Promise<void>;
   /** Begin an OAuth navigation; return true if the platform handled it. */
@@ -49,17 +43,8 @@ export const defaultPlatformBridge: PlatformBridge = {
   async clearPlatformAuthOnLoginInit() {
     // no-op for web builds
   },
-  async isDesktopSaaSAuthMode() {
-    return false;
-  },
   async shouldCallBackendLogout() {
     return true;
-  },
-  async getPlatformSessionUser() {
-    return null;
-  },
-  async refreshPlatformSession() {
-    return false;
   },
   async savePlatformToken() {
     // Web mode: token already saved to localStorage in the auth client.

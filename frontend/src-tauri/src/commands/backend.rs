@@ -5,7 +5,6 @@ use std::sync::Mutex;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use crate::utils::{add_log, app_data_dir};
-use crate::state::connection_state::{AppConnectionState, ConnectionMode};
 
 /// Removes shutdown markers left by previous sessions. The current path cannot
 /// exist yet, so it is never a sweep target.
@@ -82,11 +81,7 @@ fn check_backend_status() -> Result<(), String> {
 // Find the bundled JRE and return the java executable path
 fn find_bundled_jre(resource_dir: &PathBuf) -> Result<PathBuf, String> {
     let jre_dir = resource_dir.join("runtime").join("jre");
-    let java_executable = if cfg!(windows) {
-        jre_dir.join("bin").join("java.exe")
-    } else {
-        jre_dir.join("bin").join("java")
-    };
+    let java_executable = jre_dir.join("bin").join("java");
 
     if !java_executable.exists() {
         let error_msg = format!("❌ Bundled JRE not found at: {:?}", java_executable);
@@ -228,20 +223,6 @@ fn version_key(name: &str) -> (Vec<u64>, u8, Vec<PrereleaseToken>) {
     )
 }
 
-// Normalize path to remove Windows UNC prefix
-fn normalize_path(path: &PathBuf) -> PathBuf {
-    if cfg!(windows) {
-        let path_str = path.to_string_lossy();
-        if path_str.starts_with(r"\\?\") {
-            PathBuf::from(&path_str[4..]) // Remove \\?\ prefix
-        } else {
-            path.clone()
-        }
-    } else {
-        path.clone()
-    }
-}
-
 fn migrate_legacy_workspace(legacy_dir: &PathBuf, target_root: &PathBuf) -> std::io::Result<()> {
     for entry in std::fs::read_dir(legacy_dir)? {
         let entry = entry?;
@@ -331,12 +312,20 @@ fn run_stirling_pdf_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &
         "-Dserver.forward-headers-strategy=none",
         "-Dsecurity.enableLogin=false",  // Disable login for desktop mode
         "-Dsecurity.csrfDisabled=true",  // Disable CSRF for desktop mode
+        "-Dsystem.offlineMode=true",
+        "-Dsystem.enableUrlToPDF=false",
+        "-Dui.defaultHideUnavailableTools=true",
+        "-Dui.defaultHideUnavailableConversions=true",
+        "-Dendpoints.toRemove=timestamp-pdf",
+        "-Dsystem.enableMobileScanner=false",
+        "-Dsystem.enableMobileSignature=false",
+        "-Dsystem.showUpdate=false",
+        "-Dserver.address=127.0.0.1",
+        "-Dpremium.enabled=false",
+        "-Dtelegram.enabled=false",
+        "-Dsecurity.validation.allowAIA=false",
+        "-Dsecurity.validation.revocation.mode=none",
     ];
-
-    // Enable the login agreement on local desktop installs when it has been provisioned.
-    if crate::commands::connection::login_agreement_enabled(app) {
-        java_options.push("-Dlegal.loginAgreement.enabled=true");
-    }
 
     java_options.push("-jar");
     java_options.push(jar_path.to_str().unwrap());
@@ -351,33 +340,25 @@ fn run_stirling_pdf_jar(app: &tauri::AppHandle, java_path: &PathBuf, jar_path: &
     add_log(format!("🔧 Equivalent command: {}", java_command));
     add_log(format!("📁 Backend logs will be in: {}", log_dir.display()));
 
-    // Additional macOS-specific checks
-    if cfg!(target_os = "macos") {
-        // Check if java executable has execute permissions
-        if let Ok(metadata) = std::fs::metadata(java_path) {
-            let permissions = metadata.permissions();
-            add_log(format!("🔍 Java executable permissions: {:?}", permissions));
+    if let Ok(metadata) = std::fs::metadata(java_path) {
+        let permissions = metadata.permissions();
+        add_log(format!("🔍 Java executable permissions: {:?}", permissions));
 
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                let mode = permissions.mode();
-                add_log(format!("🔍 Java executable mode: 0o{:o}", mode));
-                if mode & 0o111 == 0 {
-                    add_log("⚠️ Java executable may not have execute permissions".to_string());
-                }
-            }
-        }
-
-        // Check if we can read the JAR file
-        if let Ok(metadata) = std::fs::metadata(jar_path) {
-            add_log(format!("📦 JAR file size: {} bytes", metadata.len()));
-        } else {
-            add_log("⚠️ Cannot read JAR file metadata".to_string());
+        use std::os::unix::fs::PermissionsExt;
+        let mode = permissions.mode();
+        add_log(format!("🔍 Java executable mode: 0o{:o}", mode));
+        if mode & 0o111 == 0 {
+            add_log("⚠️ Java executable may not have execute permissions".to_string());
         }
     }
 
-    // Sentinel for a graceful stop on every platform; signals are not portable.
+    if let Ok(metadata) = std::fs::metadata(jar_path) {
+        add_log(format!("📦 JAR file size: {} bytes", metadata.len()));
+    } else {
+        add_log("⚠️ Cannot read JAR file metadata".to_string());
+    }
+
+    // Sentinel for graceful shutdown; macOS signal handling is not portable.
     // The name is per launch so a marker a previous session failed to clear can
     // never stop this one; stale markers are swept here, before this launch
     // owns one.
@@ -516,33 +497,9 @@ fn monitor_backend_output(mut rx: tauri::async_runtime::Receiver<tauri_plugin_sh
 
 // Command to start the backend with bundled JRE
 #[tauri::command]
-pub async fn start_backend(
-    app: tauri::AppHandle,
-    connection_state: tauri::State<'_, AppConnectionState>,
-) -> Result<String, String> {
+pub async fn start_backend(app: tauri::AppHandle) -> Result<String, String> {
     add_log("🚀 start_backend() called - Attempting to start backend with bundled JRE...".to_string());
-
-    // Check connection mode
-    let mode = {
-        let state = connection_state.0.lock().map_err(|e| {
-            let error_msg = format!("❌ Failed to access connection state: {}", e);
-            add_log(error_msg.clone());
-            error_msg
-        })?;
-        state.mode.clone()
-    };
-
-    match mode {
-        ConnectionMode::SaaS => {
-            add_log("☁️ Running in SaaS mode - starting local backend".to_string());
-        }
-        ConnectionMode::SelfHosted => {
-            add_log("🌐 Running in Self-Hosted mode - starting local backend (for hybrid execution support)".to_string());
-        }
-        ConnectionMode::Local => {
-            add_log("💻 Running in Local-only mode - starting local backend".to_string());
-        }
-    }
+    add_log("💻 Starting the local PDF backend".to_string());
 
     // Check if backend is already running or starting
     if let Err(msg) = check_backend_status() {
@@ -571,16 +528,11 @@ pub async fn start_backend(
         e
     })?;
 
-    // Normalize the paths to remove Windows UNC prefix
-    let normalized_java_path = normalize_path(&java_executable);
-    let normalized_jar_path = normalize_path(&jar_path);
-
     add_log(format!("📦 Found JAR file: {:?}", jar_path));
-    add_log(format!("📦 Normalized JAR path: {:?}", normalized_jar_path));
-    add_log(format!("📦 Normalized Java path: {:?}", normalized_java_path));
+    add_log(format!("📦 Java path: {:?}", java_executable));
 
     // Create and start the Java command
-    run_stirling_pdf_jar(&app, &normalized_java_path, &normalized_jar_path).map_err(|e| {
+    run_stirling_pdf_jar(&app, &java_executable, &jar_path).map_err(|e| {
         reset_starting_flag();
         e
     })?;

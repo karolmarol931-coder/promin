@@ -18,7 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.Environment;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -41,7 +40,6 @@ class InitialSecuritySetupTest {
     @Mock private TeamService teamService;
     @Mock private DatabaseServiceInterface databaseService;
     @Mock private UserLicenseSettingsService licenseSettingsService;
-    @Mock private Environment environment;
     @Mock private TeamMembershipService teamMembershipService;
 
     private ApplicationProperties applicationProperties;
@@ -60,7 +58,6 @@ class InitialSecuritySetupTest {
         when(userService.findByUsernameIgnoreCase(Role.INTERNAL_API_USER.getRoleId()))
                 .thenReturn(Optional.of(internalUser));
         when(teamService.getOrCreateInternalTeam()).thenReturn(internalTeam);
-        when(environment.getActiveProfiles()).thenReturn(new String[] {});
         initialSecuritySetup =
                 new InitialSecuritySetup(
                         userService,
@@ -68,7 +65,6 @@ class InitialSecuritySetupTest {
                         applicationProperties,
                         databaseService,
                         licenseSettingsService,
-                        environment,
                         teamMembershipService);
     }
 

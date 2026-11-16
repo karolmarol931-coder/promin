@@ -57,7 +57,7 @@ function harness() {
 
 const run = (h: ReturnType<typeof harness>, file: File) =>
   addFiles(
-    { files: [file], skipUploadTracking: true },
+    { files: [file] },
     h.stateRef,
     h.filesRef,
     h.dispatch,

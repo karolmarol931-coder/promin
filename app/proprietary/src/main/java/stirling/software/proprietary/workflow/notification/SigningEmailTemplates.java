@@ -78,7 +78,7 @@ final class SigningEmailTemplates {
             body.append(paragraph("Please sign by " + escape(summary.dueDate()) + "."));
         }
         if (link == null) {
-            body.append(paragraph("Sign in to Stirling PDF and open Shared Signing to review it."));
+            body.append(paragraph("Sign in to Promin and open Shared Signing to review it."));
         }
         String note =
                 guestLink
@@ -98,7 +98,7 @@ final class SigningEmailTemplates {
                         note,
                         "You received this email because "
                                 + owner
-                                + " added you to a signing request in Stirling PDF."));
+                                + " added you to a signing request in Promin."));
     }
 
     /**
@@ -123,7 +123,7 @@ final class SigningEmailTemplates {
         }
         body.append(progress(summary)).append(paragraph(nextStep(summary)));
         if (link == null) {
-            body.append(paragraph("Sign in to Stirling PDF and open Shared Signing to review it."));
+            body.append(paragraph("Sign in to Promin and open Shared Signing to review it."));
         }
         boolean ready = summary.readyToFinalize();
         String subject =
@@ -143,7 +143,7 @@ final class SigningEmailTemplates {
                         null,
                         "You received this email because you requested signatures on "
                                 + summary.documentName()
-                                + " in Stirling PDF."));
+                                + " in Promin."));
     }
 
     /**
@@ -183,7 +183,7 @@ final class SigningEmailTemplates {
         if (link == null) {
             body.append(
                     paragraph(
-                            "Sign in to Stirling PDF and open Shared Signing to download the"
+                            "Sign in to Promin and open Shared Signing to download the"
                                     + " signed document."));
         }
         return new Email(
@@ -201,7 +201,7 @@ final class SigningEmailTemplates {
                         "You received this email because you were a participant in a signing"
                                 + " request from "
                                 + owner
-                                + " in Stirling PDF."));
+                                + " in Promin."));
     }
 
     private static String progress(Summary summary) {
@@ -295,7 +295,7 @@ final class SigningEmailTemplates {
                 <table role="presentation" width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:%2$s;">
                 <tr><td align="center" style="padding:32px 12px;">
                 <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width:100%%;max-width:560px;background-color:%3$s;border:1px solid %4$s;border-radius:8px;">
-                <tr><td style="padding:28px 32px 0;"><img src="cid:%5$s" width="89" height="32" alt="Stirling" style="display:block;width:89px;height:32px;border:0;"></td></tr>
+                <tr><td style="padding:28px 32px 0;"><img src="cid:%5$s" width="89" height="32" alt="Promin Partner" style="display:block;width:89px;height:32px;border:0;"></td></tr>
                 <tr><td style="padding:24px 32px 32px;font-family:%6$s;font-size:15px;line-height:1.6;color:%7$s;">
                 <h1 style="margin:0 0 16px;font-size:20px;line-height:1.3;font-weight:600;color:%7$s;">%1$s</h1>
                 %8$s%9$s

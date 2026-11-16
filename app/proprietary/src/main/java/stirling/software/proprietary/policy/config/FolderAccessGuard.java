@@ -4,11 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import stirling.software.common.configuration.InstallationPathConfig;
@@ -22,7 +20,6 @@ import stirling.software.proprietary.policy.source.SourceStore;
  * at run time, fail-closed in order:
  *
  * <ol>
- *   <li>denied entirely under the {@code saas} profile;
  *   <li>Stirling's own config dir always rejected, even if an allowed root were misconfigured to
  *       contain it;
  *   <li>in the desktop bundle everything else is permitted: the local operator picking a directory
@@ -42,7 +39,6 @@ public class FolderAccessGuard {
 
     public static final String FOLDER_TYPE = "folder";
 
-    private final boolean saasActive;
     private final boolean desktopOperator;
     private final List<Path> allowedRoots;
     private final List<Path> protectedRoots;
@@ -51,9 +47,7 @@ public class FolderAccessGuard {
     public FolderAccessGuard(
             ApplicationProperties applicationProperties,
             RuntimePathConfig runtimePathConfig,
-            Environment environment,
             SourceStore sourceStore) {
-        this.saasActive = Arrays.asList(environment.getActiveProfiles()).contains("saas");
         this.desktopOperator = isDesktopBundle();
         this.allowedRoots =
                 normalizeAll(applicationProperties.getPolicies().getAllowedFolderRoots());
@@ -76,10 +70,6 @@ public class FolderAccessGuard {
 
     /** Returns the normalised absolute path; throws if not permitted. */
     public Path requirePermitted(Path dir) {
-        if (saasActive) {
-            throw new IllegalArgumentException(
-                    "folder sources and outputs are not available in SaaS mode");
-        }
         if (!dir.isAbsolute()) {
             throw new IllegalArgumentException("folder must be an absolute path");
         }
@@ -88,8 +78,8 @@ public class FolderAccessGuard {
             throw new IllegalArgumentException(
                     "folder may not point inside a protected Stirling directory");
         }
-        // The desktop operator's own choice is the authorization on their own machine; only the
-        // SaaS refusal and the protected config dir above outrank it.
+        // The desktop operator's own choice is the authorization on their own machine; the
+        // protected config dir above remains unavailable.
         if (desktopOperator) {
             return normalized;
         }

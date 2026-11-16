@@ -30,7 +30,6 @@ fn queue_file_ids(label: &str, ids: Vec<String>) {
 // macOS traffic-light inset, vertically centred in the frontend title-bar strip.
 // Must track the strip height in TitleBarStrip.module.css (--titlebar-h); kept in
 // Rust, not tauri.conf.json, so the value lives with the window builders.
-#[cfg(target_os = "macos")]
 const TRAFFIC_LIGHT_INSET: (f64, f64) = (13.0, 18.0);
 
 // The main window, built here rather than declared in tauri.conf.json so its
@@ -39,7 +38,7 @@ const TRAFFIC_LIGHT_INSET: (f64, f64) = (13.0, 18.0);
 // OS drag-drop is disabled; the frontend handles file drops itself.
 pub fn build_main_window(app: &AppHandle) -> Result<WebviewWindow, String> {
     let builder = WebviewWindowBuilder::new(app, MAIN_WINDOW_LABEL, WebviewUrl::App("/".into()))
-        .title("Stirling PDF")
+        .title("Promin")
         .inner_size(1280.0, 800.0)
         // Below this width the file manager collapses to its mobile layout, so
         // keep the window above the breakpoint (matches the spawned windows).
@@ -47,12 +46,6 @@ pub fn build_main_window(app: &AppHandle) -> Result<WebviewWindow, String> {
         .resizable(true)
         .disable_drag_drop_handler();
 
-    #[cfg(target_os = "windows")]
-    let builder = builder
-        .additional_browser_args("--enable-features=CertVerifierBuiltinFeature")
-        .decorations(false);
-
-    #[cfg(target_os = "macos")]
     let builder = builder
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .hidden_title(true)
@@ -64,38 +57,16 @@ pub fn build_main_window(app: &AppHandle) -> Result<WebviewWindow, String> {
     builder.build().map_err(|e| e.to_string())
 }
 
-// Shared window builder: every Stirling window must use identical WebView2
-// browser args so they can share one user-data folder (see the note below),
-// so all spawn paths funnel through here.
+// Every app window uses the same native title-bar layout and shared WebView storage.
 fn build_window(app: &AppHandle, label: &str, url: &str) -> Result<WebviewWindow, String> {
     let builder = WebviewWindowBuilder::new(app, label, WebviewUrl::App(url.into()))
-        .title("Stirling-PDF")
+        .title("Promin")
         .inner_size(1280.0, 800.0)
         // Below this width the file manager collapses to its mobile layout,
         // so keep new windows above the breakpoint.
         .min_inner_size(1030.0, 600.0)
         .resizable(true);
 
-    // WebView2 (Windows only) requires every webview sharing a user-data folder
-    // to use identical additional_browser_args. wry's behaviour
-    // (webview2/mod.rs:294): when the user provides args it uses them as-is and
-    // does NOT prepend its own default `--disable-features=msWebOOUI,...`. So the
-    // main window's actual args are EXACTLY what tauri.conf.json declares -
-    // nothing more. We mirror that string byte-for-byte so windows share one data
-    // dir (and thus IndexedDB / localStorage / cookies). macOS (WKWebView) and
-    // Linux (WebKitGTK) don't have this constraint, so the arg is Windows-only.
-    #[cfg(target_os = "windows")]
-    let builder = builder
-        .additional_browser_args("--enable-features=CertVerifierBuiltinFeature")
-        // Windows: no native title bar; the frontend draws its own controls in
-        // the title-bar strip (TitleBarStrip). macOS uses the overlay style below.
-        .decorations(false);
-
-    // macOS: keep the native frame but make the title bar an overlay so the
-    // frontend strip spans under the traffic lights, positioned to sit centred in
-    // the strip (matches the main window in tauri.conf.json). Linux keeps its
-    // native decorations.
-    #[cfg(target_os = "macos")]
     let builder = builder
         .title_bar_style(tauri::TitleBarStyle::Overlay)
         .hidden_title(true)
@@ -107,10 +78,7 @@ fn build_window(app: &AppHandle, label: &str, url: &str) -> Result<WebviewWindow
     builder.build().map_err(|e| e.to_string())
 }
 
-// Run `work` on the main thread and await its result. WebView2 on Windows
-// refuses to create a webview off the main thread (HRESULT 0x8007139F), but
-// Tauri command handlers run on a worker thread - so any window creation has to
-// hop over first. Centralised here so every command does it the same way.
+// AppKit requires webviews to be created on the main thread, while command handlers run on workers.
 async fn run_on_main_thread_result<F, R>(app: &AppHandle, work: F) -> Result<R, String>
 where
     F: FnOnce() -> R + Send + 'static,

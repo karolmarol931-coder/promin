@@ -18,19 +18,12 @@ import {
 import { useConnectionProviders } from "@editor/components/shared/config/configSections/security/connectionProviders";
 import { LinkedServicesCard } from "@editor/components/shared/config/configSections/security/LinkedServicesCard";
 import { UnlinkedServicesCard } from "@editor/components/shared/config/configSections/security/UnlinkedServicesCard";
-import { MobileUploadQrCard } from "@editor/components/shared/config/configSections/security/MobileUploadQrCard";
 import { McpCard } from "@editor/components/shared/config/configSections/server/McpCard";
 import type { McpSettingsData } from "@editor/components/shared/config/configSections/server/serverSettings";
 import "@editor/components/shared/config/configSections/security/AdminSecurityPage.css";
 
 /**
- * The services this server talks to: mail, Telegram, Drive, and the phone that
- * uploads by QR. Sign-in providers live on the security page instead - these
- * are wiring, not authentication, and lumping them together made "Single
- * sign-on" the page you had to visit to configure SMTP.
- *
- * Shares the `connections` section with the security page, which is safe
- * because only one settings section is mounted at a time.
+ * Local protocol integrations exposed by the application backend.
  */
 export default function AdminIntegrationsPage() {
   const { t } = useTranslation();
@@ -170,16 +163,6 @@ export default function AdminIntegrationsPage() {
           )}
         >
           <UnlinkedServicesCard {...card} providers={availableProviders} />
-        </SettingsCard>
-
-        <SettingsCard
-          id="connectionsMobileScanner"
-          title={t(
-            "admin.settings.connections.mobileScanner.label",
-            "Mobile upload",
-          )}
-        >
-          <MobileUploadQrCard {...card} />
         </SettingsCard>
 
         <SettingsCard

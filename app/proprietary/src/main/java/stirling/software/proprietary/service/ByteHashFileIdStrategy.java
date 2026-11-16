@@ -10,8 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Content-addressable id derived from the SHA-256 hash of the uploaded bytes. Same content always
- * hashes to the same id, so re-uploads dedupe naturally in RAG. Suitable for session and SaaS
- * deployments; a folder-watch deployment would use a different strategy keyed by path.
+ * hashes to the same id, so re-uploads dedupe naturally in RAG. Folder-watch deployments can use a
+ * different strategy keyed by path.
  */
 @Component
 public class ByteHashFileIdStrategy implements FileIdStrategy {

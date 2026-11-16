@@ -15,12 +15,10 @@ import {
 } from "@editor/api/signing";
 import { alert } from "@editor/components/toast";
 import { markSigningItemSeen } from "@editor/services/signingSeenStore";
-import { expectConsole } from "@editor/tests/failOnConsole";
 
 const auth = vi.hoisted<Pick<ReturnType<typeof useAuth>, "user" | "loading">>(
   () => ({ user: { id: "ada" }, loading: false }),
 );
-const access = vi.hoisted(() => ({ granted: true, settled: true }));
 
 vi.mock("@editor/auth/UseSession", () => ({
   useAuth: () => ({
@@ -28,9 +26,6 @@ vi.mock("@editor/auth/UseSession", () => ({
     displayName: auth.user?.id ?? null,
     isAnonymous: false,
   }),
-}));
-vi.mock("@editor/hooks/usePortalAccess", () => ({
-  usePortalAccessState: () => access,
 }));
 vi.mock("@editor/api/signing", () => ({ fetchSigningSessions: vi.fn() }));
 vi.mock("@editor/components/toast", () => ({ alert: vi.fn() }));
@@ -61,7 +56,6 @@ function RailState() {
   const host = useQuickNavHost();
   return (
     <>
-      <output data-testid="access">{String(host?.portalAccess)}</output>
       <output data-testid="badge">{host?.signingBadge}</output>
       <output data-testid="items">{JSON.stringify(host?.signingItems)}</output>
     </>
@@ -71,9 +65,6 @@ function RailState() {
 function setup() {
   const clients = {
     editor: new QueryClient({ defaultOptions: { queries: { retry: false } } }),
-    processor: new QueryClient({
-      defaultOptions: { queries: { retry: false } },
-    }),
   };
   const markup = (
     app: keyof typeof clients | null,
@@ -109,17 +100,14 @@ function setup() {
   ) => view.rerender(markup(app, configReady, signingEnabled));
 }
 
-function expectRail(granted: boolean, count: number) {
-  expect(screen.getByTestId("access")).toHaveTextContent(String(granted));
+function expectRail(count: number) {
   expect(screen.getByTestId("badge")).toHaveTextContent(String(count));
 }
 
-describe("quick-nav account data during view switches", () => {
+describe("quick-nav signing data during view switches", () => {
   beforeEach(() => {
     auth.user = { id: "ada" };
     auth.loading = false;
-    access.granted = true;
-    access.settled = true;
     localStorage.clear();
     mockFetch.mockReset();
     vi.mocked(alert).mockClear();
@@ -146,14 +134,14 @@ describe("quick-nav account data during view switches", () => {
       ],
     });
     setup();
-    await waitFor(() => expectRail(true, 3));
+    await waitFor(() => expectRail(3));
     const unreadCount = () =>
       JSON.parse(screen.getByTestId("items").textContent ?? "[]").filter(
         (item: { unread: boolean }) => item.unread,
       ).length;
     expect(unreadCount()).toBe(3);
     act(() => markSigningItemSeen("ada", { ...partial, kind: "session" }));
-    await waitFor(() => expectRail(true, 2));
+    await waitFor(() => expectRail(2));
     expect(unreadCount()).toBe(2);
     act(() =>
       markSigningItemSeen("ada", {
@@ -163,17 +151,17 @@ describe("quick-nav account data during view switches", () => {
         signedCount: 2,
       }),
     );
-    await waitFor(() => expectRail(true, 1));
+    await waitFor(() => expectRail(1));
     expect(unreadCount()).toBe(1);
     expect(
       JSON.parse(screen.getByTestId("items").textContent ?? "[]"),
     ).toHaveLength(4);
   });
-  it("retains access and the count until each incoming lookup settles", async () => {
+  it("retains the count until each incoming lookup settles", async () => {
     const switchView = setup();
-    await waitFor(() => expectRail(true, 1));
+    await waitFor(() => expectRail(1));
     switchView(null);
-    expectRail(true, 1);
+    expectRail(1);
 
     let resolveSessions = (_value: SigningSessions) => {};
     mockFetch.mockReturnValue(
@@ -183,60 +171,57 @@ describe("quick-nav account data during view switches", () => {
     );
     auth.user = null;
     auth.loading = true;
-    access.granted = false;
-    access.settled = false;
-    switchView("processor", false);
-    expectRail(true, 1);
+    switchView("editor", false);
+    expectRail(1);
 
     auth.user = { id: "ada" };
     auth.loading = false;
-    switchView("processor", false);
-    expectRail(true, 1);
+    switchView("editor", false);
+    expectRail(1);
 
-    switchView("processor");
-    expectRail(true, 1);
-    access.settled = true;
-    switchView("processor");
-    expectRail(false, 1);
+    switchView("editor");
+    expectRail(1);
 
     await act(async () => resolveSessions(EMPTY));
-    await waitFor(() => expectRail(false, 0));
+    await waitFor(() => expectRail(0));
 
     mockFetch.mockReturnValue(
       new Promise((resolve) => {
         resolveSessions = resolve;
       }),
     );
-    access.settled = false;
     switchView("editor", false);
-    expectRail(false, 0);
+    expectRail(0);
     switchView("editor");
-    expectRail(false, 0);
+    expectRail(0);
     await act(async () => resolveSessions(UNREAD));
-    await waitFor(() => expectRail(false, 1));
+    await waitFor(() => expectRail(1));
     switchView("editor", true, false);
-    expectRail(false, 0);
+    expectRail(0);
   });
 
-  it("keeps the previous count when the incoming signing request fails", async () => {
+  it("keeps the previous count when a background signing request fails", async () => {
     const switchView = setup();
-    await waitFor(() => expectRail(true, 1));
-    expectConsole.error(/Failed to fetch signing data/);
+    await waitFor(() => expectRail(1));
     let rejectSessions = (_error: Error) => {};
-    mockFetch.mockReturnValue(
-      new Promise((_resolve, reject) => {
-        rejectSessions = reject;
-      }),
-    );
-    switchView("processor");
-    await act(async () => rejectSessions(new Error("Network unavailable")));
-    await waitFor(() => expect(alert).toHaveBeenCalled());
-    expectRail(true, 1);
+    const request = new Promise<SigningSessions>((_resolve, reject) => {
+      rejectSessions = reject;
+    });
+    mockFetch.mockReturnValueOnce(request);
+    switchView(null);
+    switchView("editor");
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      rejectSessions(new Error("Network unavailable"));
+      await request.catch(() => undefined);
+    });
+    expect(alert).not.toHaveBeenCalled();
+    expectRail(1);
   });
 
   it("drops the previous account's values during an account change and sign-out", async () => {
     const switchView = setup();
-    await waitFor(() => expectRail(true, 1));
+    await waitFor(() => expectRail(1));
     let resolveSessions = (_value: SigningSessions) => {};
     mockFetch.mockReturnValue(
       new Promise((resolve) => {
@@ -245,20 +230,16 @@ describe("quick-nav account data during view switches", () => {
     );
 
     auth.user = { id: "grace" };
-    access.settled = false;
     switchView("editor");
-    expectRail(false, 0);
+    expectRail(0);
 
-    access.settled = true;
     switchView("editor");
     await act(async () => resolveSessions(UNREAD));
-    await waitFor(() => expectRail(true, 1));
+    await waitFor(() => expectRail(1));
 
     mockFetch.mockResolvedValue(EMPTY);
     auth.user = null;
-    access.granted = false;
-    access.settled = true;
     switchView("editor");
-    expectRail(false, 0);
+    expectRail(0);
   });
 });

@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+import React from "react";
 import { Container } from "@mantine/core";
+import { useTranslation } from "react-i18next";
 import { useFileHandler } from "@editor/hooks/useFileHandler";
-import MobileUploadModal from "@editor/components/shared/MobileUploadModal";
 import { openFilesFromDisk } from "@editor/services/openFilesFromDisk";
-import { Logo } from "@editor/ui/Logo";
 import { LandingActions } from "@editor/components/shared/LandingActions";
+import { LandingBrand } from "@editor/components/shared/LandingBrand";
 import "@editor/components/shared/LandingPage.css";
 
-const LandingPage = () => {
+const LandingPage = ({ readerEmpty = false }: { readerEmpty?: boolean }) => {
+  const { t } = useTranslation();
   const { addFiles } = useFileHandler();
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
-  const [mobileUploadModalOpen, setMobileUploadModalOpen] = useState(false);
 
   const handleNativeUploadClick = async () => {
     const files = await openFilesFromDisk({
@@ -32,12 +32,6 @@ const LandingPage = () => {
     event.target.value = "";
   };
 
-  const handleFilesReceivedFromMobile = async (files: File[]) => {
-    if (files.length > 0) {
-      await addFiles(files);
-    }
-  };
-
   return (
     <Container
       size="70rem"
@@ -47,31 +41,23 @@ const LandingPage = () => {
       style={{ position: "relative" }}
     >
       <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-visible px-4 py-8">
-        <Logo
-          variant="iconAndText"
-          orientation="vertical"
-          iconHeight="5rem"
-          textHeight="2.5rem"
-          gap="1rem"
-          className="landing-logo-enter"
-          style={{ marginBottom: "2.5rem" }}
-        />
+        {readerEmpty ? (
+          <h1 className="landing-reader-empty-title">
+            {t("reader.emptyTitle", "Open a PDF to start reading")}
+          </h1>
+        ) : (
+          <LandingBrand />
+        )}
 
         <div className="landing-actions-enter">
           <LandingActions
             fileInputRef={fileInputRef}
             onUploadClick={() => void handleNativeUploadClick()}
-            onMobileUploadClick={() => setMobileUploadModalOpen(true)}
             onFileSelect={handleFileSelect}
+            readerEmpty={readerEmpty}
           />
         </div>
       </div>
-
-      <MobileUploadModal
-        opened={mobileUploadModalOpen}
-        onClose={() => setMobileUploadModalOpen(false)}
-        onFilesReceived={handleFilesReceivedFromMobile}
-      />
     </Container>
   );
 };

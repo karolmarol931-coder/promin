@@ -107,11 +107,6 @@ interface ToolWorkflowContextValue extends ToolWorkflowState {
     matchedText?: string;
   }>; // Filtered by search
 
-  // Tool History
-  favoriteTools: ToolId[];
-  toggleFavorite: (toolId: ToolId) => void;
-  isFavorite: (toolId: ToolId) => boolean;
-
   customWorkbenchViews: CustomWorkbenchViewInstance[];
   registerCustomWorkbenchView: <T>(
     view: CustomWorkbenchViewRegistration<T>,
@@ -171,12 +166,56 @@ export interface ToolWorkflowDataValue {
   isFavorite: (toolId: ToolId) => boolean;
 }
 
+type ToolWorkflowActionsBaseValue = Omit<
+  ToolWorkflowActionsValue,
+  "toggleFavorite"
+>;
+type ToolWorkflowDataBaseValue = Omit<
+  ToolWorkflowDataValue,
+  "favoriteTools" | "isFavorite"
+>;
+type ToolFavoriteActionsValue = Pick<
+  ToolWorkflowActionsValue,
+  "toggleFavorite"
+>;
+type ToolFavoriteDataValue = Pick<
+  ToolWorkflowDataValue,
+  "favoriteTools" | "isFavorite"
+>;
+
 const ToolWorkflowActionsContext = createContext<
-  ToolWorkflowActionsValue | undefined
+  ToolWorkflowActionsBaseValue | undefined
 >(undefined);
 const ToolWorkflowDataContext = createContext<
-  ToolWorkflowDataValue | undefined
+  ToolWorkflowDataBaseValue | undefined
 >(undefined);
+const ToolFavoriteActionsContext = createContext<
+  ToolFavoriteActionsValue | undefined
+>(undefined);
+const ToolFavoriteDataContext = createContext<
+  ToolFavoriteDataValue | undefined
+>(undefined);
+
+function ToolWorkflowHistoryProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { favoriteTools, toggleFavorite, isFavorite } = useToolHistory();
+  const actionsValue = useMemo(() => ({ toggleFavorite }), [toggleFavorite]);
+  const dataValue = useMemo(
+    () => ({ favoriteTools, isFavorite }),
+    [favoriteTools, isFavorite],
+  );
+
+  return (
+    <ToolFavoriteActionsContext.Provider value={actionsValue}>
+      <ToolFavoriteDataContext.Provider value={dataValue}>
+        {children}
+      </ToolFavoriteDataContext.Provider>
+    </ToolFavoriteActionsContext.Provider>
+  );
+}
 
 // Login, signup, invite, share, and the account-link page all sit inside these
 // providers and then navigate into the editor without remounting. Spending the
@@ -237,8 +276,6 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
   const { allTools } = useToolRegistry();
 
   // Tool history hook
-  const { favoriteTools, toggleFavorite, isFavorite } = useToolHistory();
-
   // Get selected tool from navigation context
   const selectedTool = getSelectedTool(navigationState.selectedTool);
 
@@ -704,11 +741,10 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
     [],
   );
 
-  const actionsValue = useMemo<ToolWorkflowActionsValue>(
+  const actionsValue = useMemo<ToolWorkflowActionsBaseValue>(
     () => ({
       selectTool: stableSelectTool,
       clearToolSelection: stableClearToolSelection,
-      toggleFavorite,
       handleToolSelect: stableHandleToolSelect,
       handleToolSelectForced: stableHandleToolSelectForced,
       handleBackToTools: stableHandleBackToTools,
@@ -725,7 +761,6 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
     [
       stableSelectTool,
       stableClearToolSelection,
-      toggleFavorite,
       stableHandleToolSelect,
       stableHandleToolSelectForced,
       stableHandleBackToTools,
@@ -740,21 +775,13 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
     ],
   );
 
-  const dataValue = useMemo<ToolWorkflowDataValue>(
+  const dataValue = useMemo<ToolWorkflowDataBaseValue>(
     () => ({
       toolAvailability,
       toolRegistry,
-      favoriteTools,
       getSelectedTool,
-      isFavorite,
     }),
-    [
-      toolAvailability,
-      toolRegistry,
-      favoriteTools,
-      getSelectedTool,
-      isFavorite,
-    ],
+    [toolAvailability, toolRegistry, getSelectedTool],
   );
 
   // Properly memoized context value
@@ -792,11 +819,6 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
       // Computed
       filteredTools,
 
-      // Tool History
-      favoriteTools,
-      toggleFavorite,
-      isFavorite,
-
       // Custom workbench views
       customWorkbenchViews,
       registerCustomWorkbenchView,
@@ -823,9 +845,6 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
       handleBackToTools,
       handleReaderToggle,
       filteredTools,
-      favoriteTools,
-      toggleFavorite,
-      isFavorite,
       customWorkbenchViews,
       registerCustomWorkbenchView,
       unregisterCustomWorkbenchView,
@@ -838,7 +857,11 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
     <ToolWorkflowActionsContext.Provider value={actionsValue}>
       <ToolWorkflowDataContext.Provider value={dataValue}>
         <ToolWorkflowContext.Provider value={contextValue}>
-          <ToolFileEligibilityProvider>{children}</ToolFileEligibilityProvider>
+          <ToolWorkflowHistoryProvider>
+            <ToolFileEligibilityProvider>
+              {children}
+            </ToolFileEligibilityProvider>
+          </ToolWorkflowHistoryProvider>
         </ToolWorkflowContext.Provider>
       </ToolWorkflowDataContext.Provider>
     </ToolWorkflowActionsContext.Provider>
@@ -848,23 +871,33 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
 /** Tool-workflow callbacks with referentially-stable identities. */
 export function useToolWorkflowActions(): ToolWorkflowActionsValue {
   const ctx = useContext(ToolWorkflowActionsContext);
-  if (!ctx) {
+  const favoriteActions = useContext(ToolFavoriteActionsContext);
+  const value = useMemo(
+    () => (ctx && favoriteActions ? { ...ctx, ...favoriteActions } : undefined),
+    [ctx, favoriteActions],
+  );
+  if (!value) {
     throw new Error(
       "useToolWorkflowActions must be used within ToolWorkflowProvider",
     );
   }
-  return ctx;
+  return value;
 }
 
 /** Tool registry, availability, and favorites — stable while unchanged. */
 export function useToolWorkflowData(): ToolWorkflowDataValue {
   const ctx = useContext(ToolWorkflowDataContext);
-  if (!ctx) {
+  const favoriteData = useContext(ToolFavoriteDataContext);
+  const value = useMemo(
+    () => (ctx && favoriteData ? { ...ctx, ...favoriteData } : undefined),
+    [ctx, favoriteData],
+  );
+  if (!value) {
     throw new Error(
       "useToolWorkflowData must be used within ToolWorkflowProvider",
     );
   }
-  return ctx;
+  return value;
 }
 
 // Custom hook to use the context

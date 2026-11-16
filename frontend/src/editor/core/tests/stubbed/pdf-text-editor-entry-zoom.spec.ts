@@ -1,5 +1,6 @@
 import path from "path";
 import { test, expect } from "@editor/tests/helpers/stub-test-base";
+import { revealPickerTool } from "@editor/tests/helpers/ui-helpers";
 
 const FIXTURES = path.join(import.meta.dirname, "../test-fixtures");
 const MULTIPAGE_PDF = path.join(FIXTURES, "annotations_out_of_order.pdf");
@@ -18,10 +19,7 @@ test("the text editor opens a workbench file at the viewer's zoom", async ({
   await expect(readout).not.toHaveText(initialZoom ?? "");
   const viewerZoom = await readout.textContent();
 
-  await page
-    .getByRole("link", { name: "PDF Text Editor", exact: true })
-    .first()
-    .click();
+  await (await revealPickerTool(page, "pdfTextEditor")).click();
   await expect(page.getByTestId("pdf-editor-page-0")).toBeVisible({
     timeout: 30_000,
   });

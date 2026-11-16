@@ -59,7 +59,7 @@ export function PolicyIngestionConfig({
               value: "builtin",
               label: t(
                 "portal.policies.wizard.locations.builtin",
-                "Stirling knowledge base",
+                "Promin knowledge base",
               ),
             },
             {

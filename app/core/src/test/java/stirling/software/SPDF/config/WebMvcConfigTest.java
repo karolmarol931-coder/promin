@@ -23,6 +23,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -48,13 +50,13 @@ import stirling.software.common.model.ApplicationProperties;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
+@ResourceLock(value = "STIRLING_PDF_TAURI_MODE", mode = ResourceAccessMode.READ_WRITE)
 @DisplayName("WebMvcConfig")
 class WebMvcConfigTest {
 
     private static final String TAURI_PROP = "STIRLING_PDF_TAURI_MODE";
 
     @Mock private EndpointInterceptor endpointInterceptor;
-    @Mock private PdfMetricsInterceptor pdfMetricsInterceptor;
     @Mock private ApplicationProperties applicationProperties;
     @Mock private ApplicationProperties.System system;
 
@@ -65,8 +67,7 @@ class WebMvcConfigTest {
     void setUp() {
         originalTauriProp = System.getProperty(TAURI_PROP);
         System.clearProperty(TAURI_PROP);
-        config =
-                new WebMvcConfig(endpointInterceptor, pdfMetricsInterceptor, applicationProperties);
+        config = new WebMvcConfig(endpointInterceptor, applicationProperties);
     }
 
     @AfterEach
@@ -92,7 +93,6 @@ class WebMvcConfigTest {
             config.addInterceptors(registry);
 
             verify(registry).addInterceptor(endpointInterceptor);
-            verify(registry).addInterceptor(pdfMetricsInterceptor);
         }
     }
 
@@ -101,8 +101,8 @@ class WebMvcConfigTest {
     class AddResourceHandlers {
 
         @Test
-        @DisplayName("registers all five resource handler groups")
-        void registersFiveHandlerGroups() {
+        @DisplayName("registers the bundled fonts and signature image")
+        void registersLocalResources() {
             ResourceHandlerRegistry registry = mock(ResourceHandlerRegistry.class);
             ResourceHandlerRegistration registration =
                     mock(ResourceHandlerRegistration.class, RETURNS_DEEP_STUBS);
@@ -110,12 +110,11 @@ class WebMvcConfigTest {
 
             config.addResourceHandlers(registry);
 
-            // SW/PWA, assets, media+fonts, branding, catch-all = 5 handler registrations.
-            verify(registry, times(5)).addResourceHandler(any(String[].class));
+            verify(registry, times(2)).addResourceHandler(any(String[].class));
         }
 
         @Test
-        @DisplayName("includes the SPA catch-all and assets patterns")
+        @DisplayName("does not serve a browser application")
         void includesKnownPatterns() {
             ResourceHandlerRegistry registry = mock(ResourceHandlerRegistry.class);
             ResourceHandlerRegistration registration =
@@ -128,44 +127,29 @@ class WebMvcConfigTest {
             verify(registry, atLeastOnce()).addResourceHandler(captor.capture());
             List<String> allPatterns =
                     captor.getAllValues().stream().flatMap(java.util.Arrays::stream).toList();
-            assertThat(allPatterns).contains("/**", "/assets/**", "/sw.js");
+            assertThat(allPatterns).containsExactlyInAnyOrder("/fonts/**", "/images/signature.png");
         }
 
         @Test
         @DisplayName("revalidates fonts rather than pinning them immutably for a year")
         void fontsAreRevalidated() {
             ResourceHandlerRegistry registry = mock(ResourceHandlerRegistry.class);
-            ResourceHandlerRegistration sw =
+            ResourceHandlerRegistration fonts =
                     mock(ResourceHandlerRegistration.class, RETURNS_DEEP_STUBS);
-            ResourceHandlerRegistration assets =
+            ResourceHandlerRegistration signature =
                     mock(ResourceHandlerRegistration.class, RETURNS_DEEP_STUBS);
-            ResourceHandlerRegistration media =
-                    mock(ResourceHandlerRegistration.class, RETURNS_DEEP_STUBS);
-            ResourceHandlerRegistration branding =
-                    mock(ResourceHandlerRegistration.class, RETURNS_DEEP_STUBS);
-            ResourceHandlerRegistration catchAll =
-                    mock(ResourceHandlerRegistration.class, RETURNS_DEEP_STUBS);
-            when(registry.addResourceHandler(any(String[].class)))
-                    .thenReturn(sw, assets, media, branding, catchAll);
-            // addResourceLocations is the chain link before setCacheControl.
-            when(sw.addResourceLocations(any(String[].class))).thenReturn(sw);
-            when(assets.addResourceLocations(any(String[].class))).thenReturn(assets);
-            when(media.addResourceLocations(any(String[].class))).thenReturn(media);
-            when(branding.addResourceLocations(any(String[].class))).thenReturn(branding);
-            when(catchAll.addResourceLocations(any(String[].class))).thenReturn(catchAll);
+            when(registry.addResourceHandler(any(String[].class))).thenReturn(fonts, signature);
+            when(fonts.addResourceLocations(any(String[].class))).thenReturn(fonts);
+            when(signature.addResourceLocations(any(String[].class))).thenReturn(signature);
 
             config.addResourceHandlers(registry);
 
-            // Third registration is the media/fonts group. The names never change
-            // across releases, so the tier has to allow revalidation; repeating a
-            // 17 MB CJK face is still cheap because an unchanged file answers the
-            // conditional request with 304.
             ArgumentCaptor<String[]> patterns = ArgumentCaptor.forClass(String[].class);
-            verify(registry, times(5)).addResourceHandler(patterns.capture());
-            assertThat(patterns.getAllValues().get(2)).contains("/fonts/**");
+            verify(registry, times(2)).addResourceHandler(patterns.capture());
+            assertThat(patterns.getAllValues().getFirst()).contains("/fonts/**");
 
             ArgumentCaptor<CacheControl> caches = ArgumentCaptor.forClass(CacheControl.class);
-            verify(media).setCacheControl(caches.capture());
+            verify(fonts).setCacheControl(caches.capture());
             String header = caches.getValue().getHeaderValue();
             assertThat(header).contains("max-age=86400").doesNotContain("immutable");
         }

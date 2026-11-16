@@ -12,28 +12,36 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import stirling.software.SPDF.model.api.security.HardwareSigningCapabilities;
 
 /** Unit tests for the gating / allowlist logic that protects the hardware signing paths. */
+@ResourceLock(value = "STIRLING_PDF_TAURI_MODE", mode = ResourceAccessMode.READ_WRITE)
 class HardwareKeyStoreServiceTest {
 
     private static final String PKCS11_PROP = "stirling.pkcs11.libraries";
 
-    private HardwareKeyStoreService service(String machineType) {
-        return new HardwareKeyStoreService(machineType);
+    private HardwareKeyStoreService service() {
+        return new HardwareKeyStoreService();
     }
 
     @Test
-    void isDesktop_trueOnlyForClientMachineTypes() {
-        assertTrue(service("Client-windows").isDesktop());
-        assertTrue(service("Client-mac").isDesktop());
-        assertTrue(service("Client-unix").isDesktop());
-        assertFalse(service("Server-jar").isDesktop());
-        assertFalse(service("Docker").isDesktop());
-        assertFalse(service(null).isDesktop());
+    void isDesktop_falseOutsideTauri() {
+        String previous = System.getProperty("STIRLING_PDF_TAURI_MODE");
+        try {
+            System.clearProperty("STIRLING_PDF_TAURI_MODE");
+            assertFalse(service().isDesktop());
+        } finally {
+            if (previous == null) {
+                System.clearProperty("STIRLING_PDF_TAURI_MODE");
+            } else {
+                System.setProperty("STIRLING_PDF_TAURI_MODE", previous);
+            }
+        }
     }
 
     @Test
@@ -42,8 +50,7 @@ class HardwareKeyStoreServiceTest {
         String previous = System.getProperty("STIRLING_PDF_TAURI_MODE");
         try {
             System.setProperty("STIRLING_PDF_TAURI_MODE", "true");
-            assertTrue(service("Server-jar").isDesktop());
-            assertTrue(service(null).isDesktop());
+            assertTrue(service().isDesktop());
         } finally {
             if (previous == null) {
                 System.clearProperty("STIRLING_PDF_TAURI_MODE");
@@ -55,27 +62,56 @@ class HardwareKeyStoreServiceTest {
 
     @Test
     void capabilities_notDesktop_reportsUnavailable() {
-        HardwareSigningCapabilities caps = service("Server-jar").capabilities();
-        assertFalse(caps.desktop());
-        assertFalse(caps.windowsStoreSupported());
-        assertFalse(caps.pkcs11Supported());
-        assertTrue(caps.detectedLibraries().isEmpty());
+        String previous = System.getProperty("STIRLING_PDF_TAURI_MODE");
+        try {
+            System.clearProperty("STIRLING_PDF_TAURI_MODE");
+            HardwareSigningCapabilities caps = service().capabilities();
+            assertFalse(caps.desktop());
+            assertFalse(caps.windowsStoreSupported());
+            assertFalse(caps.pkcs11Supported());
+            assertTrue(caps.detectedLibraries().isEmpty());
+        } finally {
+            if (previous == null) {
+                System.clearProperty("STIRLING_PDF_TAURI_MODE");
+            } else {
+                System.setProperty("STIRLING_PDF_TAURI_MODE", previous);
+            }
+        }
     }
 
     @Test
     void capabilities_desktop_reportsOsName() {
-        HardwareSigningCapabilities caps = service("Client-windows").capabilities();
-        assertTrue(caps.desktop());
-        assertFalse(caps.osName().isBlank());
+        String previous = System.getProperty("STIRLING_PDF_TAURI_MODE");
+        try {
+            System.setProperty("STIRLING_PDF_TAURI_MODE", "true");
+            HardwareSigningCapabilities caps = service().capabilities();
+            assertTrue(caps.desktop());
+            assertFalse(caps.osName().isBlank());
+        } finally {
+            if (previous == null) {
+                System.clearProperty("STIRLING_PDF_TAURI_MODE");
+            } else {
+                System.setProperty("STIRLING_PDF_TAURI_MODE", previous);
+            }
+        }
     }
 
     @Test
     void assertLocalDesktop_rejectsNonDesktop() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> service("Server-jar").assertLocalDesktop(request));
+        String previous = System.getProperty("STIRLING_PDF_TAURI_MODE");
+        try {
+            System.clearProperty("STIRLING_PDF_TAURI_MODE");
+            assertThrows(
+                    IllegalArgumentException.class, () -> service().assertLocalDesktop(request));
+        } finally {
+            if (previous == null) {
+                System.clearProperty("STIRLING_PDF_TAURI_MODE");
+            } else {
+                System.setProperty("STIRLING_PDF_TAURI_MODE", previous);
+            }
+        }
     }
 
     @Test
@@ -83,18 +119,25 @@ class HardwareKeyStoreServiceTest {
         HttpServletRequest request = mock(HttpServletRequest.class);
         // 203.0.113.0/24 is TEST-NET-3 (RFC 5737) - never a real local interface address.
         when(request.getRemoteAddr()).thenReturn("203.0.113.5");
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> service("Client-windows").assertLocalDesktop(request));
+        assertThrows(IllegalArgumentException.class, () -> service().assertLocalDesktop(request));
     }
 
     @Test
     void assertLocalDesktop_allowsLoopbackOnDesktop() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getRemoteAddr()).thenReturn("127.0.0.1");
-        assertDoesNotThrow(() -> service("Client-windows").assertLocalDesktop(request));
-        // No servlet context (e.g. internal call) is also allowed.
-        assertDoesNotThrow(() -> service("Client-windows").assertLocalDesktop(null));
+        String previous = System.getProperty("STIRLING_PDF_TAURI_MODE");
+        try {
+            System.setProperty("STIRLING_PDF_TAURI_MODE", "true");
+            assertDoesNotThrow(() -> service().assertLocalDesktop(request));
+            assertDoesNotThrow(() -> service().assertLocalDesktop(null));
+        } finally {
+            if (previous == null) {
+                System.clearProperty("STIRLING_PDF_TAURI_MODE");
+            } else {
+                System.setProperty("STIRLING_PDF_TAURI_MODE", previous);
+            }
+        }
     }
 
     @Test
@@ -110,18 +153,14 @@ class HardwareKeyStoreServiceTest {
 
     @Test
     void validateLibraryAllowed_blankPath_throws() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> service("Client-windows").validateLibraryAllowed("   "));
+        assertThrows(IllegalArgumentException.class, () -> service().validateLibraryAllowed("   "));
     }
 
     @Test
     void validateLibraryAllowed_unknownPath_throws() {
         assertThrows(
                 IllegalArgumentException.class,
-                () ->
-                        service("Client-windows")
-                                .validateLibraryAllowed("/definitely/not/a/real/driver.so"));
+                () -> service().validateLibraryAllowed("/definitely/not/a/real/driver.so"));
     }
 
     @Test
@@ -130,7 +169,8 @@ class HardwareKeyStoreServiceTest {
         String previous = System.getProperty(PKCS11_PROP);
         try {
             System.setProperty(PKCS11_PROP, fakeDriver.toString());
-            HardwareKeyStoreService service = service("Client-windows");
+            System.setProperty("STIRLING_PDF_TAURI_MODE", "true");
+            HardwareKeyStoreService service = service();
             assertDoesNotThrow(() -> service.validateLibraryAllowed(fakeDriver.toString()));
             assertTrue(
                     service.detectPkcs11Libraries().stream()

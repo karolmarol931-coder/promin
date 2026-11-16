@@ -1,5 +1,5 @@
 /**
- * Wire types for the Stirling policy API (`/api/v1/policies`), the decoded
+ * Wire types for the Promin policy API (`/api/v1/policies`), the decoded
  * frontend shape, and the display types used to render stats and activity.
  *
  * The backend stores all portal-level metadata (categoryId, sources, scope,
@@ -123,7 +123,6 @@ export interface PolicyRunView {
   stepCount: number;
   error: string | null;
   errorCode?: string | null;
-  errorSubscribed?: boolean | null;
   outputs?: RunOutputFile[] | null;
   /** Creation timestamp in epoch milliseconds. */
   createdAt: number;

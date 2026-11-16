@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -39,22 +37,13 @@ public class OrgOwnerService {
     private final OrgOwnerRepository repository;
     private final UserRepository users;
     private final AuthorityRepository authorities;
-    private final Environment environment;
     private final EntityManager entityManager;
     private final PlatformTransactionManager transactions;
     private final ObjectProvider<DatabaseServiceInterface> database;
     private final ObjectProvider<AuditService> audit;
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
-    private OwnershipHandoverService handovers;
-
-    private boolean saas() {
-        return environment.acceptsProfiles(Profiles.of("saas"));
-    }
-
     @Transactional(readOnly = true)
     public Optional<Long> ownerId() {
-        if (saas()) return Optional.empty();
         return repository
                 .findById(OrgOwner.SINGLETON_ID)
                 .flatMap(this::validOwner)
@@ -66,7 +55,7 @@ public class OrgOwnerService {
     }
 
     public boolean isCurrentUser(Authentication authentication) {
-        if (saas() || authentication == null || !authentication.isAuthenticated()) return false;
+        if (authentication == null || !authentication.isAuthenticated()) return false;
         return authenticatedUserId(authentication).filter(this::isOwner).isPresent();
     }
 
@@ -88,8 +77,7 @@ public class OrgOwnerService {
                                 () ->
                                         new ResponseStatusException(
                                                 HttpStatus.FORBIDDEN, "orgOwnerRequired"));
-        if (saas()
-                || authentication == null
+        if (authentication == null
                 || !authentication.isAuthenticated()
                 || !authenticatedUserId(authentication).filter(owner.getId()::equals).isPresent()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "orgOwnerRequired");
@@ -140,7 +128,6 @@ public class OrgOwnerService {
     }
 
     public void reconcile(String recoveryUsername) {
-        if (saas()) return;
         TransactionTemplate tx = new TransactionTemplate(transactions);
         tx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         try {
@@ -193,7 +180,6 @@ public class OrgOwnerService {
 
     /** Creation must commit before reconciliation can see its new admin. */
     public void reconcileAfterCommit() {
-        if (saas()) return;
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(
                     new TransactionSynchronization() {
@@ -218,7 +204,6 @@ public class OrgOwnerService {
     /** Called within user mutations so transfer and protection checks hold the same lock. */
     @Transactional
     public void protect(Long userId, boolean passwordReset) {
-        if (saas()) return;
         lockedOwner()
                 .flatMap(this::validOwner)
                 .filter(u -> u.getId().equals(userId))
@@ -238,7 +223,6 @@ public class OrgOwnerService {
     /** A legitimate rename preserves the restore identity pin under the ownership lock. */
     @Transactional
     public void renamed(Long userId, String username) {
-        if (saas()) return;
         lockedOwner()
                 .filter(o -> Objects.equals(o.getOwnerUserId(), userId))
                 .ifPresent(o -> o.setOwnerUsername(username));
@@ -246,7 +230,6 @@ public class OrgOwnerService {
 
     @Transactional(rollbackFor = Exception.class)
     public void transfer(Long targetId, Authentication authentication) {
-        if (saas()) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         OrgOwner row =
                 lockedOwner()
                         .orElseThrow(
@@ -278,7 +261,6 @@ public class OrgOwnerService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Choose an enabled user who has completed first login.");
-        if (handovers != null) handovers.validateCompletion(row, targetId);
         promote(target);
         assign(row, target, "TRANSFER", authentication.getName());
     }
@@ -301,7 +283,6 @@ public class OrgOwnerService {
         row.setOwnerUsername(target.getUsername());
         row.setAssignedAt(LocalDateTime.now());
         row.setAssignedReason(reason);
-        OwnershipHandoverService.clear(row);
         audit.getObject().audit(actor, AuditEventType.ORG_OWNERSHIP_CHANGE, data, AuditLevel.BASIC);
         log.info("Organization owner is {} ({})", target.getUsername(), reason);
         // Boot-time reconcile always lands on a fresh admin; only warn on deliberate handovers

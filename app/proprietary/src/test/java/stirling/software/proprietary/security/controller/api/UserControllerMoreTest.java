@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.env.MockEnvironment;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,7 +30,6 @@ import stirling.software.proprietary.security.model.User;
 import stirling.software.proprietary.security.repository.TeamRepository;
 import stirling.software.proprietary.security.service.EmailService;
 import stirling.software.proprietary.security.service.LoginAttemptService;
-import stirling.software.proprietary.security.service.LoginLandingService;
 import stirling.software.proprietary.security.service.TeamMembershipService;
 import stirling.software.proprietary.security.service.TeamService;
 import stirling.software.proprietary.security.service.UserService;
@@ -50,7 +48,6 @@ class UserControllerMoreTest {
     @Mock private UserLicenseSettingsService licenseSettingsService;
     @Mock private LoginAttemptService loginAttemptService;
     @Mock private TeamMembershipService teamMembershipService;
-    @Mock private LoginLandingService loginLandingService;
 
     private ApplicationProperties applicationProperties;
     private MockMvc mockMvc;
@@ -72,9 +69,7 @@ class UserControllerMoreTest {
                         loginAttemptService,
                         teamMembershipService,
                         org.mockito.Mockito.mock(
-                                stirling.software.proprietary.service.OrgOwnerService.class),
-                        loginLandingService,
-                        new MockEnvironment());
+                                stirling.software.proprietary.service.OrgOwnerService.class));
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 

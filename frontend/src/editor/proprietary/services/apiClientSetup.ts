@@ -1,6 +1,5 @@
 import { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from "axios";
 import { stripBasePath, withBasePath } from "@editor/constants/app";
-import { getBrowserId } from "@editor/utils/browserIdentifier";
 import { setPostLoginRedirectPath } from "@editor/auth/spring/springAuthClient";
 
 let isRefreshing = false;
@@ -129,7 +128,7 @@ async function refreshAuthToken(client: AxiosInstance): Promise<string> {
   }
 }
 
-/** Auth headers for raw fetch() calls (SSE streams). Async to match SaaS override. */
+/** Auth headers for raw fetch() calls used by SSE streams. */
 export async function getAuthHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {};
   const jwt = getJwtTokenFromStorage();
@@ -153,8 +152,6 @@ export function setupApiInterceptors(client: AxiosInstance): void {
           config.headers[key] = value;
         }
       }
-
-      config.headers["X-Browser-Id"] = getBrowserId();
 
       return config;
     },

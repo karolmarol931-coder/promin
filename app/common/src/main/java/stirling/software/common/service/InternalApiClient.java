@@ -56,14 +56,7 @@ public class InternalApiClient {
                     "^/api/v1/(general|misc|security|convert|filter|integration|docparse)(/[A-Za-z0-9_-]+)+$"
                             + "|^/api/v1/ai/tools(/[A-Za-z0-9_-]+)+$");
 
-    /**
-     * Marker propagated on every internal sub-step dispatch so the saas PAYG interceptor classifies
-     * the call as {@code BillingCategory.AUTOMATION}. By construction every {@link
-     * InternalApiClient#post} caller is an automation surface (pipeline executor, AI workflow,
-     * policy runner) running a child tool inside a parent automation flow — see the saas {@code
-     * PaygChargeInterceptor.determineCategory} precedence chain, where this header dominates any
-     * per-tool {@code @RequiresFeature} annotation.
-     */
+    /** Marker propagated on internal sub-step dispatches for audit lineage. */
     public static final String AUTOMATION_HEADER = "X-Stirling-Automation";
 
     /**
@@ -123,24 +116,10 @@ public class InternalApiClient {
         if (apiKey != null && !apiKey.isEmpty()) {
             headers.add("X-API-KEY", apiKey);
         }
-        // Tag the sub-step as automation so PAYG bills it under AUTOMATION regardless of which
-        // tool-level @RequiresFeature annotation the dispatched controller carries (e.g. an AI-OCR
-        // step inside a policy run must bill as AUTOMATION, not AI). Set unconditionally because
-        // every caller of this dispatcher is an automation surface by design.
         headers.add(AUTOMATION_HEADER, "true");
-        // Propagate the current automation run id (set by the orchestrator around its dispatch
-        // loop) so the PAYG interceptor groups every sub-step of this one run into a single charge,
-        // and never merges two separate runs that happen to touch identical bytes. Absent → the
-        // receiving call is treated as standalone. See AutomationRunContext.
         String runId = AutomationRunContext.current();
         if (runId != null && !runId.isEmpty()) {
             headers.add(AutomationRunContext.RUN_ID_HEADER, runId);
-        }
-        // Each source document gets its own charge grouping and step allowance on a linked
-        // instance. SaaS groups by lineage instead.
-        String documentId = AutomationRunContext.currentDocument();
-        if (documentId != null && !documentId.isEmpty()) {
-            headers.add(AutomationRunContext.DOCUMENT_ID_HEADER, documentId);
         }
 
         // Forward the parent policy name (set in MDC by the policy runner) so the audited sub-step

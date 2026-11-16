@@ -22,7 +22,7 @@ const TEMPLATE = `<!doctype html>
 <html lang="en-US">
   <head>
     <base href="./" />
-    <title>Stirling PDF</title>
+    <title>Promin</title>
     <meta
       name="description"
       content="A free, private PDF editor you can run on any infrastructure."
@@ -62,13 +62,13 @@ describe("getToolOgImage (client resolver)", () => {
 describe("injectOg (build-time prerender)", () => {
   const entry = {
     image: "/og_images/compress.png",
-    title: "Compress - Stirling PDF",
+    title: "Compress - Promin",
     description: "Compress PDFs to reduce their file size.",
   };
 
   it("replaces title + description and injects exactly one of each", () => {
     const out = injectOg(TEMPLATE, entry, {});
-    expect(out).toContain("<title>Compress - Stirling PDF</title>");
+    expect(out).toContain("<title>Compress - Promin</title>");
     expect(out).toContain(
       '<meta name="description" content="Compress PDFs to reduce their file size." />',
     );
@@ -137,21 +137,19 @@ describe("injectOg (build-time prerender)", () => {
     const out = injectOg(
       TEMPLATE,
       {
-        image: "/og_images/saas/app.png",
-        title: "Stirling - Edit any PDF. Govern every PDF.",
-        ogTitle: "Edit any PDF. Govern every PDF.",
+        image: "/og_images/home.png",
+        title: "Promin — PDF",
+        ogTitle: "Private PDF tools",
         description: "d",
       },
       {},
     );
+    expect(out).toContain("<title>Promin — PDF</title>");
     expect(out).toContain(
-      "<title>Stirling - Edit any PDF. Govern every PDF.</title>",
+      '<meta property="og:title" content="Private PDF tools" />',
     );
     expect(out).toContain(
-      '<meta property="og:title" content="Edit any PDF. Govern every PDF." />',
-    );
-    expect(out).toContain(
-      '<meta name="twitter:title" content="Edit any PDF. Govern every PDF." />',
+      '<meta name="twitter:title" content="Private PDF tools" />',
     );
   });
 });
@@ -159,7 +157,7 @@ describe("injectOg (build-time prerender)", () => {
 describe("injectOg SEO extras (robots, canonical, JSON-LD)", () => {
   const entry = {
     image: "/og_images/compress.png",
-    title: "Compress - Stirling PDF",
+    title: "Compress - Promin",
     description: "Compress PDFs to reduce their file size.",
   };
 
@@ -209,7 +207,7 @@ describe("injectOg SEO extras (robots, canonical, JSON-LD)", () => {
   it("escapes '<' inside JSON-LD so a value cannot close the script early", () => {
     const out = injectOg(
       TEMPLATE,
-      { ...entry, title: "A <script> B - Stirling PDF" },
+      { ...entry, title: "A <script> B - Promin" },
       {
         ogBase: "https://stirling.com",
         canonicalBase: "https://stirling.com",
@@ -240,18 +238,18 @@ describe("buildSitemap", () => {
   const manifest = {
     default: {
       image: "/og_images/home.png",
-      title: "Stirling PDF",
+      title: "Promin",
       description: "d",
     },
     byTool: {
       compress: {
         image: "/og_images/compress.png",
-        title: "Compress - Stirling PDF",
+        title: "Compress - Promin",
         description: "c",
       },
       "/settings/people": {
         image: "/og_images/home.png",
-        title: "People Settings - Stirling PDF",
+        title: "People Settings - Promin",
         description: "p",
         noindex: true,
       },
@@ -299,7 +297,7 @@ describe("buildSitemap", () => {
 describe("buildBodyContent + injectBody (crawlable landing content)", () => {
   const entry = {
     image: "/og_images/compress.png",
-    title: "PDF to Word Converter - Stirling PDF",
+    title: "PDF to Word Converter - Promin",
     description: "Convert PDF files into editable Word documents.",
   };
   const navLinks = [
@@ -351,18 +349,18 @@ describe("buildBodyContent + injectBody (crawlable landing content)", () => {
     const manifest = {
       default: {
         image: "/og_images/home.png",
-        title: "Stirling PDF",
+        title: "Promin",
         description: "home",
       },
       byTool: {
         compress: {
           image: "/og_images/compress.png",
-          title: "Compress - Stirling PDF",
+          title: "Compress - Promin",
           description: "c",
         },
         "/settings/people": {
           image: "/og_images/home.png",
-          title: "People Settings - Stirling PDF",
+          title: "People Settings - Promin",
           description: "p",
           noindex: true,
         },
@@ -404,13 +402,13 @@ describe("buildBodyContent + injectBody (crawlable landing content)", () => {
     const manifest = {
       default: {
         image: "/og_images/home.png",
-        title: "Stirling PDF",
+        title: "Promin",
         description: "home",
       },
       byTool: {
         compress: {
           image: "/og_images/compress.png",
-          title: "Compress - Stirling PDF",
+          title: "Compress - Promin",
           description: "c",
         },
       },
@@ -424,7 +422,7 @@ describe("buildBodyContent + injectBody (crawlable landing content)", () => {
     expect(compress).toContain('<div id="root"></div>');
     expect(compress).not.toContain("spdf-seo");
     // OG/title metadata is still baked in - only the visible body is skipped.
-    expect(compress).toContain("<title>Compress - Stirling PDF</title>");
+    expect(compress).toContain("<title>Compress - Promin</title>");
 
     const home = await fs.readFile(path.join(dir, "index.html"), "utf8");
     expect(home).not.toContain("spdf-seo");
@@ -438,7 +436,7 @@ describe("buildBodyContent + injectBody (crawlable landing content)", () => {
     const manifest = {
       default: {
         image: "/og_images/home.png",
-        title: "Stirling PDF",
+        title: "Promin",
         description: "home",
       },
       byTool: {},
@@ -466,18 +464,18 @@ describe("prerenderOg (flat + nested route files)", () => {
     const manifest = {
       default: {
         image: "/og_images/home.png",
-        title: "Stirling PDF",
+        title: "Promin",
         description: "d",
       },
       byTool: {
         compress: {
           image: "/og_images/compress.png",
-          title: "Compress - Stirling PDF",
+          title: "Compress - Promin",
           description: "c",
         },
         "/settings/people": {
           image: "/og_images/home.png",
-          title: "People Settings - Stirling PDF",
+          title: "People Settings - Promin",
           description: "p",
         },
       },
@@ -505,7 +503,7 @@ describe("prerenderOg (flat + nested route files)", () => {
       path.join(dir, "settings", "people.html"),
       "utf8",
     );
-    expect(nested).toContain("<title>People Settings - Stirling PDF</title>");
+    expect(nested).toContain("<title>People Settings - Promin</title>");
     expect(nested).toContain('<base href="/"'); // nested base rewritten to absolute
 
     await fs.rm(dir, { recursive: true, force: true });
@@ -517,13 +515,13 @@ describe("prerenderOg (flat + nested route files)", () => {
     const manifest = {
       default: {
         image: "/og_images/home.png",
-        title: "Stirling PDF",
+        title: "Promin",
         description: "d",
       },
       byTool: {
         compress: {
           image: "/og_images/compress.png",
-          title: "Compress - Stirling PDF",
+          title: "Compress - Promin",
           description: "c",
         },
       },
@@ -565,13 +563,13 @@ describe("prerenderOg (flat + nested route files)", () => {
     const manifest = {
       default: {
         image: "/og_images/home.png",
-        title: "Stirling PDF",
+        title: "Promin",
         description: "home",
       },
       byTool: {
         "/login": {
           image: "/og_images/home.png",
-          title: "Sign In - Stirling PDF",
+          title: "Sign In - Promin",
           description: "l",
           noindex: true,
         },
@@ -638,13 +636,13 @@ describe("prerenderOg on a sub-path deploy", () => {
   const manifest = {
     default: {
       image: "/og_images/home.png",
-      title: "Stirling PDF",
+      title: "Promin",
       description: "home",
     },
     byTool: {
       compress: {
         image: "/og_images/compress.png",
-        title: "Compress - Stirling PDF",
+        title: "Compress - Promin",
         description: "c",
       },
     },
@@ -704,7 +702,9 @@ describe("prerenderOg on a sub-path deploy", () => {
     expect(html).toContain(
       '<link rel="canonical" href="https://stirling.com/app/compress" />',
     );
-    expect(html).toContain('"logo":"https://stirling.com/app/modern-logo');
+    expect(html).toContain(
+      '"logo":"https://stirling.com/app/promin/logo512.png"',
+    );
     expect(html).not.toContain("stirling-pdf.pages.dev");
     expect(buildSitemap(manifest, bases)).toContain(
       "<loc>https://stirling.com/app/compress</loc>",
@@ -715,7 +715,7 @@ describe("prerenderOg on a sub-path deploy", () => {
 describe("prerender refuses a drifted HTML shell", () => {
   const entry = {
     image: "/og_images/compress.png",
-    title: "Compress - Stirling PDF",
+    title: "Compress - Promin",
     description: "c",
   };
 
@@ -749,13 +749,13 @@ describe("prerender refuses a drifted HTML shell", () => {
     const manifest = {
       default: {
         image: "/og_images/home.png",
-        title: "Stirling PDF",
+        title: "Promin",
         description: "home",
       },
       byTool: {
         compress: {
           image: "/og_images/compress.png",
-          title: "Compress - Stirling PDF",
+          title: "Compress - Promin",
           description: "c",
         },
       },
@@ -773,7 +773,7 @@ describe("prerender refuses a drifted HTML shell", () => {
     });
 
     const html = await fs.readFile(path.join(dir, "compress.html"), "utf8");
-    expect(html).toContain("<title>Compress - Stirling PDF</title>");
+    expect(html).toContain("<title>Compress - Promin</title>");
     expect(html).toContain('<meta name="description" content="c" />');
     expect(html).toContain(
       '<link rel="canonical" href="https://stirling.com/compress" />',
@@ -798,9 +798,9 @@ describe("shipped OG manifests", () => {
       ),
     );
 
-  it.each(["og-metadata.json", "og-metadata.saas.json"])(
-    "%s marks every link tool noindex and keeps it out of the sitemap",
-    async (name) => {
+  it("marks every link tool noindex and keeps it out of the sitemap", async () => {
+    const name = "og-metadata.json";
+    {
       const manifest = await load(name);
       const linkIds: readonly string[] = CORE_LINK_TOOL_IDS;
       for (const id of linkIds)
@@ -818,53 +818,41 @@ describe("shipped OG manifests", () => {
         expect(xml).not.toContain(
           `<loc>https://stirling.com${routePath}</loc>`,
         );
-    },
-  );
-
-  it.each(["og-metadata.json", "og-metadata.saas.json"])(
-    "%s canonicalises every alias at a primary that is itself in the sitemap",
-    async (name) => {
-      const manifest = await load(name);
-      const canonicalByPath: Record<string, string> =
-        manifest.canonicalByPath ?? {};
-      const xml = buildSitemap(manifest, {
-        canonicalBase: "https://stirling.com",
-      });
-      for (const [alias, primary] of Object.entries(canonicalByPath)) {
-        expect(alias, `${alias} canonicalises to itself`).not.toBe(primary);
-        // A chain (alias -> alias -> primary) drops the target from the sitemap
-        // as well, leaving the whole group unindexed.
-        expect(canonicalByPath[primary], `${alias} -> ${primary}`).toBe(
-          undefined,
+    }
+  });
+  it("canonicalises every alias at a primary that is itself in the sitemap", async () => {
+    const name = "og-metadata.json";
+    const manifest = await load(name);
+    const canonicalByPath: Record<string, string> =
+      manifest.canonicalByPath ?? {};
+    const xml = buildSitemap(manifest, {
+      canonicalBase: "https://stirling.com",
+    });
+    for (const [alias, primary] of Object.entries(canonicalByPath)) {
+      expect(alias, `${alias} canonicalises to itself`).not.toBe(primary);
+      // A chain (alias -> alias -> primary) drops the target from the sitemap
+      // as well, leaving the whole group unindexed.
+      expect(canonicalByPath[primary], `${alias} -> ${primary}`).toBe(
+        undefined,
+      );
+      expect(manifest.byPath[primary], `${alias} -> ${primary}`).toBeDefined();
+      const entry = manifest.byTool[manifest.byPath[primary]];
+      if (!entry?.noindex)
+        expect(xml, `${alias} -> ${primary}`).toContain(
+          `<loc>https://stirling.com${primary}</loc>`,
         );
-        expect(
-          manifest.byPath[primary],
-          `${alias} -> ${primary}`,
-        ).toBeDefined();
-        const entry = manifest.byTool[manifest.byPath[primary]];
-        if (!entry?.noindex)
-          expect(xml, `${alias} -> ${primary}`).toContain(
-            `<loc>https://stirling.com${primary}</loc>`,
-          );
-      }
-    },
-  );
-
-  it("opts the metered /processor out of the price-0 Offer, not /editor", async () => {
-    const manifest = await load("og-metadata.saas.json");
-    expect(manifest.byTool["/processor"].noOffer).toBe(true);
-    expect(manifest.byTool["/editor"].noOffer).toBeUndefined();
+    }
   });
 
   it("gives the self-hosted home the brand card, verbatim", async () => {
     const manifest = await load("og-metadata.json");
-    expect(manifest.default.title).toBe("Stirling PDF - 30M+ Downloads");
+    expect(manifest.default.title).toBe("Promin — PDF");
     expect(manifest.default.description).toBe(
       "A free, private PDF editor you can run on any infrastructure.",
     );
     const html = injectOg(TEMPLATE, manifest.default, { isHome: true });
     expect(html).toContain(
-      '<meta name="twitter:title" content="Stirling PDF - 30M+ Downloads" />',
+      '<meta name="twitter:title" content="Promin — PDF" />',
     );
     expect(html).toContain(
       '<meta name="twitter:description" content="A free, private ' +
@@ -872,54 +860,42 @@ describe("shipped OG manifests", () => {
     );
   });
 
-  it.each(["og-metadata.json", "og-metadata.saas.json"])(
-    "%s labels every app surface the router actually renders",
-    async (name) => {
-      const manifest = await load(name);
-      // Routes that render a page of their own. Redirect-only paths
-      // (/processor/users and friends) are deliberately absent.
-      const surfaces = [
-        "/editor",
-        "/files",
-        "/login",
-        "/docs",
-        "/settings",
-        "/settings/api-keys",
-        "/processor",
-        "/processor/pipelines",
-        "/processor/sources",
-        "/processor/integrations",
-        "/processor/documents",
-        "/processor/review",
-      ];
-      for (const routePath of surfaces) {
-        const entry = manifest.byTool[manifest.byPath[routePath]];
-        expect(entry, routePath).toBeDefined();
-        expect(entry.title, routePath).not.toBe(manifest.default.title);
-      }
-      // Redirects have nothing to label, so they get no prerendered page.
-      for (const gone of ["/processor/users", "/processor/usage"])
-        expect(manifest.byPath[gone], gone).toBeUndefined();
-    },
-  );
-
-  it("keeps prerendered pages off the backend's own static HTML", async () => {
-    // ReactRoutingController serves mobile-sign.html itself in desktop mode; a
-    // prerendered route of the same name would shadow it.
-    const manifest = await load("og-metadata.json");
-    for (const reserved of ["/mobile-sign", "/mobile-upload", "/api-landing"])
-      expect(manifest.byPath[reserved], reserved).toBeUndefined();
+  it("labels every app surface the router actually renders", async () => {
+    const name = "og-metadata.json";
+    const manifest = await load(name);
+    // Routes that render a page of their own. Redirect-only paths
+    // (/processor/users and friends) are deliberately absent.
+    const surfaces = [
+      "/editor",
+      "/files",
+      "/login",
+      "/docs",
+      "/settings",
+      "/settings/api-keys",
+      "/processor",
+      "/processor/pipelines",
+      "/processor/sources",
+      "/processor/integrations",
+      "/processor/documents",
+      "/processor/review",
+    ];
+    for (const routePath of surfaces) {
+      const entry = manifest.byTool[manifest.byPath[routePath]];
+      expect(entry, routePath).toBeDefined();
+      expect(entry.title, routePath).not.toBe(manifest.default.title);
+    }
+    // Redirects have nothing to label, so they get no prerendered page.
+    for (const gone of ["/processor/users", "/processor/usage"])
+      expect(manifest.byPath[gone], gone).toBeUndefined();
   });
 
-  it.each(["og-metadata.json", "og-metadata.saas.json"])(
-    "%s keeps every route within the two segments the backend can serve",
-    async (manifestName) => {
-      const manifest = await load(manifestName);
-      for (const routePath of Object.keys(manifest.byPath))
-        expect(
-          routePath.replace(/^\//, "").split("/").length,
-          routePath,
-        ).toBeLessThanOrEqual(2);
-    },
-  );
+  it("keeps every route within the two segments the backend can serve", async () => {
+    const manifestName = "og-metadata.json";
+    const manifest = await load(manifestName);
+    for (const routePath of Object.keys(manifest.byPath))
+      expect(
+        routePath.replace(/^\//, "").split("/").length,
+        routePath,
+      ).toBeLessThanOrEqual(2);
+  });
 });

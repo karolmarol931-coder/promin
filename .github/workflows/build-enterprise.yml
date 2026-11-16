@@ -2,15 +2,12 @@ name: Enterprise E2E (Playwright)
 
 # Enterprise Playwright suite — exercises premium-key gated features (audit,
 # teams, analytics) plus full OAuth + SAML logins via the Keycloak compose
-# stacks under testing/compose. Slow and secret-gated, so it runs in four
+# stacks under testing/compose. Slow and secret-gated, so it runs in two
 # situations:
 #
 #   - PRs that touch proprietary / premium / SSO compose / enterprise tests
 #     (driven by build.yml via workflow_call, path-filtered against
 #     .github/config/.files.yaml `proprietary`),
-#   - every push to main (post-merge safety net),
-#   - on a nightly cron schedule (catches Keycloak image drift, license
-#     expiry, upstream proprietary changes),
 #   - manual workflow_dispatch.
 
 on:
@@ -20,10 +17,6 @@ on:
         required: false
         type: boolean
         default: false
-  push:
-    branches: ["main"]
-  schedule:
-    - cron: "0 4 * * *"
   workflow_dispatch:
 
 # No `concurrency:` block here on purpose. When this workflow is called via
@@ -31,8 +24,8 @@ on:
 # resolve to the *caller's* values, producing the same group key as build.yml
 # and causing the workflow_call instantiation to self-cancel — the job
 # silently fails to spawn while `${{ needs.X.result }}` still reports
-# `failure`. Standalone runs (push-to-main, nightly cron, dispatch) don't
-# overlap often enough to need explicit concurrency control.
+# `failure`. Standalone dispatches don't overlap often enough to need explicit
+# concurrency control.
 
 permissions:
   contents: read

@@ -1,8 +1,6 @@
 import { Flex } from "@mantine/core";
 import { useTranslation } from "react-i18next";
-import { useCookieConsent } from "@editor/hooks/useCookieConsent";
 import { useFooterInfo } from "@editor/hooks/useFooterInfo";
-import { Button } from "@editor/ui/Button";
 
 interface FooterProps {
   privacyPolicy?: string;
@@ -10,7 +8,6 @@ interface FooterProps {
   accessibilityStatement?: string;
   cookiePolicy?: string;
   impressum?: string;
-  analyticsEnabled?: boolean;
 }
 
 export default function Footer({
@@ -19,14 +16,11 @@ export default function Footer({
   accessibilityStatement,
   cookiePolicy,
   impressum,
-  analyticsEnabled,
 }: FooterProps) {
   const { t } = useTranslation();
   const { footerInfo } = useFooterInfo();
 
   // Use props if provided, otherwise fall back to fetched footer info
-  const finalAnalyticsEnabled =
-    analyticsEnabled ?? footerInfo?.analyticsEnabled ?? false;
   const finalPrivacyPolicy = privacyPolicy ?? footerInfo?.privacyPolicy;
   const finalTermsAndConditions =
     termsAndConditions ?? footerInfo?.termsAndConditions;
@@ -34,8 +28,6 @@ export default function Footer({
     accessibilityStatement ?? footerInfo?.accessibilityStatement;
   const finalCookiePolicy = cookiePolicy ?? footerInfo?.cookiePolicy;
   const finalImpressum = impressum ?? footerInfo?.impressum;
-
-  const { showCookiePreferences } = useCookieConsent();
 
   // Default URLs
   const defaultTermsUrl = "https://www.stirling.com/terms";
@@ -129,16 +121,6 @@ export default function Footer({
           >
             {t("legal.impressum", "Impressum")}
           </a>
-        )}
-        {finalAnalyticsEnabled && (
-          <Button
-            variant="tertiary"
-            className="footer-link px-3"
-            id="cookieBanner"
-            onClick={showCookiePreferences}
-          >
-            {t("legal.showCookieBanner", "Cookie Preferences")}
-          </Button>
         )}
       </Flex>
     </div>

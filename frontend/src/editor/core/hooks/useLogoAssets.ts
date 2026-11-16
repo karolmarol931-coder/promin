@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { BASE_PATH } from "@editor/constants/app";
 
-const LOGO_FOLDER = "modern-logo";
+const LOGO_FOLDER = "promin";
 
 export function useLogoAssets() {
   return useMemo(() => {
@@ -11,13 +11,13 @@ export function useLogoAssets() {
       folderPath,
       getAssetPath: (name: string) => `${folderPath}/${name}`,
       wordmark: {
-        black: `${folderPath}/StirlingPDFLogoBlackText.svg`,
-        grey: `${folderPath}/StirlingPDFLogoGreyText.svg`,
-        white: `${folderPath}/StirlingPDFLogoWhiteText.svg`,
+        black: `${folderPath}/promin-wordmark.svg`,
+        grey: `${folderPath}/promin-wordmark.svg`,
+        white: `${folderPath}/promin-wordmark-white.svg`,
       },
-      tooltipLogo: `${folderPath}/logo-tooltip.svg`,
-      firstPage: `${folderPath}/Firstpage.png`,
-      favicon: `${folderPath}/favicon.ico`,
+      tooltipLogo: `${folderPath}/promin-location-mark.svg`,
+      firstPage: `${folderPath}/promin-partner-logo.png`,
+      favicon: `${folderPath}/favicon.png`,
       logo192: `${folderPath}/logo192.png`,
       logo512: `${folderPath}/logo512.png`,
       manifestHref: `${BASE_PATH}/manifest.json`,

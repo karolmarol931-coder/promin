@@ -21,29 +21,11 @@ import {
 // Sensible defaults for every slide factory; individual stories override the
 // few fields their slide actually reads.
 const BASE_PARAMS: SlideFactoryParams = {
-  osLabel: "macOS (Apple Silicon)",
-  osUrl: "#",
-  osOptions: [
-    { label: "macOS (Apple Silicon)", url: "#", value: "mac-arm" },
-    { label: "macOS (Intel)", url: "#", value: "mac-intel" },
-    { label: "Windows", url: "#", value: "windows" },
-    { label: "Linux", url: "#", value: "linux" },
-  ],
-  onDownloadUrlChange: () => {},
   selectedRole: null,
   onRoleSelect: () => {},
-  licenseNotice: {
-    totalUsers: null,
-    freeTierLimit: 5,
-    isOverLimit: false,
-    requiresLicense: false,
-  },
-  loginEnabled: true,
   firstLoginUsername: "admin",
   onPasswordChanged: () => {},
   usingDefaultCredentials: false,
-  analyticsError: null,
-  analyticsLoading: false,
   onMfaSetupComplete: () => {},
 };
 
@@ -54,7 +36,7 @@ interface SlideStageProps {
   allowDismiss?: boolean;
   /**
    * Total steps in the flow. Defaults to 1 → a single standalone card with no
-   * progress bar or step pill (how the SaaS checklist items render). Set > 1
+   * progress bar or step pill. Set > 1
    * only to demonstrate the stepped-flow treatment.
    */
   stepCount?: number;
@@ -86,7 +68,6 @@ function SlideStage({
     ...DEFAULT_RUNTIME_STATE,
     ...runtime,
     selectedRole,
-    licenseNotice: merged.licenseNotice ?? DEFAULT_RUNTIME_STATE.licenseNotice,
   };
 
   return (
@@ -112,13 +93,13 @@ export default meta;
 
 type Story = StoryObj<typeof SlideStage>;
 
-/** "Welcome to Stirling" — the V2 intro slide (rocket hero). */
+/** Initial welcome slide with a rocket hero. */
 export const Welcome: Story = { args: { slideId: "welcome" } };
 
 /** The only stepped example: a multi-step flow shows the step pill + progress
  * bar. Every other story is a standalone single card (no steps). */
 export const SteppedFlowExample: Story = {
-  args: { slideId: "admin-overview", stepCount: 9, stepIndex: 4 },
+  args: { slideId: "welcome", stepCount: 3, stepIndex: 1 },
 };
 
 /** Force a password change on first login (user types current + new). */
@@ -133,71 +114,11 @@ export const FirstLoginDefaultCredentials: Story = {
   },
 };
 
-/** Desktop app download prompt with an OS picker (dual-icon hero). */
-export const DesktopInstall: Story = { args: { slideId: "desktop-install" } };
-
 /** Role confirmation — the "Next" button stays disabled until a role is picked. */
 export const SecurityCheck: Story = { args: { slideId: "security-check" } };
 
-/** Admin overview with login mode already enabled (diamond hero). */
-export const AdminOverviewLoginEnabled: Story = {
-  args: {
-    slideId: "admin-overview",
-    params: { loginEnabled: true },
-  },
-};
-
-/** Admin overview before login mode is enabled — different body copy. */
-export const AdminOverviewLoginDisabled: Story = {
-  args: {
-    slideId: "admin-overview",
-    params: { loginEnabled: false },
-  },
-};
-
-/** Server license, within the free tier. */
-export const ServerLicense: Story = {
-  args: {
-    slideId: "server-license",
-    params: {
-      licenseNotice: {
-        totalUsers: 3,
-        freeTierLimit: 5,
-        isOverLimit: false,
-        requiresLicense: false,
-      },
-    },
-  },
-};
-
-/** Server license, over the free-tier seat limit — "Upgrade now" CTA. */
-export const ServerLicenseOverLimit: Story = {
-  args: {
-    slideId: "server-license",
-    params: {
-      licenseNotice: {
-        totalUsers: 12,
-        freeTierLimit: 5,
-        isOverLimit: true,
-        requiresLicense: true,
-      },
-    },
-  },
-};
-
 /** Quick tour offer before dropping the user into the tools. */
 export const TourOverview: Story = { args: { slideId: "tour-overview" } };
-
-/** Opt-in analytics choice (analytics hero). */
-export const AnalyticsChoice: Story = { args: { slideId: "analytics-choice" } };
-
-/** Analytics choice showing an error banner (e.g. save failed). */
-export const AnalyticsChoiceError: Story = {
-  args: {
-    slideId: "analytics-choice",
-    params: { analyticsError: "Couldn't save your analytics preference." },
-  },
-};
 
 /** Two-factor setup (fetches a QR on mount; shows its error state without a
  * backend in Storybook). */

@@ -25,8 +25,7 @@ import stirling.software.proprietary.security.model.User;
 @Table(
         name = "team_memberships",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"team_id", "user_id"})},
-        // Match the saas migration names so ddl-auto skips them on saas (index already there) and
-        // only creates them on self-hosted, which has no migrations.
+        // These names match the existing schema so Hibernate does not create duplicate indexes.
         indexes = {
             @Index(
                     name = "idx_team_memberships_user_role",

@@ -1,9 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import {
-  bypassOnboarding,
-  mockAppApis,
-  seedCookieConsent,
-} from "@editor/tests/helpers/api-stubs";
+import { bypassOnboarding, mockAppApis } from "@editor/tests/helpers/api-stubs";
 import {
   SETTINGS_SURFACE,
   revealPickerTool,
@@ -44,7 +40,6 @@ test.describe("Auto Form Detection tool", () => {
   test("tile is present even when the model endpoint is disabled", async ({
     page,
   }) => {
-    await seedCookieConsent(page);
     await bypassOnboarding(page);
     await stubModelStatus(page);
     await mockAppApis(page, {
@@ -59,7 +54,6 @@ test.describe("Auto Form Detection tool", () => {
   test("clicking the tile opens the tool when the endpoint is enabled", async ({
     page,
   }) => {
-    await seedCookieConsent(page);
     await bypassOnboarding(page);
     await stubModelStatus(page);
     await mockAppApis(page, {
@@ -75,7 +69,6 @@ test.describe("Auto Form Detection tool", () => {
   test("admin sees the AI Form Detection box inside the System section", async ({
     page,
   }) => {
-    await seedCookieConsent(page);
     await bypassOnboarding(page);
     // Seed JWT so the auth-gated dashboard chrome renders for the admin user.
     await page.addInitScript(() => {

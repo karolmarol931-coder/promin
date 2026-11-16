@@ -4,7 +4,6 @@ const admin = {
   id: 1,
   username: "admin",
   role: "ROLE_ADMIN",
-  portalAccess: true,
 };
 
 test.use({
@@ -47,12 +46,7 @@ test.beforeEach(async ({ page, context }) => {
   });
 });
 
-for (const path of [
-  "/",
-  "/editor?view=all#latest",
-  "/processor",
-  "/processor/policies?view=all#latest",
-]) {
+for (const path of ["/"]) {
   for (const reload of [false, true]) {
     test(`uses the shared first-startup login when opening ${path}${reload ? " after reloading login" : ""}`, async ({
       page,

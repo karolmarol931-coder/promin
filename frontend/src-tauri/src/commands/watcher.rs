@@ -83,9 +83,7 @@ fn build_routes(paths: &[String]) -> (Routes, BTreeSet<PathBuf>) {
             .canonicalize()
             .unwrap_or_else(|_| target.parent.clone());
 
-        // A case- or normalisation-differing spelling still opens the file on
-        // Windows and macOS, so the frontend can hold one spelling while the OS
-        // reports another and every event misses, silently.
+        // Canonical names match filesystem events when the user opened an aliased path.
         let on_disk_name = Path::new(target.given)
             .canonicalize()
             .ok()
@@ -443,7 +441,6 @@ mod tests {
         assert!(dirs.contains(parent));
     }
 
-    #[cfg(unix)]
     #[test]
     fn both_spellings_of_one_folder_are_registered() {
         let root = temp_dir("aliased");
@@ -511,7 +508,6 @@ mod tests {
         assert_eq!(dir_state(&dir), DirState::Gone);
     }
 
-    #[cfg(unix)]
     #[test]
     fn a_file_under_a_symlinked_folder_is_keyed_by_its_resolved_parent() {
         let root = temp_dir("symlink");
@@ -557,7 +553,6 @@ mod tests {
         std::fs::remove_dir_all(&root).unwrap();
     }
 
-    #[cfg(unix)]
     #[test]
     fn a_lost_symlinked_folder_stands_for_the_files_reached_through_it() {
         let root = temp_dir("symlink_loss");
@@ -586,7 +581,6 @@ mod tests {
         std::fs::remove_dir_all(&root).unwrap();
     }
 
-    #[cfg(unix)]
     #[test]
     fn two_names_for_one_file_both_come_back() {
         let root = temp_dir("two_names");
@@ -646,10 +640,6 @@ mod tests {
     }
 
     fn abs(unix_path: &str) -> String {
-        if cfg!(windows) {
-            format!("C:{}", unix_path.replace('/', "\\"))
-        } else {
-            unix_path.to_string()
-        }
+        unix_path.to_string()
     }
 }

@@ -176,31 +176,6 @@ export function useOnboardingOrchestrator(
     }
   }, []);
 
-  useEffect(() => {
-    setRuntimeState((prev) => ({
-      ...prev,
-      analyticsEnabled: config?.enableAnalytics === true,
-      analyticsNotConfigured: config?.enableAnalytics == null,
-      desktopSlideEnabled: config?.enableDesktopInstallSlide ?? true,
-      licenseNotice: {
-        totalUsers: serverExperience.totalUsers,
-        freeTierLimit: serverExperience.freeTierLimit,
-        isOverLimit: serverExperience.overFreeTierLimit ?? false,
-        requiresLicense:
-          !serverExperience.hasPaidLicense &&
-          serverExperience.overFreeTierLimit === true,
-      },
-    }));
-  }, [
-    config?.enableAnalytics,
-    serverExperience.totalUsers,
-    serverExperience.freeTierLimit,
-    serverExperience.overFreeTierLimit,
-    serverExperience.hasPaidLicense,
-    serverExperience.effectiveIsAdmin,
-    serverExperience.userCountResolved,
-  ]);
-
   const isOnAuthRoute = AUTH_ROUTES.some((route) =>
     location.pathname.startsWith(route),
   );

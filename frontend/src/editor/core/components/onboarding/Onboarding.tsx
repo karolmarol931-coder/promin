@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useCallback, useState, useRef } from "react";
+import { useEffect, useMemo, useCallback, useState } from "react";
 import { type StepType } from "@reactour/tour";
 import { useTranslation } from "react-i18next";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { isAuthRoute } from "@editor/constants/routes";
-import { dispatchTourState } from "@editor/constants/events";
 import { useOnboardingOrchestrator } from "@editor/components/onboarding/orchestrator/useOnboardingOrchestrator";
 import { useBypassOnboarding } from "@editor/components/onboarding/useBypassOnboarding";
 import OnboardingTour, {
@@ -11,11 +10,7 @@ import OnboardingTour, {
   type CloseArgs,
 } from "@editor/components/onboarding/OnboardingTour";
 import OnboardingModalSlide from "@editor/components/onboarding/OnboardingModalSlide";
-import {
-  useServerLicenseRequest,
-  useTourRequest,
-} from "@editor/components/onboarding/useOnboardingEffects";
-import { useOnboardingDownload } from "@editor/components/onboarding/useOnboardingDownload";
+import { useTourRequest } from "@editor/components/onboarding/useOnboardingEffects";
 import {
   SLIDE_DEFINITIONS,
   type ButtonAction,
@@ -30,7 +25,6 @@ import "@editor/components/onboarding/OnboardingTour.css";
 
 export default function Onboarding() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const location = useLocation();
   const bypassOnboarding = useBypassOnboarding();
   const { state, actions } = useOnboardingOrchestrator();
@@ -38,9 +32,6 @@ export default function Onboarding() {
   const onAuthRoute = isAuthRoute(location.pathname);
   const { currentStep, isActive, isLoading, runtimeState, activeFlow } = state;
 
-  const { osInfo, osOptions, setSelectedDownloadUrl, handleDownloadSelected } =
-    useOnboardingDownload();
-  const { showLicenseSlide, closeLicenseSlide } = useServerLicenseRequest();
   const {
     tourRequested: externalTourRequested,
     requestedTourType,
@@ -67,10 +58,6 @@ export default function Onboarding() {
         case "close":
           actions.skip();
           break;
-        case "download-selected":
-          handleDownloadSelected();
-          actions.complete();
-          break;
         case "security-next":
           if (!runtimeState.selectedRole) return;
           if (runtimeState.selectedRole !== "admin") {
@@ -78,10 +65,6 @@ export default function Onboarding() {
             setIsTourOpen(true);
           }
           actions.complete();
-          break;
-        case "launch-admin":
-          actions.updateRuntimeState({ tourType: "admin" });
-          setIsTourOpen(true);
           break;
         case "launch-tools":
           actions.updateRuntimeState({ tourType: "whatsnew" });
@@ -97,29 +80,12 @@ export default function Onboarding() {
           setIsTourOpen(true);
           break;
         }
-        case "open-processor":
-          actions.complete();
-          navigate("/portal");
-          break;
-        case "skip-to-license":
-          actions.complete();
-          break;
         case "skip-tour":
           actions.complete();
           break;
-        case "see-plans":
-          actions.complete();
-          navigate("/settings/billing");
-          break;
       }
     },
-    [
-      actions,
-      handleDownloadSelected,
-      navigate,
-      runtimeState.selectedRole,
-      serverExperience.effectiveIsAdmin,
-    ],
+    [actions, runtimeState.selectedRole, serverExperience.effectiveIsAdmin],
   );
 
   const isRTL =
@@ -127,8 +93,6 @@ export default function Onboarding() {
       ? document.documentElement.dir === "rtl"
       : false;
   const [isTourOpen, setIsTourOpen] = useState(false);
-
-  useEffect(() => dispatchTourState(isTourOpen), [isTourOpen]);
 
   const { openFilesModal, closeFilesModal } = useFilesModalContext();
   const tourOrch = useTourOrchestration();
@@ -212,26 +176,15 @@ export default function Onboarding() {
   const currentSlideContent = useMemo(() => {
     if (!currentSlideDefinition) return null;
     return currentSlideDefinition.createSlide({
-      osLabel: osInfo.label,
-      osUrl: osInfo.url,
-      osOptions,
-      onDownloadUrlChange: setSelectedDownloadUrl,
       selectedRole: runtimeState.selectedRole,
       onRoleSelect: handleRoleSelect,
-      licenseNotice: runtimeState.licenseNotice,
-      loginEnabled: serverExperience.loginEnabled,
       firstLoginUsername: runtimeState.firstLoginUsername,
       usingDefaultCredentials: runtimeState.usingDefaultCredentials,
     });
   }, [
     currentSlideDefinition,
-    osInfo,
-    osOptions,
     runtimeState.selectedRole,
-    runtimeState.licenseNotice,
     handleRoleSelect,
-    serverExperience.loginEnabled,
-    setSelectedDownloadUrl,
     runtimeState.firstLoginUsername,
   ]);
 
@@ -247,40 +200,6 @@ export default function Onboarding() {
     return modalSlides.findIndex((step) => step.id === currentStep.id);
   }, [activeFlow, currentStep]);
 
-  const onboardingLicenseRequested =
-    isActive && currentStep?.id === "server-license";
-  const handledLicenseRequest = useRef(false);
-  useEffect(() => {
-    const requested = showLicenseSlide || onboardingLicenseRequested;
-    if (!requested) {
-      handledLicenseRequest.current = false;
-      return;
-    }
-    if (bypassOnboarding || onAuthRoute || handledLicenseRequest.current)
-      return;
-    handledLicenseRequest.current = true;
-    if (showLicenseSlide) closeLicenseSlide();
-    else actions.complete();
-    if (
-      serverExperience.effectiveIsAdmin &&
-      !serverExperience.hasPaidLicense &&
-      serverExperience.overFreeTierLimit === true
-    ) {
-      navigate("/settings/billing?upgrade=team");
-    }
-  }, [
-    showLicenseSlide,
-    onboardingLicenseRequested,
-    bypassOnboarding,
-    onAuthRoute,
-    closeLicenseSlide,
-    actions,
-    navigate,
-    serverExperience.effectiveIsAdmin,
-    serverExperience.hasPaidLicense,
-    serverExperience.overFreeTierLimit,
-  ]);
-
   if (bypassOnboarding) {
     return null;
   }
@@ -288,8 +207,6 @@ export default function Onboarding() {
   if (onAuthRoute) {
     return null;
   }
-
-  if (showLicenseSlide || onboardingLicenseRequested) return null;
 
   // Always render the tour component (it controls its own visibility with isOpen)
   const tourComponent = (

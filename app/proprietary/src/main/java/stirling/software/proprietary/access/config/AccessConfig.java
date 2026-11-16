@@ -20,7 +20,7 @@ public class AccessConfig {
         return new DefaultTeamLeadLookup();
     }
 
-    /** USER/TEAM projection unless another bean is defined (e.g. the saas resolver). */
+    /** USER/TEAM projection unless another local resolver is defined. */
     @Bean
     @ConditionalOnMissingBean(PrincipalResolver.class)
     PrincipalResolver defaultPrincipalResolver() {

@@ -3,7 +3,6 @@ import {
   bypassOnboarding,
   fulfillUnstubbedApis,
   mockAppApis,
-  seedCookieConsent,
   type MockAppApiOptions,
 } from "@editor/tests/helpers/api-stubs";
 import { suppressNativeFilePicker } from "@editor/tests/helpers/ui-helpers";
@@ -12,7 +11,6 @@ import { suppressNativeFilePicker } from "@editor/tests/helpers/ui-helpers";
  * Custom Playwright fixture for backend-free specs.
  *
  * Every test gets a `page` that:
- *   1. Has the cookie-consent cookie seeded (banner never renders)
  *   2. Has onboarding flags set in localStorage (modal never renders)
  *   3. Has all bootstrap API endpoints stubbed via `mockAppApis()`
  *   4. Gets an empty 500 for any other `/api/v1` call, never the dev proxy
@@ -76,7 +74,6 @@ export const test = base.extend<StubFixtures>({
     use,
   ) => {
     suppressNativeFilePicker(page);
-    await seedCookieConsent(page);
     await bypassOnboarding(page);
     if (seedJwt) {
       await page.addInitScript((token) => {
@@ -96,7 +93,7 @@ export const test = base.extend<StubFixtures>({
     await mockAppApis(page, stubOptions);
     if (autoGoto !== false) {
       // waitUntil: 'domcontentloaded' avoids hanging on third-party CDN
-      // resources (posthog, stripe) the stub doesn't mock — the
+      // resources the stub doesn't mock — the
       // default 'load' event waits for ALL subresources, which can time out
       // on slow runners and is rarely what tests actually need.
       await page.goto(autoGoto, { waitUntil: "domcontentloaded" });

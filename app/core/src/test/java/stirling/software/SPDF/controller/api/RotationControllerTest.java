@@ -84,6 +84,30 @@ public class RotationControllerTest {
     }
 
     @Test
+    public void testRotatePDFNormalizesAccumulatedRotation() throws IOException {
+        MockMultipartFile mockFile =
+                new MockMultipartFile(
+                        "file", "test.pdf", MediaType.APPLICATION_PDF_VALUE, new byte[] {1, 2, 3});
+        RotatePDFRequest request = new RotatePDFRequest();
+        request.setFileInput(mockFile);
+        request.setAngle(90);
+
+        PDDocument mockDocument = mock(PDDocument.class);
+        PDPageTree mockPages = mock(PDPageTree.class);
+        PDPage mockPage = mock(PDPage.class);
+
+        when(pdfDocumentFactory.load(request)).thenReturn(mockDocument);
+        when(mockDocument.getPages()).thenReturn(mockPages);
+        when(mockPages.iterator())
+                .thenReturn(java.util.Collections.singletonList(mockPage).iterator());
+        when(mockPage.getRotation()).thenReturn(270);
+
+        rotationController.rotatePDF(request);
+
+        verify(mockPage).setRotation(0);
+    }
+
+    @Test
     public void testRotatePDFInvalidAngle() {
         // Create a mock file
         MockMultipartFile mockFile =

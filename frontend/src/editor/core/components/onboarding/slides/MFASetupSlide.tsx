@@ -23,7 +23,8 @@ import { accountService } from "@editor/services/accountService";
 import { useAccountLogout } from "@editor/extensions/accountLogout";
 import { useAuth } from "@editor/auth/UseSession";
 import { Icon } from "@editor/ui/Icon";
-import { BASE_PATH, withBasePath } from "@editor/constants/app";
+import { withBasePath } from "@editor/constants/app";
+import prominMark from "@editor/assets/brand/promin/promin-location-mark.svg";
 import styles from "@editor/components/onboarding/InitialOnboardingModal/InitialOnboardingModal.module.css";
 import { MfaSetupResponse } from "@editor/responses/Mfa/MfaResponse";
 import i18n from "@editor/i18n";
@@ -45,7 +46,7 @@ function MFASetupContent({ onMfaSetupComplete }: MFASetupSlideProps) {
   const setupCompleteRef = useRef(false);
   const { signOut } = useAuth();
   const accountLogout = useAccountLogout();
-  const qrLogoSrc = `${BASE_PATH}/modern-logo/StirlingPDFLogoNoTextDark.svg`;
+  const qrLogoSrc = prominMark;
 
   const normalizeMfaCode = useCallback(
     (value: string) => value.replace(/\D/g, "").slice(0, 6),

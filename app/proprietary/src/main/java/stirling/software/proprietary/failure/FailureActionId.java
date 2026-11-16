@@ -29,10 +29,8 @@ public enum FailureActionId {
     /** Repairs the document, then re-runs. */
     REPAIR(Execution.CLIENT, "Repair"),
 
-    /** Open the document behind the incident, in whichever client can resolve its id. */
-    VIEW_FILE(Execution.CLIENT, "View file"),
-
-    VIEW_IN_PROCESSOR(Execution.CLIENT, "View in processor");
+    /** Open the document behind the incident in the local workbench. */
+    VIEW_FILE(Execution.CLIENT, "View file");
 
     /** Dispatch refuses an id that does not run on the server, so this is enforced. */
     public enum Execution {

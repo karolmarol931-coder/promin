@@ -14,10 +14,6 @@ export interface GeneralSettingsData {
   ui: {
     appNameNavbar?: string;
     languages?: string[];
-    hideDisabledTools?: {
-      googleDrive?: boolean;
-      mobileQRScanner?: boolean;
-    };
   };
   system: {
     defaultLocale?: string;

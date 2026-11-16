@@ -21,7 +21,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import stirling.software.common.model.ApplicationProperties;
-import stirling.software.common.service.AutomationRunContext;
 import stirling.software.common.service.InternalApiClient;
 import stirling.software.common.service.InternalApiTimeoutException;
 import stirling.software.common.service.ToolMetadataService;
@@ -65,8 +64,7 @@ public class PolicyExecutor {
     // payload the tool surfaced alongside or instead of a file.
     private record ToolResult(List<Resource> files, JsonNode report) {}
 
-    // A merge can lose its single-source attribution while continuing an input's billing group.
-    private record PipelineFile(Resource resource, Integer origin, Integer billingOrigin) {}
+    private record PipelineFile(Resource resource, Integer origin) {}
 
     private record StepOutput(List<PipelineFile> files, JsonNode report) {}
 
@@ -109,7 +107,7 @@ public class PolicyExecutor {
         List<PipelineFile> currentFiles = new ArrayList<>();
         Map<String, List<Resource>> supportingFiles = inputs.supportingFiles();
         for (int k = 0; k < inputs.primary().size(); k++) {
-            currentFiles.add(new PipelineFile(inputs.primary().get(k), k, k));
+            currentFiles.add(new PipelineFile(inputs.primary().get(k), k));
         }
         // Last non-null report wins: the terminal step defines the output.
         JsonNode lastReport = null;
@@ -159,34 +157,26 @@ public class PolicyExecutor {
         JsonNode report = null;
         if (toolMetadataService.isMultiInput(step.operation())) {
             Integer origin = sharedOrigin(inputFiles);
-            // Synchronous, ordered dispatch makes the last surviving input's group the newest,
-            // matching SaaS's choice when a merge joins several previously processed documents.
-            Integer billingOrigin =
-                    inputFiles.isEmpty() ? null : inputFiles.getLast().billingOrigin();
             ToolResult r;
-            try (AutomationRunContext.Scope doc = documentScope(billingOrigin)) {
-                r = callEndpoint(step, resources, supportingFiles, tempFiles);
-            }
+            r = callEndpoint(step, resources, supportingFiles, tempFiles);
             for (Resource file : r.files()) {
-                files.add(new PipelineFile(file, origin, billingOrigin));
+                files.add(new PipelineFile(file, origin));
             }
             requireWithinFileLimit(step, files);
             report = r.report();
         } else if (inputFiles.isEmpty()) {
             ToolResult r = callEndpoint(step, List.of(), supportingFiles, tempFiles);
             for (Resource file : r.files()) {
-                files.add(new PipelineFile(file, null, null));
+                files.add(new PipelineFile(file, null));
             }
             requireWithinFileLimit(step, files);
             report = r.report();
         } else {
             for (PipelineFile input : inputFiles) {
-                ToolResult r;
-                try (AutomationRunContext.Scope doc = documentScope(input.billingOrigin())) {
-                    r = callEndpoint(step, List.of(input.resource()), supportingFiles, tempFiles);
-                }
+                ToolResult r =
+                        callEndpoint(step, List.of(input.resource()), supportingFiles, tempFiles);
                 for (Resource file : r.files()) {
-                    files.add(new PipelineFile(file, input.origin(), input.billingOrigin()));
+                    files.add(new PipelineFile(file, input.origin()));
                 }
                 // Checked per call, not after the loop: by then a split step has already made
                 // inputs x divisions files.
@@ -219,14 +209,6 @@ public class PolicyExecutor {
         return files.stream().allMatch(file -> Objects.equals(origin, file.origin()))
                 ? origin
                 : null;
-    }
-
-    private static AutomationRunContext.Scope documentScope(Integer billingOrigin) {
-        String runId = AutomationRunContext.current();
-        if (runId == null || billingOrigin == null) {
-            return () -> {};
-        }
-        return AutomationRunContext.openDocument(runId + ":" + billingOrigin);
     }
 
     /**

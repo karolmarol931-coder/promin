@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.desktop.vite.json",
+  "include": ["src", "src/global.d.ts"],
+  "exclude": [
+    "scripts",
+    "src/**/*.spec.ts*",
+    "src/**/*.stories.ts*",
+    "src/editor/core/**/*.test.ts*",
+    "src/editor/proprietary/**/*.test.ts*"
+  ]
+}

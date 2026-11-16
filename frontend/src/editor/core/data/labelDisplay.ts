@@ -1,5 +1,5 @@
 // Resolve a classification label id to a human display name. Classification is a
-// SaaS-only feature, so the core build has no vocabulary and returns the id
+// Optional feature, so builds without classification labels return the id
 // unchanged; the proprietary build overrides this to map ids to (translatable)
 // names. Core files never carry classification labels, so the identity fallback
 // is never actually rendered here.

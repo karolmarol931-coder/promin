@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { ensureCookieConsent } from "@editor/tests/helpers/login";
 import { bypassOnboarding } from "@editor/tests/helpers/api-stubs";
 
 /**
@@ -7,7 +6,7 @@ import { bypassOnboarding } from "@editor/tests/helpers/api-stubs";
  *
  * Requires the docker-compose-keycloak-saml stack:
  *   - Keycloak on http://localhost:9080 with realm `stirling-saml`
- *   - Stirling-PDF on http://localhost:8080 with PREMIUM_KEY set and
+ *   - Promin on http://localhost:8080 with PREMIUM_KEY set and
  *     security.saml2.enabled=true
  *
  * Validates:
@@ -18,7 +17,6 @@ import { bypassOnboarding } from "@editor/tests/helpers/api-stubs";
 test.describe("Enterprise SAML (Keycloak) — full SSO flow", () => {
   test.beforeEach(async ({ page }) => {
     await bypassOnboarding(page);
-    await ensureCookieConsent(page);
   });
 
   test("SAML redirect, identity in settings, real split tool run", async ({

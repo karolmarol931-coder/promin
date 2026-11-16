@@ -15,7 +15,6 @@ import { useAuth } from "@editor/auth/UseSession";
 import { useToolWorkflow } from "@editor/contexts/ToolWorkflowContext";
 import { useNavigationActions } from "@editor/contexts/NavigationContext";
 import { ViewerContext } from "@editor/contexts/ViewerContext";
-import { usePortalAccess } from "@editor/hooks/usePortalAccess";
 import { useAppConfig } from "@editor/contexts/AppConfigContext";
 import { useFileActions } from "@editor/contexts/file/fileHooks";
 import { fileStorage } from "@editor/services/fileStorage";
@@ -41,14 +40,6 @@ import {
   findSettingsContentMatch,
 } from "@editor/data/settingsContentSearch";
 import {
-  PROCESSOR_SEARCH_INDEX,
-  isPortalEntityScopeAccessible,
-  type ProcessorSearchEntry,
-} from "@editor/data/processorSearchIndex";
-import { useProcessorEntityGroups } from "@editor/data/processorEntitySearch";
-import {
-  PORTAL_ENTITY_SCOPE_DEFS,
-  PORTAL_DOCS_SCOPE_ID,
   type SuperSearchGates,
   type SuperSearchGroup,
   type SuperSearchGroupId,
@@ -77,63 +68,33 @@ export type {
  */
 export const GROUP_RESULT_CEILING = 24;
 /** Group display order in the dropdown. */
-const GROUP_ORDER: SuperSearchGroupId[] = [
-  "files",
-  "tools",
-  "settings",
-  "processor",
-];
-
-/**
- * Whether the current user can enter the Processor at all: explicit portal
- * access, admin, or single-user mode with login disabled. Null gates (config
- * still loading) stay closed.
- */
-export function isProcessorGateOpen(gates: SuperSearchGates | null): boolean {
-  return (
-    !!gates &&
-    (gates.portalAccessible === true || gates.isAdmin || !gates.loginEnabled)
-  );
-}
+const GROUP_ORDER: SuperSearchGroupId[] = ["files", "tools", "settings"];
 
 /** The editor's visibility gates, from app config + the session's flags. */
 export function useSuperSearchGates(): SuperSearchGates | null {
   const authState = useAuth();
   const { config } = useAppConfig();
-  // Through the seam, not authState: on SaaS the editor's Supabase session
-  // carries no permission flags, so reading it here hid every processor lane.
-  const portalAccessible = usePortalAccess();
   return useMemo(
     () =>
       config
         ? {
             isAdmin: authState.isAdmin ?? config.isAdmin ?? false,
             loginEnabled: config.enableLogin ?? false,
-            portalAccessible,
             isAnonymous: authState.isAnonymous,
             showSettingsWhenNoLogin: config.showSettingsWhenNoLogin ?? true,
           }
         : null,
-    [authState.isAdmin, authState.isAnonymous, portalAccessible, config],
+    [authState.isAdmin, authState.isAnonymous, config],
   );
 }
 
 /**
- * The editor bar's filter chips — one per source lane, granular over the
- * Processor's contents (pages plus each entity type). Processor lanes only
- * show when this build ships the portal and the user can enter it.
+ * The editor bar's filter chips, one for each local search source.
  */
 export function useEditorSearchScopes(): SuperSearchScope[] {
   const { t } = useTranslation();
-  const gates = useSuperSearchGates();
-  const processorAvailable =
-    PROCESSOR_SEARCH_INDEX.length > 0 && isProcessorGateOpen(gates);
-
-  return useMemo(() => {
-    const visibleViewIds = new Set(
-      PROCESSOR_SEARCH_INDEX.map((entry) => entry.id),
-    );
-    return [
+  return useMemo(
+    () => [
       {
         id: "files",
         label: t("superSearch.group.files", "Files"),
@@ -149,37 +110,9 @@ export function useEditorSearchScopes(): SuperSearchScope[] {
         label: t("superSearch.group.settings", "Settings"),
         aliases: ["setting", "settings"],
       },
-      ...(processorAvailable
-        ? [
-            {
-              id: "processor",
-              label: t("superSearch.group.pages", "Pages"),
-              aliases: ["page", "pages", "processor", "portal"],
-            },
-            ...PORTAL_ENTITY_SCOPE_DEFS.filter(
-              (def) =>
-                // A settings-hosted entity is reachable wherever the processor is.
-                (def.settingsKey !== undefined ||
-                  visibleViewIds.has(def.viewId)) &&
-                isPortalEntityScopeAccessible(def.id, gates?.isAdmin ?? false),
-            ).map((def) => ({
-              id: def.id,
-              label: t(def.labelKey, def.labelFallback),
-              aliases: [...def.aliases],
-            })),
-            ...(visibleViewIds.has("docs")
-              ? [
-                  {
-                    id: PORTAL_DOCS_SCOPE_ID,
-                    label: t("superSearch.group.docs", "Docs"),
-                    aliases: ["doc", "docs", "documentation"],
-                  },
-                ]
-              : []),
-          ]
-        : []),
-    ];
-  }, [t, processorAvailable, gates?.isAdmin]);
+    ],
+    [t],
+  );
 }
 
 /**
@@ -329,9 +262,6 @@ export function rankSettingsResults(
     // Account-bound sections mirror the SaaS builder's `!isAnonymous` gate.
     if (s.requiresAccount && (gates ? (gates.isAnonymous ?? false) : true))
       return false;
-    // The processor's own sections mirror its nav builder's portalAccess gate.
-    if (s.requiresPortalAccess && gates?.portalAccessible !== true)
-      return false;
     return true;
   });
   // Row context: the display label of the section the row lives in.
@@ -421,36 +351,9 @@ export function rankSettingsResults(
     .slice(0, limit);
 }
 
-export function rankProcessorResults(
-  trimmed: string,
-  t: TFunction,
-  gates: SuperSearchGates | null,
-  selectEntry: (entry: ProcessorSearchEntry) => void,
-  limit = GROUP_RESULT_CEILING,
-): SuperSearchResult[] {
-  if (!trimmed || PROCESSOR_SEARCH_INDEX.length === 0) return [];
-  // Only offer Processor pages to users who can actually enter that app.
-  if (!isProcessorGateOpen(gates)) return [];
-  return rankByFuzzy(PROCESSOR_SEARCH_INDEX, trimmed, [
-    (e) => t(e.labelKey, e.labelFallback),
-    (e) => e.labelFallback,
-    (e) => e.keywords?.join(" ") ?? "",
-  ])
-    .slice(0, limit)
-    .map(({ item, score }) => ({
-      key: `processor:${item.id}`,
-      group: "processor",
-      title: t(item.labelKey, item.labelFallback),
-      iconName: "layout-grid",
-      score,
-      onSelect: () => selectEntry(item),
-    }));
-}
-
 /**
  * Orders the sources into the shared group layout, dropping empties. Hosts
- * pass their own order so local results lead (the editor puts its own
- * files/tools first and Processor pages last; the portal the reverse).
+ * and may override the order for their layout.
  */
 export function assembleSuperSearchGroups(
   byId: Partial<Record<SuperSearchGroupId, SuperSearchResult[]>>,
@@ -461,7 +364,6 @@ export function assembleSuperSearchGroups(
     files: t("superSearch.group.files", "Files"),
     tools: t("superSearch.group.tools", "Tools"),
     settings: t("superSearch.group.settings", "Settings"),
-    processor: t("superSearch.group.processor", "Processor"),
   };
   return order
     .map((id) => ({
@@ -474,8 +376,7 @@ export function assembleSuperSearchGroups(
 
 /**
  * The editor's results provider: the shared sources wired to in-app select
- * actions (open file → viewer, select tool in the workbench, deep-link into
- * the settings page, route into the Processor).
+ * actions (open file, select a tool, or open settings).
  *
  * @param query   current search text
  * @param active  whether the search surface is open; gates the My Files load
@@ -561,31 +462,8 @@ export function useSuperSearch(
     [navigate],
   );
 
-  const selectProcessorEntry = useCallback(
-    (item: ProcessorSearchEntry) => {
-      if (item.externalUrl) {
-        openExternalUrl(item.externalUrl);
-      } else {
-        navigate(item.path);
-      }
-    },
-    [navigate],
-  );
-
   // --- Assemble ----------------------------------------------------------
   const gates = useSuperSearchGates();
-
-  // Processor entities (users, policies, pipelines, sources) join the pages
-  // under the Processor section — same access gate as the pages group, each
-  // entity type filterable by its own scope.
-  const entityGroups = useProcessorEntityGroups(
-    trimmed,
-    active && trimmed.length > 0 && isProcessorGateOpen(gates),
-    t,
-    navigate,
-    scopeEnabled,
-    gates?.isAdmin ?? false,
-  );
 
   const groups = useMemo<SuperSearchGroup[]>(() => {
     const assembledGroups = assembleSuperSearchGroups(
@@ -599,35 +477,19 @@ export function useSuperSearch(
         settings: scopeEnabled("settings")
           ? rankSettingsResults(trimmed, t, gates, openSettings)
           : [],
-        processor: scopeEnabled("processor")
-          ? rankProcessorResults(trimmed, t, gates, selectProcessorEntry)
-          : [],
       },
       t,
     );
 
-    // Section order: Editor first, Settings second, Processor last.
-    const processorSection = t("superSearch.group.processor", "Processor");
     const sectionFor = (groupId: string): string => {
-      if (groupId === "processor") return processorSection;
       if (groupId === "settings")
         return t("superSearch.group.settings", "Settings");
-      return t("portal.nav.editor", "Editor");
+      return t("superSearch.group.editor", "Editor");
     };
-    return [
-      ...assembledGroups.map((group) => ({
-        ...group,
-        label:
-          group.id === "processor"
-            ? t("superSearch.group.pages", "Pages")
-            : group.label,
-        sectionLabel: sectionFor(group.id),
-      })),
-      ...entityGroups.map((group) => ({
-        ...group,
-        sectionLabel: processorSection,
-      })),
-    ];
+    return assembledGroups.map((group) => ({
+      ...group,
+      sectionLabel: sectionFor(group.id),
+    }));
   }, [
     stubs,
     trimmed,
@@ -636,9 +498,7 @@ export function useSuperSearch(
     openTool,
     gates,
     openSettings,
-    selectProcessorEntry,
     scopeEnabled,
-    entityGroups,
     t,
   ]);
 

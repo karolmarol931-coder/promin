@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "path";
 import { test, expect } from "@editor/tests/helpers/stub-test-base";
+import { revealPickerTool } from "@editor/tests/helpers/ui-helpers";
 
 interface SwapSamplerState {
   swapMs: number;
@@ -437,7 +438,7 @@ test("tool output reloads the document in place", async ({ page }) => {
   await page.waitForTimeout(800);
   await page.getByRole("button", { name: "Back to all tools" }).first().click();
   await page.waitForTimeout(800);
-  await page.getByRole("link", { name: "Crop PDF" }).first().click();
+  await (await revealPickerTool(page, "crop")).click();
   await page.waitForTimeout(1_200);
 
   // Answer the crop with a different, valid PDF so the reload is observable.
@@ -494,10 +495,7 @@ test("a tool output reload shows the saved position in its first frame", async (
   await page.waitForTimeout(800);
   await page.getByRole("button", { name: "Back to all tools" }).first().click();
   await page.waitForTimeout(800);
-  await page
-    .getByRole("link", { name: "Compress", exact: true })
-    .first()
-    .click();
+  await (await revealPickerTool(page, "compress")).click();
   await page.waitForTimeout(1_200);
 
   // Read the baseline once the panel has settled; the tool page can otherwise

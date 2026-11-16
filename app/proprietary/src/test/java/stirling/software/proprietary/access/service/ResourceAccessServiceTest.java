@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Set;
 
@@ -38,17 +37,12 @@ class ResourceAccessServiceTest {
     private ResourceAccessService service;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         service = newService(new DefaultPrincipalResolver());
     }
 
-    private ResourceAccessService newService(PrincipalResolver resolver) throws Exception {
-        ResourceAccessService s =
-                new ResourceAccessService(grantRepository, teamLeadLookup, resolver);
-        Field f = ResourceAccessService.class.getDeclaredField("portalDefaultPolicy");
-        f.setAccessible(true);
-        f.set(s, DefaultAccessPolicy.ADMINS_AND_TEAM_LEADS);
-        return s;
+    private ResourceAccessService newService(PrincipalResolver resolver) {
+        return new ResourceAccessService(grantRepository, teamLeadLookup, resolver);
     }
 
     // ---- owner / admin short-circuits ----
@@ -217,9 +211,8 @@ class ResourceAccessServiceTest {
     }
 
     @Test
-    void orgAllDefaultDeniedWhenNotDeploymentWide() throws Exception {
-        // Mirrors the saas resolver (USER/TEAM only, no deployment-wide access): ORG_ALL must not
-        // leak a resource to a tenant's users, so an ungranted user is denied.
+    void orgAllDefaultDeniedWhenResolverIsNotDeploymentWide() {
+        // ORG_ALL only applies when the resolver exposes deployment-wide access.
         ResourceAccessService tenantScoped =
                 newService(u -> u == null ? Set.of() : Set.of(PrincipalRef.user(u.getId())));
         stubGrants();
@@ -275,41 +268,6 @@ class ResourceAccessServiceTest {
                                 DefaultAccessPolicy.ADMINS_AND_TEAM_LEADS,
                                 foreignLead))
                 .isFalse();
-    }
-
-    // ---- portal convenience (default policy ADMINS_AND_TEAM_LEADS) ----
-
-    @Test
-    void portalAccessibleByAdmin() {
-        assertThat(service.canAccessPortal(admin(1))).isTrue();
-    }
-
-    @Test
-    void portalDeniedToRegularUser() {
-        when(grantRepository.findByResourceTypeAndResourceId(ResourceType.PORTAL, ""))
-                .thenReturn(List.of());
-        assertThat(service.canAccessPortal(user(5))).isFalse();
-    }
-
-    @Test
-    void portalAllowedToLeaderOfActiveTeam() {
-        when(grantRepository.findByResourceTypeAndResourceId(ResourceType.PORTAL, ""))
-                .thenReturn(List.of());
-        User leader = userInTeam(10, 21L);
-        when(teamLeadLookup.isLeaderOfTeam(leader, 21L)).thenReturn(true);
-        assertThat(service.canAccessPortal(leader)).isTrue();
-    }
-
-    @Test
-    void portalDeniedToMemberWhoseActiveTeamTheyDoNotLead() {
-        // Durable home teams: a user still leads their dormant home team, but their ACTIVE
-        // team is one they only belong to -> no portal access (this is the bug-3 guard that
-        // active-team leadership preserves once home teams stop being deleted on join).
-        when(grantRepository.findByResourceTypeAndResourceId(ResourceType.PORTAL, ""))
-                .thenReturn(List.of());
-        User member = userInTeam(11, 22L);
-        // isLeaderOfTeam(member, 22L) left unstubbed -> false: member of active team.
-        assertThat(service.canAccessPortal(member)).isFalse();
     }
 
     // ---- helpers ----

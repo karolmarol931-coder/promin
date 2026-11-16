@@ -22,7 +22,7 @@ export function AddToLibraryModal({
     const ids = files.map((file) => file.id);
     onClose();
     const progress = alert({
-      title: t("filesPage.addingToLibrary", "Adding to Stirling library…"),
+      title: t("filesPage.addingToLibrary", "Adding to Promin library…"),
       isPersistentPopup: true,
       expandable: false,
     });
@@ -30,7 +30,7 @@ export function AddToLibraryModal({
       await moveFilesTo(ids, folderId, { uploadToRoot: true });
       alert({
         alertType: "success",
-        title: t("filesPage.addedToLibrary", "Added to Stirling library"),
+        title: t("filesPage.addedToLibrary", "Added to Promin library"),
         expandable: false,
       });
     } catch (cause) {
@@ -51,7 +51,6 @@ export function AddToLibraryModal({
     <LibraryPickerModal opened={files.length > 0} onClose={onClose} busy={busy}>
       <LibraryFilePicker
         onBusyChange={setBusy}
-        onExternalPickerChange={() => {}}
         destination={{
           fileCount: files.length,
           onClose,

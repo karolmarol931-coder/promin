@@ -531,7 +531,6 @@ public class EndpointConfiguration {
         addEndpointToGroup("Java", "crop");
         addEndpointToGroup("Java", "get-info-on-pdf");
         addEndpointToGroup("Java", "pdf-to-single-page");
-        addEndpointToGroup("Java", "markdown-to-pdf");
         addEndpointToGroup("Java", "show-javascript");
         addEndpointToGroup("Java", "auto-redact");
         addEndpointToGroup("Java", "redact");
@@ -625,10 +624,6 @@ public class EndpointConfiguration {
         addEndpointAlternative("pdf-to-html", "LibreOffice");
         addEndpointAlternative("pdf-to-html", "Pdftohtml");
         addEndpointAlternative("pdf-to-markdown", "Pdftohtml");
-
-        // markdown-to-pdf can use either Weasyprint or Java
-        addEndpointAlternative("markdown-to-pdf", "Weasyprint");
-        addEndpointAlternative("markdown-to-pdf", "Java");
 
         // Weasyprint dependent endpoints
         addEndpointToGroup("Weasyprint", "html-to-pdf");

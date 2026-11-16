@@ -96,12 +96,7 @@ fn modified_ms(meta: &std::fs::Metadata) -> u64 {
         .unwrap_or(0)
 }
 
-#[cfg(target_os = "macos")]
 const MOUNT_PARENTS: &[&str] = &["/Volumes"];
-#[cfg(target_os = "linux")]
-const MOUNT_PARENTS: &[&str] = &["/mnt", "/media", "/run/media"];
-#[cfg(not(any(target_os = "macos", target_os = "linux")))]
-const MOUNT_PARENTS: &[&str] = &[];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Absence {
@@ -310,17 +305,6 @@ mod tests {
         std::fs::remove_dir_all(&dir).unwrap();
     }
 
-    #[cfg(windows)]
-    #[test]
-    fn a_drive_that_is_not_mounted_is_offline_not_gone() {
-        assert_eq!(
-            state(Path::new(r"Q:\Docs\report.pdf")),
-            unavailable(DiskUnavailableReason::Offline),
-            "an unreachable location must never be reported as a deletion"
-        );
-    }
-
-    #[cfg(target_os = "macos")]
     #[test]
     fn an_ejected_volume_is_offline_because_volumes_is_a_mount_parent() {
         assert_eq!(
@@ -329,7 +313,6 @@ mod tests {
         );
     }
 
-    #[cfg(unix)]
     #[test]
     fn a_folder_we_may_not_read_is_unavailable_not_gone() {
         use std::os::unix::fs::PermissionsExt;

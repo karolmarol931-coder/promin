@@ -136,10 +136,19 @@ vi.mock("@editor/services/pdfWorkerManager", () => ({
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: vi.fn() },
   useTranslation: () => ({
-    t: (key: string, fallback?: string, options?: Record<string, unknown>) =>
-      (fallback ?? key).replace(/\{\{(\w+)\}\}/g, (_, name) =>
-        String(options?.[name]),
-      ),
+    t: (
+      key: string,
+      fallbackOrOptions?: string | Record<string, unknown>,
+      options?: Record<string, unknown>,
+    ) => {
+      const fallback =
+        typeof fallbackOrOptions === "string" ? fallbackOrOptions : key;
+      const interpolationOptions =
+        typeof fallbackOrOptions === "object" ? fallbackOrOptions : options;
+      return fallback.replace(/\{\{(\w+)\}\}/g, (_, name) =>
+        String(interpolationOptions?.[name]),
+      );
+    },
   }),
 }));
 vi.mock("@editor/components/tools/compress/CompressSettings", () => ({

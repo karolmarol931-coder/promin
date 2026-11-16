@@ -86,10 +86,9 @@ class LicenseFilterHttpTest {
     }
 
     @Test
-    void externalDatabaseAllowsRecoveryThenUnlocksAfterTeamActivation() throws Exception {
+    void externalDatabaseAllowsLicenseRecoveryThenUnlocksAfterActivation() throws Exception {
         properties.getSystem().getDatasource().setEnableCustomDatabase(true);
         assertThat(request("POST", "/api/v1/misc/compress-pdf")).isEqualTo(402);
-        assertThat(request("POST", "/api/v1/account-link/connect/start")).isEqualTo(204);
         assertThat(request("POST", "/api/v1/user/change-password-on-login")).isEqualTo(204);
         assertThat(request("POST", "/api/v1/admin/license/resync")).isEqualTo(204);
         assertThat(request("GET", "/api/v1/files/existing")).isEqualTo(204);
@@ -107,7 +106,6 @@ class LicenseFilterHttpTest {
         properties.getSystem().getDatasource().setEnableCustomDatabase(true);
         assertThat(request("POST", "/%61pi/v1/misc/compress-pdf")).isEqualTo(402);
         assertThat(request("POST", "/api/v1/misc/%63ompress-pdf")).isEqualTo(402);
-        assertThat(request("POST", "/api/v1/account-link/connect/st%61rt")).isEqualTo(204);
     }
 
     @SpringBootConfiguration

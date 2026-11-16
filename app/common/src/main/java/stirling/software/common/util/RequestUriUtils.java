@@ -15,9 +15,6 @@ public class RequestUriUtils {
     private static final Pattern SHARE_LINK_API_PATTERN =
             Pattern.compile(
                     "^/api/v1/storage/share-links/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$");
-    // The phone's two mobile-scanner calls, matched exactly so only a bare session id passes
-    private static final Pattern MOBILE_SCANNER_PHONE_PATTERN =
-            Pattern.compile("^/api/v1/mobile-scanner/(validate-session|upload)/[A-Za-z0-9-]+$");
     // Invite tokens are 36-char lowercase UUIDs (UUID.randomUUID().toString()); match exactly
     private static final Pattern INVITE_LINK_PATTERN =
             Pattern.compile(
@@ -66,13 +63,6 @@ public class RequestUriUtils {
 
         // Login/error pages remain public
         if (normalizedUri.startsWith("/login") || normalizedUri.startsWith("/error")) {
-            return true;
-        }
-
-        // Mobile pages reached by scanning a QR code (peer-to-peer, no backend auth
-        // needed): /mobile-scanner uploads photos, /mobile-sign draws a signature.
-        if (normalizedUri.startsWith("/mobile-scanner")
-                || normalizedUri.startsWith("/mobile-sign")) {
             return true;
         }
 
@@ -212,8 +202,6 @@ public class RequestUriUtils {
                 || trimmedUri.startsWith("/healthz")
                 || trimmedUri.startsWith("/liveness")
                 || trimmedUri.startsWith("/readiness")
-                // The phone that scans the QR code has no credentials
-                || MOBILE_SCANNER_PHONE_PATTERN.matcher(trimmedUri).matches()
                 || trimmedUri.startsWith("/api/v1/webhooks/")
                 || trimmedUri.startsWith("/v1/api-docs")
                 // Workflow participant endpoints - access controlled by share tokens, not login

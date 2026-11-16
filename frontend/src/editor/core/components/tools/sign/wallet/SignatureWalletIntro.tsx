@@ -11,14 +11,12 @@ import type { CreateTab } from "@editor/components/tools/sign/createSignature/ty
 import styles from "@editor/components/tools/sign/wallet/SignatureWalletIntro.module.css";
 
 interface SignatureWalletIntroProps {
-  showPhone: boolean;
   browserStorage: boolean;
   disabled: boolean;
   onCreate: (tab: CreateTab) => void;
 }
 
 export function SignatureWalletIntro({
-  showPhone,
   browserStorage,
   disabled,
   onCreate,
@@ -46,7 +44,7 @@ export function SignatureWalletIntro({
         )}
       />
       <div className={styles.options}>
-        {createTabs(showPhone).map((tab) => (
+        {createTabs().map((tab) => (
           <OptionCard
             key={tab}
             padding="tight"

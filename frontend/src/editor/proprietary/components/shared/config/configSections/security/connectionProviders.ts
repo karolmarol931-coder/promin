@@ -4,7 +4,6 @@ import {
 } from "@editor/components/shared/config/configSections/providerDefinitions";
 import type {
   ConnectionsSettingsData,
-  GoogleDriveSettings,
   OAuth2ClientSettings,
   OAuth2GenericSettings,
   ProviderSettings,
@@ -27,10 +26,6 @@ export function isProviderConfigured(
 
   if (provider.id === "telegram") {
     return settings?.telegram?.enabled === true;
-  }
-
-  if (provider.id === "googledrive") {
-    return settings?.googleDriveEnabled === true;
   }
 
   if (provider.id === "oauth2-generic") {
@@ -56,16 +51,6 @@ export function getProviderSettings(
 
   if (provider.id === "telegram") {
     return settings?.telegram || {};
-  }
-
-  if (provider.id === "googledrive") {
-    const gd: GoogleDriveSettings = {
-      enabled: settings?.googleDriveEnabled,
-      clientId: settings?.googleDriveClientId,
-      apiKey: settings?.googleDriveApiKey,
-      appId: settings?.googleDriveAppId,
-    };
-    return gd;
   }
 
   if (provider.id === "oauth2-generic") {
@@ -99,15 +84,6 @@ export function updateProviderSettings(
     setSettings({
       ...settings,
       telegram: updatedSettings,
-    });
-  } else if (provider.id === "googledrive") {
-    const gd = updatedSettings as GoogleDriveSettings;
-    setSettings({
-      ...settings,
-      googleDriveEnabled: gd.enabled,
-      googleDriveClientId: gd.clientId,
-      googleDriveApiKey: gd.apiKey,
-      googleDriveAppId: gd.appId,
     });
   } else if (provider.id === "saml2") {
     setSettings({ ...settings, saml2: updatedSettings });

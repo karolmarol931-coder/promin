@@ -12,15 +12,14 @@ import org.springframework.context.annotation.Configuration;
 
 import stirling.software.SPDF.service.ApiDocService;
 import stirling.software.common.configuration.RuntimePathConfig;
-import stirling.software.common.service.PostHogService;
 import stirling.software.common.service.ToolMetadataService;
 import stirling.software.common.util.FileReadinessChecker;
 import stirling.software.common.util.TempFileManager;
 
 import tools.jackson.databind.ObjectMapper;
 
-/** The pipeline engine must never run on the desktop bundle, where work would go unmetered. */
-class PipelineDesktopExclusionTest {
+/** The local pipeline engine is available in the desktop bundle and server modes. */
+class PipelineAvailabilityTest {
 
     private static final String TAURI_PROP = "STIRLING_PDF_TAURI_MODE";
 
@@ -32,18 +31,18 @@ class PipelineDesktopExclusionTest {
                             PipelineController.class);
 
     @Test
-    void scheduledScannerAndRouteAreAbsentInTheDesktopBundle() {
+    void scheduledScannerAndRouteAreAvailableInTheDesktopBundle() {
         runner.withPropertyValues(TAURI_PROP + "=true")
                 .run(
                         context ->
                                 assertThat(context)
                                         .hasNotFailed()
-                                        .doesNotHaveBean(PipelineDirectoryProcessor.class)
-                                        .doesNotHaveBean(PipelineController.class));
+                                        .hasSingleBean(PipelineDirectoryProcessor.class)
+                                        .hasSingleBean(PipelineController.class));
     }
 
     @Test
-    void scheduledScannerAndRouteWireOnAServer() {
+    void scheduledScannerAndRouteAreAvailableWhenModeIsUnset() {
         // Absent property is the server case, so the guard must not fail closed.
         runner.run(
                 context ->
@@ -85,11 +84,6 @@ class PipelineDesktopExclusionTest {
         @Bean
         PipelineProcessor pipelineProcessor() {
             return mock(PipelineProcessor.class);
-        }
-
-        @Bean
-        PostHogService postHogService() {
-            return mock(PostHogService.class);
         }
 
         @Bean

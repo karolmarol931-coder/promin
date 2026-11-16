@@ -24,7 +24,7 @@ export {
   toUnderscoreLanguages,
 };
 
-i18n
+export const i18nReady = i18n
   .use(TomlBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -113,46 +113,58 @@ function getCurrentSourcePriority(): LanguageSource {
 function setLanguageWithPriority(
   language: string,
   source: LanguageSource,
-): boolean {
+): Promise<boolean> {
+  const normalizedLanguage = normalizeLanguageCode(language);
+  if (!(normalizedLanguage in supportedLanguages)) {
+    return Promise.resolve(false);
+  }
+
   const currentPriority = getCurrentSourcePriority();
   const newPriority = source;
 
-  // Only apply if new source has higher priority
+  // A lower-priority default must not replace a user's explicit choice.
   if (newPriority >= currentPriority) {
-    if (
-      normalizeLanguageCode(i18n.language || "") !==
-      normalizeLanguageCode(language)
-    ) {
-      i18n.changeLanguage(language);
-    }
-    localStorage.setItem(I18N_STORAGE_KEYS.LANGUAGE, language);
+    localStorage.setItem(I18N_STORAGE_KEYS.LANGUAGE, normalizedLanguage);
     localStorage.setItem(I18N_STORAGE_KEYS.LANGUAGE_SOURCE, String(source));
-    return true;
+
+    if (normalizeLanguageCode(i18n.language || "") !== normalizedLanguage) {
+      return i18n.changeLanguage(normalizedLanguage).then(
+        () => true,
+        (error: unknown) => {
+          console.error(
+            `[i18n] Failed to load language ${normalizedLanguage}`,
+            error,
+          );
+          return false;
+        },
+      );
+    }
+    return Promise.resolve(true);
   }
-  return false;
+  return Promise.resolve(false);
 }
 
 /**
  * Set user-selected language (highest priority)
  * Call this from the UI language selector
  */
-export function setUserLanguage(language: string): void {
-  setLanguageWithPriority(language, LanguageSource.User);
+export function setUserLanguage(language: string): Promise<boolean> {
+  return setLanguageWithPriority(language, LanguageSource.User);
 }
 
 /**
  * Updates the supported languages list dynamically based on config
- * If configLanguages is null/empty, all languages remain available
- * Otherwise, only the specified languages are enabled with the first valid
+ * If configLanguages is null/empty, all four app languages remain available
+ * Otherwise, only supported languages in the specified list are enabled, with the first valid
  * option (preferring en-US when present) used as the fallback language.
  *
  * @param configLanguages - Optional array of language codes from server config (ui.languages)
  * @param defaultLocale - Optional default language for new users (system.defaultLocale)
  */
-export function updateSupportedLanguages(
+export async function updateSupportedLanguages(
   configLanguages?: string[] | null,
   defaultLocale?: string | null,
-) {
+): Promise<void> {
   // Normalize and validate default locale if provided
   const normalizedDefault = defaultLocale
     ? normalizeLanguageCode(defaultLocale)
@@ -166,7 +178,7 @@ export function updateSupportedLanguages(
     // No filter specified - keep all languages
     // But still apply default locale if provided and user has no preference
     if (validDefault) {
-      applyDefaultLocale(validDefault);
+      await applyDefaultLocale(validDefault);
     }
     return;
   }
@@ -195,10 +207,10 @@ export function updateSupportedLanguages(
   const currentLang = normalizeLanguageCode(i18n.language || "");
   if (currentLang && !validLanguages.includes(currentLang)) {
     // Use ServerDefault priority to override browser detection when language not in whitelist
-    setLanguageWithPriority(fallback, LanguageSource.ServerDefault);
+    await setLanguageWithPriority(fallback, LanguageSource.ServerDefault);
   } else if (validDefault) {
     // Apply server default (respects user choice if already set)
-    setLanguageWithPriority(validDefault, LanguageSource.ServerDefault);
+    await setLanguageWithPriority(validDefault, LanguageSource.ServerDefault);
   }
 }
 
@@ -206,9 +218,9 @@ export function updateSupportedLanguages(
  * Apply server default locale when user has no saved language preference
  * This respects the priority: user-selected language > defaultLocale > browser detection > fallback
  */
-function applyDefaultLocale(defaultLocale: string) {
+function applyDefaultLocale(defaultLocale: string): Promise<boolean> {
   // Apply server default (respects user choice if already set)
-  setLanguageWithPriority(defaultLocale, LanguageSource.ServerDefault);
+  return setLanguageWithPriority(defaultLocale, LanguageSource.ServerDefault);
 }
 
 // Non-React modules off the hydration path (diskFileSync's toasts) read the

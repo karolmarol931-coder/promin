@@ -33,8 +33,6 @@ import type {
   PolicyRunStatus,
   PolicyRunView,
 } from "@editor/services/policyPipeline";
-import { dispatchPaygLimitReached } from "@editor/services/usageLimitBridge";
-import { reportFreeTierExhausted } from "@editor/services/accountLinkBlock";
 import {
   dispatchableFileId,
   type DispatchableFileId,
@@ -47,7 +45,6 @@ import {
   policyDeliversOutputFiles,
 } from "@editor/data/classificationPolicy";
 import { runPolicyOnFile } from "@editor/services/policyDispatch";
-import { policyCreditContext } from "@editor/services/policyCreditContext";
 import { policyAcceptsFile } from "@editor/services/policyInput";
 import { splitFileName } from "@editor/utils/fileUtils";
 import type { StirlingFile, StirlingFileStub } from "@editor/types/fileContext";
@@ -155,10 +152,6 @@ export function usePolicyAutoRun(): void {
   // Reconcile against the backend exactly once per mount.
   const reconciled = useRef(false);
 
-  // Server-side runs never hit the apiClient 402 interceptor, so we broadcast the limit
-  // sentinel for a saas listener to open the modal. Deduped per run.
-  const firedLimitModal = useRef<Set<string>>(new Set());
-
   // The file-producing upload policies this engine dispatches and chains, in run order, so effects
   // accumulate instead of racing to fork the same version. Annotating policies (classification) are
   // absent by design: they run themselves (local pass, then AI escalation), so the engine never sees
@@ -237,18 +230,6 @@ export function usePolicyAutoRun(): void {
       }
       // Read now rather than leaving them a poll interval to hear about their own upload.
       if (view.status === "FAILED") refreshNotificationsNow();
-      const code = view.errorCode;
-      if (code === "FREE_TIER_EXHAUSTED") {
-        if (!firedLimitModal.current.has(view.runId)) {
-          firedLimitModal.current.add(view.runId);
-          reportFreeTierExhausted(policyCreditContext(view.policyId));
-        }
-        return;
-      }
-      if (code !== "PAYG_LIMIT_REACHED" && code !== "FEATURE_DEGRADED") return;
-      if (firedLimitModal.current.has(view.runId)) return;
-      firedLimitModal.current.add(view.runId);
-      dispatchPaygLimitReached(view.errorSubscribed ?? null);
     },
     [scheduleQueueRetry],
   );
@@ -451,7 +432,7 @@ export function usePolicyAutoRun(): void {
 interface ImportContext {
   addFiles: (
     files: File[],
-    options?: { skipUploadTracking?: boolean; derivedFromTool?: boolean },
+    options?: { derivedFromTool?: boolean },
   ) => Promise<StirlingFile[]>;
   consumeFiles: (
     inputFileIds: FileId[],
@@ -552,8 +533,7 @@ async function reconcileServerRuns(policies: PoliciesByKey): Promise<void> {
       fileId: "",
       fileName: view.outputs[0]?.fileName ?? "",
       fileSize: 0,
-      // From the SaaS run registry, so its outputs live on the cloud backend.
-      target: "saas",
+      target: "local",
       status: view.status,
       outputs: view.outputs,
       ...(view.externalOutput === undefined
@@ -871,7 +851,6 @@ async function importOutputs(
     // derivedFromTool prevents the auto-run from ever re-enforcing this output,
     // even if the dispatched list is cleared (localStorage wipe / different device).
     const added = await ctx.addFiles(files, {
-      skipUploadTracking: true,
       derivedFromTool: true,
     });
     // Belt-and-suspenders session guard on top of derivedFromTool.

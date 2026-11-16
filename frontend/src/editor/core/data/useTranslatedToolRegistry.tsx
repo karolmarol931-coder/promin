@@ -577,7 +577,7 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         name: t("home.split.title", "Split"),
         component: lazy(() => import("@editor/tools/Split")),
         description: t("home.split.desc", "Split PDFs into multiple documents"),
-        categoryId: ToolCategoryId.STANDARD_TOOLS,
+        categoryId: ToolCategoryId.RECOMMENDED_TOOLS,
         subcategoryId: SubcategoryId.PAGE_FORMATTING,
         endpoints: Array.from(new Set(Object.values(SPLIT_ENDPOINT_NAMES))),
         operationConfig: asRegistryConfig(splitOperationConfig),

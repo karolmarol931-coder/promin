@@ -239,8 +239,7 @@ class PolicyFailureOwnershipTest {
             runAndFail("bob", null, "bob-doc-1");
 
             // Not her document, still her team's incident.
-            assertThat(offeredTo(asReviewer("alice")))
-                    .contains(FailureActionId.VIEW_IN_PROCESSOR, FailureActionId.DISMISS);
+            assertThat(offeredTo(asReviewer("alice"))).contains(FailureActionId.DISMISS);
         }
     }
 
@@ -266,7 +265,7 @@ class PolicyFailureOwnershipTest {
             FileRunEvent theirs = asReviewer("alice");
             assertThat(service.ownershipOf(theirs)).isEqualTo(Ownership.THEIRS);
             assertThat(offeredTo(theirs))
-                    .contains(FailureActionId.VIEW_IN_PROCESSOR, FailureActionId.DISMISS)
+                    .contains(FailureActionId.DISMISS)
                     .doesNotContain(FailureActionId.VIEW_FILE, FailureActionId.OPEN_IN_TOOL);
         }
 

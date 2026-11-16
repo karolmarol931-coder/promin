@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Modal,
   Stack,
@@ -62,17 +62,9 @@ const BulkShareModal: React.FC<BulkShareModalProps> = ({
     }
   }, [opened]);
 
-  const shareUrl = useMemo(() => {
-    if (!shareToken) return "";
-    const frontendUrl = (config?.frontendUrl || "").trim();
-    if (frontendUrl) {
-      const normalized = frontendUrl.endsWith("/")
-        ? frontendUrl.slice(0, -1)
-        : frontendUrl;
-      return `${normalized}/share/${shareToken}`;
-    }
-    return absoluteWithBasePath(`/share/${shareToken}`);
-  }, [config?.frontendUrl, shareToken]);
+  const shareUrl = shareToken
+    ? absoluteWithBasePath(`/share/${shareToken}`)
+    : "";
 
   const createShareLink = useCallback(
     async (storedFileId: number) => {

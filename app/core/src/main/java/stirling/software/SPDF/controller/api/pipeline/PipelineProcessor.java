@@ -95,9 +95,8 @@ public class PipelineProcessor {
         PipelineLimits.requireWithinStepLimit(
                 config.getOperations().size(), applicationProperties.getPolicies());
         PipelineResult result = new PipelineResult();
-        // One pipeline execution = one automation run. Scope a run id so every tool sub-step
-        // dispatched via InternalApiClient groups into a single charge on the SaaS billing side
-        // (see AutomationRunContext); pipeline steps run synchronously on this thread.
+        // One pipeline execution = one automation run. The run id follows each internal tool
+        // request so external API steps can include it in their context.
         try (AutomationRunContext.Scope ignored =
                 AutomationRunContext.open(UUID.randomUUID().toString())) {
             return runPipelineAgainstFilesInternal(outputFiles, config, result);

@@ -288,7 +288,7 @@ const SignRequestPanel = ({ data }: SignRequestPanelProps) => {
   };
 
   const handleAddToActiveFiles = async () => {
-    await fileActions.addFiles([pdfFile], { skipUploadTracking: true });
+    await fileActions.addFiles([pdfFile], {});
     alert({
       alertType: "success",
       title: t("success"),

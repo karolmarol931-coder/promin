@@ -1,9 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
-import {
-  bypassOnboarding,
-  mockAppApis,
-  seedCookieConsent,
-} from "@editor/tests/helpers/api-stubs";
+import { bypassOnboarding, mockAppApis } from "@editor/tests/helpers/api-stubs";
 import { openSettings } from "@editor/tests/helpers/ui-helpers";
 
 /**
@@ -21,7 +17,6 @@ async function setUpAdminWithAudit(
     eventTypes?: string[];
   },
 ) {
-  await seedCookieConsent(page);
   await bypassOnboarding(page);
   await page.addInitScript(() => {
     localStorage.setItem(

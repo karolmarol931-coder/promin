@@ -1,20 +1,13 @@
 import { StirlingFileStub } from "@editor/types/fileContext";
 import { fileOpenService } from "@editor/services/fileOpenService";
-import { useMultiWindowSupported } from "@editor/hooks/useMultiWindowSupported";
 import type { OpenInNewWindowApi } from "@editor-core/extensions/openInNewWindow";
 
 /**
- * Desktop build: open a stored file in a new Tauri window. The new window loads
- * the file by id from the shared IndexedDB store (see useOpenWindowFiles), which
- * only works where windows share one persistent web store - so this is gated on
- * useMultiWindowSupported (disabled on Linux).
+ * Opens a stored file in a new Tauri window through the shared IndexedDB store.
  */
 export function useOpenInNewWindow(): OpenInNewWindowApi {
-  const supported = useMultiWindowSupported();
-
   return {
-    canOpenInNewWindow: (file: StirlingFileStub) =>
-      supported && Boolean(file.id),
+    canOpenInNewWindow: (file: StirlingFileStub) => Boolean(file.id),
     openInNewWindow: (file: StirlingFileStub) => {
       if (file.id) {
         fileOpenService.openFilesInNewWindow([file.id]);

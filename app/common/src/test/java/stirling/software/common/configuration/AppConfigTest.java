@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.mock.env.MockEnvironment;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import stirling.software.common.model.ApplicationProperties;
@@ -19,14 +18,12 @@ import stirling.software.common.model.ApplicationProperties;
 class AppConfigTest {
 
     private ApplicationProperties applicationProperties;
-    private MockEnvironment env;
     private AppConfig appConfig;
 
     @BeforeEach
     void setUp() {
         applicationProperties = new ApplicationProperties();
-        env = new MockEnvironment();
-        appConfig = new AppConfig(env, applicationProperties);
+        appConfig = new AppConfig(applicationProperties);
         ReflectionTestUtils.setField(appConfig, "contextPath", "/");
         ReflectionTestUtils.setField(appConfig, "serverPort", "8080");
         ReflectionTestUtils.setField(appConfig, "v2Enabled", true);
@@ -52,7 +49,7 @@ class AppConfigTest {
         @Test
         @DisplayName("constant beans return fixed values")
         void constants() {
-            assertThat(appConfig.appName()).isEqualTo("Stirling PDF");
+            assertThat(appConfig.appName()).isEqualTo("Promin");
             assertThat(appConfig.homeText()).isEqualTo("null");
             assertThat(appConfig.contextPath("/ctx")).isEqualTo("/ctx");
         }
@@ -64,9 +61,9 @@ class AppConfigTest {
         }
 
         @Test
-        @DisplayName("StirlingPDFLabel embeds version")
+        @DisplayName("Promin label embeds version")
         void stirlingLabel() {
-            assertThat(appConfig.stirlingPDFLabel()).startsWith("Stirling-PDF v");
+            assertThat(appConfig.stirlingPDFLabel()).startsWith("Promin v");
         }
     }
 
@@ -102,9 +99,9 @@ class AppConfigTest {
         }
 
         @Test
-        @DisplayName("navBarText falls back to Stirling PDF when unset")
+        @DisplayName("navBarText falls back to Promin when unset")
         void navBarTextFallback() {
-            assertThat(appConfig.navBarText()).isEqualTo("Stirling PDF");
+            assertThat(appConfig.navBarText()).isEqualTo("Promin");
         }
 
         @Test
@@ -135,42 +132,6 @@ class AppConfigTest {
             assertThat(appConfig.cookiePolicy()).isEqualTo("cookie");
             assertThat(appConfig.impressum()).isEqualTo("impressum");
             assertThat(appConfig.accessibilityStatement()).isEqualTo("a11y");
-        }
-
-        @Test
-        @DisplayName("analyticsPrompt true when enableAnalytics null")
-        void analyticsPrompt() {
-            applicationProperties.getSystem().setEnableAnalytics(null);
-            assertThat(appConfig.analyticsPrompt()).isTrue();
-            applicationProperties.getSystem().setEnableAnalytics(Boolean.TRUE);
-            assertThat(appConfig.analyticsPrompt()).isFalse();
-        }
-
-        @Test
-        @DisplayName("analyticsEnabled true when premium enabled regardless of system flag")
-        void analyticsEnabledViaPremium() {
-            applicationProperties.getPremium().setEnabled(true);
-            assertThat(appConfig.analyticsEnabled()).isTrue();
-        }
-
-        @Test
-        @DisplayName("analyticsEnabled reflects system flag when premium disabled")
-        void analyticsEnabledViaSystem() {
-            applicationProperties.getPremium().setEnabled(false);
-            applicationProperties.getSystem().setEnableAnalytics(Boolean.TRUE);
-            assertThat(appConfig.analyticsEnabled()).isTrue();
-            applicationProperties.getSystem().setEnableAnalytics(Boolean.FALSE);
-            assertThat(appConfig.analyticsEnabled()).isFalse();
-        }
-
-        @Test
-        @DisplayName("scarf and posthog beans reflect derived flags")
-        void scarfAndPosthog() {
-            applicationProperties.getSystem().setEnableAnalytics(Boolean.TRUE);
-            applicationProperties.getSystem().setEnableScarf(Boolean.TRUE);
-            applicationProperties.getSystem().setEnablePosthog(Boolean.TRUE);
-            assertThat(appConfig.scarfEnabled()).isTrue();
-            assertThat(appConfig.posthogEnabled()).isTrue();
         }
 
         @Test
@@ -261,10 +222,19 @@ class AppConfigTest {
         }
 
         @Test
-        @DisplayName("machineType returns a Client-* variant when BROWSER_OPEN set")
-        void machineTypeClient() {
-            env.setProperty("BROWSER_OPEN", "true");
-            assertThat(appConfig.determineMachineType()).startsWith("Client-");
+        @DisplayName("machineType identifies the native desktop app")
+        void machineTypeDesktop() {
+            String previous = System.getProperty("STIRLING_PDF_TAURI_MODE");
+            try {
+                System.setProperty("STIRLING_PDF_TAURI_MODE", "true");
+                assertThat(appConfig.determineMachineType()).isEqualTo("Desktop");
+            } finally {
+                if (previous == null) {
+                    System.clearProperty("STIRLING_PDF_TAURI_MODE");
+                } else {
+                    System.setProperty("STIRLING_PDF_TAURI_MODE", previous);
+                }
+            }
         }
     }
 }

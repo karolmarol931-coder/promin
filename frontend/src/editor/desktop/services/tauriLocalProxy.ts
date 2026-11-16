@@ -1,4 +1,11 @@
 import { invoke } from "@tauri-apps/api/core";
+import type { FileId } from "@editor/types/file";
+import { fileStorage } from "@editor/services/fileStorage";
+import { hasDiskChanged } from "@editor/services/diskFileSync";
+import {
+  getDiskFileState,
+  readFileFromDisk,
+} from "@editor/services/desktopFileLink";
 
 // Fast path for localhost binary traffic: moves raw bytes via a Rust command
 // instead of plugin-http's per-byte number-array IPC (~3.5x size bloat).
@@ -33,7 +40,7 @@ function isLoopbackUrl(url: string): boolean {
  *
  * Only localhost requests that actually move a PDF qualify: a binary upload
  * (FormData) or a binary download (blob/arraybuffer response). Everything else
- * — remote/cloud/self-hosted requests, JSON/GET calls, anything with no PDF
+ * — JSON/GET calls and anything without a PDF body
  * body — returns false and stays on the normal plugin-http path untouched.
  */
 export function shouldUseFastLocalTransport(
@@ -48,6 +55,61 @@ export function shouldUseFastLocalTransport(
   const wantsBinaryDownload =
     responseType === "blob" || responseType === "arraybuffer";
   return hasBinaryUpload || wantsBinaryDownload;
+}
+
+async function readFormFileBytes(file: File): Promise<ArrayBuffer> {
+  try {
+    return await file.arrayBuffer();
+  } catch (readError) {
+    const fileId = (file as File & { fileId?: FileId }).fileId;
+    if (!fileId) throw readError;
+
+    try {
+      const stub = await fileStorage.getStirlingFileStub(fileId);
+      if (
+        !stub?.localFilePath ||
+        stub.isDirty ||
+        stub.diskConflictAt ||
+        stub.isLeaf === false ||
+        stub.diskSyncedSize == null ||
+        stub.diskSyncedModifiedMs == null
+      ) {
+        throw readError;
+      }
+
+      const state = await getDiskFileState(stub.localFilePath);
+      if (state.availability !== "present" || hasDiskChanged(stub, state)) {
+        throw readError;
+      }
+
+      const bytes = await readFileFromDisk(stub.localFilePath);
+      if (!bytes || bytes.byteLength !== state.size) throw readError;
+      return bytes;
+    } catch {
+      throw readError;
+    }
+  }
+}
+
+export async function materializeLocalFormData(
+  formData: FormData,
+): Promise<FormData> {
+  const materialized = new FormData();
+  for (const [name, value] of formData.entries()) {
+    if (typeof value === "string") {
+      materialized.append(name, value);
+      continue;
+    }
+
+    const bytes = await readFormFileBytes(value);
+    const filename = value instanceof File ? value.name : "blob";
+    const file = new File([bytes], filename, {
+      type: value.type,
+      lastModified: value instanceof File ? value.lastModified : Date.now(),
+    });
+    materialized.append(name, file);
+  }
+  return materialized;
 }
 
 interface ProxyResponseMeta {

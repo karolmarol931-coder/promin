@@ -55,7 +55,6 @@ export default defineConfig({
         "node_modules/",
         "src/editor/core/setupTests.ts",
         "src/editor/proprietary/setupTests.ts",
-        "src/editor/saas/setupTests.ts",
         "**/*.d.ts",
         "src/editor/core/tests/test-fixtures/**",
         "src/**/*.spec.ts",
@@ -79,28 +78,6 @@ export default defineConfig({
           react(),
           tsconfigPaths({
             projects: ["./tsconfig.core.vite.json"],
-          }),
-        ],
-        esbuild: {
-          target: "es2020",
-        },
-      },
-      {
-        test: {
-          name: "processor",
-          ...TEST_DEFAULTS,
-          include: ["src/processor/proprietary/**/*.test.{ts,tsx}"],
-          environment: "jsdom",
-          globals: true,
-          setupFiles: ["./src/processor/proprietary/setupTests.ts"],
-        },
-        plugins: [
-          iconSvgr(),
-          react(),
-          tsconfigPaths({
-            // Broad project so @editor/@processor resolve in every editor file the
-            // portal tests pull in (core/ui, core, ...).
-            projects: ["./tsconfig.processor.vite.json"],
           }),
         ],
         esbuild: {
@@ -140,33 +117,7 @@ export default defineConfig({
           iconSvgr(),
           react(),
           tsconfigPaths({
-            projects: ["./tsconfig.desktop.vite.json"],
-          }),
-        ],
-        esbuild: {
-          target: "es2020",
-        },
-      },
-      {
-        test: {
-          name: "saas",
-          ...TEST_DEFAULTS,
-          // src/editor/saas = editor-saas layer; src/processor/saas = the portal's saas
-          // overrides (sibling to src/processor/proprietary). Both build under the saas flavor,
-          // so both resolve @processor via the saas cascade (tsconfig.saas.vite.json).
-          include: [
-            "src/editor/saas/**/*.test.{ts,tsx}",
-            "src/processor/saas/**/*.test.{ts,tsx}",
-          ],
-          environment: "jsdom",
-          globals: true,
-          setupFiles: ["./src/editor/saas/setupTests.ts"],
-        },
-        plugins: [
-          iconSvgr(),
-          react(),
-          tsconfigPaths({
-            projects: ["./tsconfig.saas.vite.json"],
+            projects: ["./tsconfig.desktop.vitest.json"],
           }),
         ],
         esbuild: {

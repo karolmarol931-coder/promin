@@ -53,7 +53,6 @@ import stirling.software.proprietary.policy.output.PolicyOutputResolver;
 import stirling.software.proprietary.policy.output.PolicyOutputSink;
 import stirling.software.proprietary.policy.progress.PolicyProgressListener;
 import stirling.software.proprietary.policy.source.Source;
-import stirling.software.proprietary.service.DownstreamEntitlementError;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -193,8 +192,8 @@ public class PolicyEngine {
         if (source == null && inputs.primary().isEmpty()) {
             fileOwner = policy.owner() != null ? policy.owner() : triggeringUser;
         }
-        // The pipeline's payer is independent of the document owner and the incident's actor.
-        String billingPrincipal = policy.owner() != null ? policy.owner() : triggeringUser;
+        // Audit attribution is independent of the document owner and triggering user.
+        String auditPrincipal = policy.owner() != null ? policy.owner() : triggeringUser;
         PolicyInputs resolved;
         PipelineDefinition definition;
         try {
@@ -227,7 +226,7 @@ public class PolicyEngine {
             return new PolicyRunHandle(run.getRunId(), CompletableFuture.completedFuture(run));
         }
         return submitForPrincipal(
-                billingPrincipal,
+                auditPrincipal,
                 fileOwner,
                 triggeringUser,
                 policy.id(),
@@ -240,7 +239,7 @@ public class PolicyEngine {
     }
 
     private PolicyRunHandle submitForPrincipal(
-            String billingPrincipal,
+            String auditPrincipal,
             String fileOwner,
             String triggeringUser,
             String policyId,
@@ -260,11 +259,11 @@ public class PolicyEngine {
         // step dispatches via InternalApiClient, which resolves the caller from
         // UserService.getCurrentUsername() — that has an MDC `auditPrincipal` fallback for async
         // threads. Without this the worker has no identity, tool calls fall back to the
-        // INTERNAL_API_USER, and PAYG charges that system account instead of the owner's team.
+        // INTERNAL_API_USER, which would lose the policy owner from audit events.
         Runnable task =
                 () ->
                         runAsPrincipal(
-                                billingPrincipal,
+                                auditPrincipal,
                                 fileOwner,
                                 definition.name(),
                                 () -> {
@@ -427,38 +426,11 @@ public class PolicyEngine {
                 taskManager.setError(runId, message);
                 recordFailure(run, message, e);
             } catch (RestClientResponseException e) {
-                // A downstream tool call returned an error status. When it's a structured
-                // entitlement
-                // response (401/402 with a JSON `error` sentinel), surface that code onto the run
-                // so
-                // the
-                // client can react — e.g. pop the usage-limit modal — instead of only seeing a
-                // generic
-                // failure. We don't interpret the code here (that would couple this module to the
-                // saas
-                // billing layer); we just pass it through for the client to map. Other statuses
-                // fall
-                // through to the generic failure below.
-                String code = DownstreamEntitlementError.extractCode(e);
-                if (code != null) {
-                    log.info(
-                            "Policy run {} blocked by downstream entitlement gate ({})",
-                            runId,
-                            code);
-                    String message = "Usage limit reached";
-                    run.failWithCode(
-                            message, code, DownstreamEntitlementError.extractSubscribed(e));
-                    taskManager.setError(runId, message);
-                    recordFailure(run, message, e);
-                } else {
-                    String message = "Policy run failed: " + downstreamMessage(e);
-                    log.error("Policy run {} failed (downstream HTTP error)", runId, e);
-                    // Carry the tool's own error code onto the run, so a client sees the same
-                    // code the review surface classifies the failure on.
-                    run.failWithCode(message, DownstreamProblemDetail.errorCodeOf(e), null);
-                    taskManager.setError(runId, message);
-                    recordFailure(run, message, e);
-                }
+                String message = "Policy run failed: " + downstreamMessage(e);
+                log.error("Policy run {} failed (downstream HTTP error)", runId, e);
+                run.failWithCode(message, DownstreamProblemDetail.errorCodeOf(e));
+                taskManager.setError(runId, message);
+                recordFailure(run, message, e);
             } catch (Exception e) {
                 String message = "Policy run failed: " + e.getMessage();
                 log.error("Policy run {} failed", runId, e);
@@ -484,7 +456,7 @@ public class PolicyEngine {
             String message = "Policy run could not be queued: " + ex.getMessage();
             log.error("Policy run {} was not admitted: {}", run.getRunId(), ex.getMessage());
             // Transient admission rejection, not a processing failure (see QUEUE_FULL_CODE).
-            run.failWithCode(message, QUEUE_FULL_CODE, null);
+            run.failWithCode(message, QUEUE_FULL_CODE);
             taskManager.setError(run.getRunId(), message);
             // No exception to classify here: nothing was thrown by a tool, the run simply was not
             // admitted. Record it explicitly so a run lost to load pressure is still accounted for.
@@ -515,8 +487,8 @@ public class PolicyEngine {
      * Record why a run failed. Called after the run's own state transition and task-manager update,
      * so a recording problem cannot change the outcome the caller observes.
      *
-     * <p>The actor is the run's own, not the MDC audit principal, which carries the billing
-     * identity: for a stored policy always its owner. Unattended, it falls back to the document's.
+     * <p>The actor is the run's own, not the MDC audit principal. For a stored policy it is the
+     * policy owner; unattended, it falls back to the document's owner.
      */
     private void recordFailure(PolicyRun run, String message, Throwable cause) {
         failureRecorder.recordRunFailure(
@@ -649,8 +621,8 @@ public class PolicyEngine {
 
     /**
      * MDC key {@code UserService.getCurrentUsername()} reads as its async fallback (stamped by the
-     * controller audit aspect on request threads). We reuse it to carry the billing identity onto
-     * the policy worker thread.
+     * controller audit aspect on request threads). We reuse it to carry the audit identity onto the
+     * policy worker thread.
      */
     public static final String AUDIT_PRINCIPAL_MDC_KEY = "auditPrincipal";
 
@@ -674,17 +646,17 @@ public class PolicyEngine {
 
     /**
      * Run {@code body} with {@code principal} set as the audit principal in MDC, so async tool
-     * dispatch attributes (and charges) usage to that user. A null/blank principal runs as-is.
-     * Restores the previous MDC value afterward (defensive — worker threads aren't pooled).
+     * dispatch attributes to that user. A null/blank principal runs as-is. Restores the previous
+     * MDC value afterward (defensive — worker threads aren't pooled).
      */
     private static void runAsPrincipal(
-            String billingPrincipal, String fileOwner, String policyName, Runnable body) {
-        // Tool dispatch reads the billing principal; output storage reads the document owner.
+            String auditPrincipal, String fileOwner, String policyName, Runnable body) {
+        // Tool dispatch reads the audit principal; output storage reads the document owner.
         String previousPrincipal = MDC.get(AUDIT_PRINCIPAL_MDC_KEY);
         String previousPolicyName = MDC.get(InternalApiClient.POLICY_NAME_MDC_KEY);
         String previousOwner = JobContext.getOwner();
-        if (billingPrincipal != null && !billingPrincipal.isBlank()) {
-            MDC.put(AUDIT_PRINCIPAL_MDC_KEY, billingPrincipal);
+        if (auditPrincipal != null && !auditPrincipal.isBlank()) {
+            MDC.put(AUDIT_PRINCIPAL_MDC_KEY, auditPrincipal);
         }
         if (policyName != null && !policyName.isBlank()) {
             MDC.put(InternalApiClient.POLICY_NAME_MDC_KEY, policyName);

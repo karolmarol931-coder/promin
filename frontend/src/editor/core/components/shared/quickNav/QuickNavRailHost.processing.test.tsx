@@ -80,7 +80,7 @@ it("hides off-device processing shortcuts under managed privacy", () => {
   ).toBeInTheDocument();
 });
 
-it.each(["/settings/general", "/docs", "/processor"])(
+it.each(["/settings/general", "/docs"])(
   "keeps folder processing available on %s and carries the request to the editor",
   (path) => {
     setup(path);

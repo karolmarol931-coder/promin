@@ -40,8 +40,6 @@ class SigningUserQueryDbTest {
         User alice = user("alice", true, alpha);
         user("bob", null, alpha);
         user("disabled", false, alpha);
-        User anonymous = user("anonymous", true, alpha);
-        anonymous.setAuthenticationType(AuthenticationType.ANONYMOUS);
         user("other-team", true, beta);
         user("no-team", true, null);
         user(null, null, alpha);

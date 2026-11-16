@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-export type ProviderType = "oauth2" | "saml2" | "telegram" | "googledrive";
+export type ProviderType = "oauth2" | "saml2" | "telegram";
 
 /** Value of a provider field, keyed by its `type`: text/password/textarea -> string,
  *  number -> number, switch -> boolean, tags -> string[]. */
@@ -432,7 +432,7 @@ const useTelegramProvider = (): Provider => {
         ),
         description: t(
           "admin.settings.telegram.enabled.description",
-          "Allow users to interact with Stirling PDF through your configured Telegram bot.",
+          "Allow users to interact with Promin through your configured Telegram bot.",
         ),
         defaultValue: false,
       },
@@ -810,66 +810,6 @@ const useSAML2Provider = (): Provider => {
   };
 };
 
-const useGoogleDriveProvider = (): Provider => {
-  const { t } = useTranslation();
-
-  return {
-    id: "googledrive",
-    category: "integration",
-    name: t("provider.googledrive.name", "Google Drive"),
-    icon: "googledrive",
-    type: "googledrive",
-    scope: t("provider.googledrive.scope", "File Import"),
-    documentationUrl:
-      "https://docs.stirlingpdf.com/Configuration/Google%20Drive%20File%20Picker/",
-    fields: [
-      {
-        key: "enabled",
-        type: "switch",
-        label: t(
-          "provider.googledrive.enabled.label",
-          "Enable Google Drive File Picker",
-        ),
-        description: t(
-          "provider.googledrive.enabled.description",
-          "Allow users to import files directly from Google Drive",
-        ),
-        defaultValue: false,
-      },
-      {
-        key: "clientId",
-        type: "text",
-        label: t("provider.googledrive.clientId.label", "Client ID"),
-        description: t(
-          "provider.googledrive.clientId.description",
-          "Google OAuth 2.0 Client ID from Google Cloud Console",
-        ),
-        placeholder: "xxx.apps.googleusercontent.com",
-      },
-      {
-        key: "apiKey",
-        type: "text",
-        label: t("provider.googledrive.apiKey.label", "API Key"),
-        description: t(
-          "provider.googledrive.apiKey.description",
-          "Google API Key for Google Picker API from Google Cloud Console",
-        ),
-        placeholder: "AIza...",
-      },
-      {
-        key: "appId",
-        type: "text",
-        label: t("provider.googledrive.appId.label", "App ID"),
-        description: t(
-          "provider.googledrive.appId.description",
-          "Google Drive App ID from Google Cloud Console",
-        ),
-        placeholder: "xxxxxxxxxxxxx",
-      },
-    ],
-  };
-};
-
 export const useAllProviders = (): Provider[] => {
   const googleProvider = useGoogleProvider();
   const gitHubProvider = useGitHubProvider();
@@ -878,7 +818,6 @@ export const useAllProviders = (): Provider[] => {
   const smtpProvider = useSMTPProvider();
   const telegramProvider = useTelegramProvider();
   const saml2Provider = useSAML2Provider();
-  const googleDriveProvider = useGoogleDriveProvider();
 
   return [
     googleProvider,
@@ -888,6 +827,5 @@ export const useAllProviders = (): Provider[] => {
     saml2Provider,
     smtpProvider,
     telegramProvider,
-    googleDriveProvider,
   ];
 };

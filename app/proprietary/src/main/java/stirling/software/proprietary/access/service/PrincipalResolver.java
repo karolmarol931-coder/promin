@@ -14,8 +14,8 @@ public interface PrincipalResolver {
 
     /**
      * Whether this deployment treats every authenticated user as one org, so the {@code ORG_ALL}
-     * default policy admits anyone. Self-hosted: true. Multi-tenant saas: false, so an {@code
-     * ORG_ALL} resource can't leak across tenants. Defaults to false (deny) for safety.
+     * default policy admits anyone. Defaults to false (deny) for safety; the local installation
+     * resolver opts in explicitly.
      */
     default boolean allowsDeploymentWideAccess() {
         return false;

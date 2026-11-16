@@ -24,9 +24,7 @@ import tools.jackson.databind.ObjectMapper;
 /**
  * Performs the outbound call for an {@code API} connection.
  *
- * <p>Follows the established self-hosted outbound pattern (JDK {@link HttpClient}; see {@code
- * AccountLinkClient}): the client is injectable so tests can drive a real local server without
- * reaching the network.
+ * <p>The client is injectable so tests can drive a real local server without reaching the network.
  */
 @Slf4j
 @Service

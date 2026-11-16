@@ -1,12 +1,8 @@
 import type { CSSProperties } from "react";
-import { Icon } from "@editor/ui/Icon";
-import wordmarkLightUrl from "@editor/assets/brand/branding-logo/wordmark-light.svg";
-import wordmarkDarkUrl from "@editor/assets/brand/branding-logo/wordmark-dark.svg";
-// The mark takes its two fills from the brand mark's path classes.
-import "@editor/components/shared/BrandMark.css";
+import prominMark from "@editor/assets/brand/promin/promin-location-mark.svg";
 import "@editor/ui/Logo.css";
 
-/** iconOnly = mark; textOnly = "Stirling" wordmark; iconAndText = both. */
+/** iconOnly = mark; textOnly = wordmark; iconAndText = both. */
 export type LogoVariant = "iconOnly" | "iconAndText" | "textOnly";
 
 interface LogoProps {
@@ -24,12 +20,7 @@ interface LogoProps {
   alt?: string;
 }
 
-/**
- * Shared brand lockup used across editor + processor. The mark is theme-
- * agnostic; the wordmark swaps light/dark via CSS so it tracks the active
- * colour scheme in both the editor (data-mantine-color-scheme) and the portal
- * (data-theme).
- */
+/** Shared Promin mark and wordmark used across the editor and processor. */
 export function Logo({
   variant = "iconAndText",
   orientation = "horizontal",
@@ -38,7 +29,7 @@ export function Logo({
   gap = "0.5rem",
   className,
   style,
-  alt = "Stirling",
+  alt = "Promin",
 }: LogoProps) {
   const showIcon = variant === "iconOnly" || variant === "iconAndText";
   const showText = variant === "textOnly" || variant === "iconAndText";
@@ -62,32 +53,21 @@ export function Logo({
   return (
     <span className={cls} style={{ ...layoutStyle, ...style }}>
       {showIcon && (
-        <Icon
-          name="stirling-mark"
+        <img
           className="sui-logo__mark"
-          size={iconHeight}
+          src={prominMark}
+          alt={showText ? "" : alt}
           title={showText ? undefined : alt}
+          style={{ height: iconHeight }}
         />
       )}
       {showText && (
-        <>
-          <img
-            className="sui-logo__wordmark sui-logo__wordmark--light"
-            src={wordmarkLightUrl}
-            alt={alt}
-            width={58}
-            height={21}
-            style={{ height: textHeight }}
-          />
-          <img
-            className="sui-logo__wordmark sui-logo__wordmark--dark"
-            src={wordmarkDarkUrl}
-            alt={alt}
-            width={58}
-            height={21}
-            style={{ height: textHeight }}
-          />
-        </>
+        <span
+          className="sui-logo__wordmark-text"
+          style={{ fontSize: textHeight }}
+        >
+          PROMIN
+        </span>
       )}
     </span>
   );

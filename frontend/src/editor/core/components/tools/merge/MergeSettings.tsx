@@ -24,7 +24,11 @@ const MergeSettings: React.FC<MergeSettingsProps> = ({
       <Checkbox
         label={t(
           "merge.removeDigitalSignature.label",
-          "Remove digital signature in the merged file?",
+          "Remove digital signatures from the merged file",
+        )}
+        description={t(
+          "merge.removeDigitalSignature.description",
+          "Merging invalidates digital signatures. Turn this on to remove them from the result.",
         )}
         checked={parameters.removeDigitalSignature}
         onChange={(event) =>
@@ -39,7 +43,11 @@ const MergeSettings: React.FC<MergeSettingsProps> = ({
       <Checkbox
         label={t(
           "merge.generateTableOfContents.label",
-          "Generate table of contents in the merged file?",
+          "Create a table of contents",
+        )}
+        description={t(
+          "merge.generateTableOfContents.description",
+          "Adds a clickable contents page using the source file names and page numbers.",
         )}
         checked={parameters.generateTableOfContents}
         onChange={(event) =>

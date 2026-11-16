@@ -5,6 +5,7 @@ import {
   shouldUseFastLocalTransport,
   fetchViaLocalProxy,
   markFastTransportUnavailable,
+  materializeLocalFormData,
 } from "@editor/services/tauriLocalProxy";
 
 /**
@@ -32,15 +33,12 @@ export interface TauriHttpRequestConfig {
   withCredentials?: boolean;
   // Custom properties for desktop
   operationName?: string;
-  /** Pins background automation requests to the account and server that started them. */
-  automationSession?: string;
   skipBackendReadyCheck?: boolean;
   skipAuthRedirect?: boolean;
   /** Backend endpoint key for routing, when the URL serves more than one. */
   endpointName?: string;
   // Axios compatibility properties (ignored by Tauri HTTP)
   suppressErrorToast?: boolean;
-  accountLinkBlockContext?: import("@editor/services/accountLinkBlock").AccountLinkBlockContext;
   cancelToken?: any;
   signal?: AbortSignal;
 }
@@ -83,7 +81,7 @@ class TauriHttpClient {
   public defaults: TauriHttpRequestConfig = {
     baseURL: "",
     headers: {
-      "User-Agent": "StirlingPDF-Desktop/1.0 Tauri",
+      "User-Agent": "Promin-Desktop/1.0 Tauri",
     },
     timeout: 120000,
     responseType: "json",
@@ -260,42 +258,31 @@ class TauriHttpClient {
     }
 
     try {
-      // Convert withCredentials to fetch API's credentials option
-      const credentials: RequestCredentials = finalConfig.withCredentials
-        ? "include"
-        : "omit";
+      const requestBody =
+        localProcessingOnly && body instanceof FormData
+          ? await materializeLocalFormData(body)
+          : body;
+
+      for (const key of Object.keys(headers)) {
+        if (key.toLowerCase() === "authorization") delete headers[key];
+      }
 
       // Make the request using Tauri's native HTTP client (standard Fetch API)
       // Enable certificate bypass for HTTPS to handle missing intermediate certs and self-signed certs
       const fetchOptions: RequestInit & {
         maxRedirections?: number;
-        danger?: {
-          acceptInvalidCerts: boolean;
-          acceptInvalidHostnames: boolean;
-        };
       } = {
         method,
-        // The dev webview has a Vite origin; cloud CORS accepts the packaged app origin.
-        // task desktop:dev alone enables the plugin feature needed to override Origin.
+        // The development webview uses Vite; the packaged app uses Tauri's origin.
+        // Only desktop development overrides Origin for the local backend.
         headers: import.meta.env.DEV
           ? { Origin: "tauri://localhost", ...headers }
           : headers,
-        body,
+        body: requestBody,
         ...(localProcessingOnly ? { maxRedirections: 0 } : {}),
-        credentials,
+        credentials: "omit",
         ...(finalConfig.signal ? { signal: finalConfig.signal } : {}),
       };
-
-      // Always enable dangerous settings for HTTPS to allow connections to servers with:
-      // - Missing intermediate certificates
-      // - Self-signed certificates
-      // - Certificate hostname mismatches
-      if (url.startsWith("https://")) {
-        fetchOptions.danger = {
-          acceptInvalidCerts: true,
-          acceptInvalidHostnames: true,
-        };
-      }
 
       // Fast path: for localhost PDF uploads/downloads, move the body as raw
       // bytes via the Rust proxy instead of plugin-http's number-array IPC.
@@ -305,18 +292,14 @@ class TauriHttpClient {
       // automatically if the fast path throws, so behaviour is never worse.
       let response: Response;
       if (
-        shouldUseFastLocalTransport(
-          url,
-          finalConfig.responseType,
-          finalConfig.data,
-        )
+        shouldUseFastLocalTransport(url, finalConfig.responseType, requestBody)
       ) {
         try {
           response = await fetchViaLocalProxy(
             url,
             method,
             headers,
-            body,
+            requestBody,
             finalConfig.signal,
           );
         } catch (proxyError) {

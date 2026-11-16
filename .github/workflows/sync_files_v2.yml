@@ -2,20 +2,6 @@ name: Sync Files (TOML)
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "build.gradle"
-      - "app/common/build.gradle"
-      - "app/core/build.gradle"
-      - "app/proprietary/build.gradle"
-      - "gradle/spotless.gradle"
-      - "README.md"
-      - "frontend/public/locales/*/translation.toml"
-      - "app/core/src/main/resources/static/3rdPartyLicenses.json"
-      - "scripts/ignore_translation.toml"
-
 # cancel in-progress jobs if a new job is triggered
 # This is useful to avoid running multiple builds for the same branch if a new commit is pushed
 # or a pull request is updated.

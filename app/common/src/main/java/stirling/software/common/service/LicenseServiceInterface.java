@@ -20,7 +20,7 @@ public interface LicenseServiceInterface {
      */
     boolean isRunningProOrHigher();
 
-    /** True for an installed Server licence; linked Team feature entitlements do not qualify. */
+    /** True when an installed Server license is active. */
     boolean hasServerLicense();
 
     /**

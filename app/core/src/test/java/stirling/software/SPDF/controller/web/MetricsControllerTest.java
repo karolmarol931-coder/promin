@@ -18,7 +18,6 @@ import io.micrometer.core.instrument.search.Search;
 
 import stirling.software.SPDF.config.EndpointInspector;
 import stirling.software.SPDF.config.StartupApplicationListener;
-import stirling.software.SPDF.service.WeeklyActiveUsersService;
 import stirling.software.common.model.ApplicationProperties;
 
 class MetricsControllerTest {
@@ -39,10 +38,9 @@ class MetricsControllerTest {
         when(applicationProperties.getMetrics()).thenReturn(metrics);
     }
 
-    private MetricsController createController(Optional<WeeklyActiveUsersService> wauService) {
+    private MetricsController createController(Optional<?> unused) {
         MetricsController ctrl =
-                new MetricsController(
-                        applicationProperties, meterRegistry, endpointInspector, wauService);
+                new MetricsController(applicationProperties, meterRegistry, endpointInspector);
         ctrl.init();
         return ctrl;
     }
@@ -258,50 +256,6 @@ class MetricsControllerTest {
         String body = (String) response.getBody();
         assertNotNull(body);
         assertTrue(body.contains("0d 2h 30m"));
-    }
-
-    // --- WAU ---
-
-    @Test
-    void getWeeklyActiveUsers_serviceEmpty_returnsNotFound() {
-        when(metrics.isEnabled()).thenReturn(true);
-        controller = createController(Optional.empty());
-
-        ResponseEntity<?> response = controller.getWeeklyActiveUsers();
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
-    void getWeeklyActiveUsers_servicePresent_returnsStats() {
-        when(metrics.isEnabled()).thenReturn(true);
-        WeeklyActiveUsersService wauService = mock(WeeklyActiveUsersService.class);
-        when(wauService.getWeeklyActiveUsers()).thenReturn(42L);
-        when(wauService.getTotalUniqueBrowsers()).thenReturn(100L);
-        when(wauService.getDaysOnline()).thenReturn(7L);
-        when(wauService.getStartTime()).thenReturn(java.time.Instant.parse("2025-01-01T00:00:00Z"));
-        controller = createController(Optional.of(wauService));
-
-        ResponseEntity<?> response = controller.getWeeklyActiveUsers();
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        @SuppressWarnings("unchecked")
-        Map<String, Object> body = (Map<String, Object>) response.getBody();
-        assertNotNull(body);
-        assertEquals(42L, body.get("weeklyActiveUsers"));
-        assertEquals(100L, body.get("totalUniqueBrowsers"));
-        assertEquals(7L, body.get("daysOnline"));
-    }
-
-    @Test
-    void getWeeklyActiveUsers_metricsDisabled_returnsForbidden() {
-        when(metrics.isEnabled()).thenReturn(false);
-        WeeklyActiveUsersService wauService = mock(WeeklyActiveUsersService.class);
-        controller = createController(Optional.of(wauService));
-
-        ResponseEntity<?> response = controller.getWeeklyActiveUsers();
-
-        assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
     }
 
     // --- EndpointCount ---

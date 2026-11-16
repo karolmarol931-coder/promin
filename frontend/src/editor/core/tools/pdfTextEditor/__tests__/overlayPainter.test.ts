@@ -1,6 +1,7 @@
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   isLinePainted,
+  moveCaretToLineEdge,
   type PaintLine,
   paintLines,
   paintPlainText,
@@ -115,6 +116,38 @@ describe("paintLines", () => {
 });
 
 describe("caret offsets", () => {
+  it("moves Home and End within the focused painted line", () => {
+    const el = host();
+    paintLines(el, [line("Hello world"), line("second line")], OPTS);
+    const textNode = el.children[1].firstChild!.firstChild!;
+    const range = document.createRange();
+    range.setStart(textNode, 4);
+    range.collapse(true);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    expect(moveCaretToLineEdge(el, selection, "start", false)).toBe(true);
+    expect(plainCaretOffset(el)).toBe("Hello world\n".length);
+    expect(moveCaretToLineEdge(el, selection, "end", false)).toBe(true);
+    expect(plainCaretOffset(el)).toBe("Hello world\nsecond line".length);
+  });
+
+  it("extends an existing selection to a painted line edge", () => {
+    const el = host();
+    paintLines(el, [line("Hello world")], OPTS);
+    const textNode = el.querySelector("[data-pdf-editor-token]")!.firstChild!;
+    const range = document.createRange();
+    range.setStart(textNode, 3);
+    range.collapse(true);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    expect(moveCaretToLineEdge(el, selection, "end", true)).toBe(true);
+    expect(selection.toString()).toBe("lo world");
+  });
+
   it("counts one character per line boundary", () => {
     const el = host();
     paintLines(el, [line("Hello world"), line("second line")], OPTS);

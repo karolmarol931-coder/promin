@@ -42,7 +42,7 @@ function ChatDock() {
     }
   };
 
-  const title = t("chat.dock.title", "Stirling Agent");
+  const title = t("chat.dock.title", "Promin Agent");
   const collapseLabel = t("chat.dock.collapse", "Collapse chat");
 
   const header = (

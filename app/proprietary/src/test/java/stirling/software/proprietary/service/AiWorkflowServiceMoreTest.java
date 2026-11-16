@@ -29,7 +29,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -270,38 +269,6 @@ class AiWorkflowServiceMoreTest {
             AiWorkflowResponse result = service.orchestrate(requestFor(pdf("a.pdf", "x"), "plan"));
             assertThat(result.getOutcome()).isEqualTo(AiWorkflowOutcome.CANNOT_CONTINUE);
             assertThat(result.getReason()).isEqualTo("Ghostscript is not installed");
-        }
-    }
-
-    @Nested
-    @DisplayName("downstream entitlement (PAYG) mapping")
-    class PaygMapping {
-
-        @Test
-        @DisplayName("a 402 PAYG_LIMIT_REACHED tool error becomes a structured CANNOT_CONTINUE")
-        void paygLimitMappedFromToolCall() throws IOException {
-            stubOrchestrator(
-                    """
-                    {"outcome":"tool_call","tool":"%s","parameters":{},"rationale":"r"}
-                    """
-                            .formatted(ROTATE_ENDPOINT));
-            when(toolMetadataService.isMultiInput(ROTATE_ENDPOINT)).thenReturn(false);
-            HttpClientErrorException payg =
-                    HttpClientErrorException.create(
-                            HttpStatus.PAYMENT_REQUIRED,
-                            "Payment Required",
-                            org.springframework.http.HttpHeaders.EMPTY,
-                            "{\"error\":\"PAYG_LIMIT_REACHED\",\"subscribed\":false}"
-                                    .getBytes(StandardCharsets.UTF_8),
-                            StandardCharsets.UTF_8);
-            when(internalApiClient.post(eq(ROTATE_ENDPOINT), any())).thenThrow(payg);
-
-            AiWorkflowResponse result =
-                    service.orchestrate(requestFor(pdf("a.pdf", "x"), "rotate"));
-
-            assertThat(result.getOutcome()).isEqualTo(AiWorkflowOutcome.CANNOT_CONTINUE);
-            assertThat(result.getErrorCode()).isEqualTo("PAYG_LIMIT_REACHED");
-            assertThat(result.getErrorSubscribed()).isFalse();
         }
     }
 

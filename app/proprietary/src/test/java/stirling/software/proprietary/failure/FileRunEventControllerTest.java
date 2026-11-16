@@ -141,7 +141,7 @@ class FileRunEventControllerTest {
 
             assertThat(actions)
                     .extracting(FileRunEventView.ActionView::id)
-                    .containsExactly("VIEW_IN_PROCESSOR", "DISMISS");
+                    .containsExactly("DISMISS");
             assertThat(actions).allMatch(FileRunEventView.ActionView::enabled);
         }
 
@@ -158,15 +158,8 @@ class FileRunEventControllerTest {
                                 assertThat(action.execution()).isNotNull();
                                 assertThat(action.slot()).isNotNull();
                             })
-                    .filteredOn(action -> "VIEW_IN_PROCESSOR".equals(action.id()))
-                    .singleElement()
-                    .satisfies(
-                            action -> {
-                                assertThat(action.execution())
-                                        .isEqualTo(FailureActionId.Execution.CLIENT);
-                                assertThat(action.slot()).isEqualTo(FailureActionSlot.OVERFLOW);
-                                assertThat(action.defaultLabel()).isEqualTo("View in processor");
-                            });
+                    .extracting(FileRunEventView.ActionView::id)
+                    .contains("DISMISS");
         }
 
         @Test

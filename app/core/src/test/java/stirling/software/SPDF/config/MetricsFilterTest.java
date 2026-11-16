@@ -89,8 +89,8 @@ class MetricsFilterTest {
         @Test
         @DisplayName("tags API calls with the route pattern, not the path variable values")
         void tagsRoutePatternInsteadOfPathVariables() throws Exception {
-            String route = "/api/v1/mobile-scanner/files/{sessionId}";
-            when(request.getRequestURI()).thenReturn("/api/v1/mobile-scanner/files/secret-id");
+            String route = "/api/v1/general/job/{jobId}";
+            when(request.getRequestURI()).thenReturn("/api/v1/general/job/secret-id");
             when(request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE))
                     .thenReturn(route);
             when(request.getContextPath()).thenReturn("");

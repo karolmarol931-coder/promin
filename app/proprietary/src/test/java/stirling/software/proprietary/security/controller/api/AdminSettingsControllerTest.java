@@ -151,13 +151,12 @@ class AdminSettingsControllerTest {
         @DisplayName("reports pending changes with count")
         void withPending() {
             putPending("ui.appName", "Foo");
-            putPending("system.enableAnalytics", false);
 
             ResponseEntity<?> response = controller.getSettingsDelta();
 
             Map<?, ?> body = (Map<?, ?>) response.getBody();
             assertThat(body.get("hasPendingChanges")).isEqualTo(true);
-            assertThat(body.get("count")).isEqualTo(2);
+            assertThat(body.get("count")).isEqualTo(1);
         }
     }
 

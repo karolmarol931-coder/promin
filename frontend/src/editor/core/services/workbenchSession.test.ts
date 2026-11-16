@@ -3,8 +3,6 @@ import {
   originalIdOf,
   readWorkbenchSession,
   writeWorkbenchSession,
-  saveEditorReturnPath,
-  takeEditorReturnPath,
   isSeedableView,
   clearWorkbenchSession,
   suspendWorkbenchSession,
@@ -51,18 +49,6 @@ describe("workbench session record", () => {
       fileIds: ["a", "b"],
       selectedFileIds: [],
     });
-  });
-});
-
-describe("editor return path", () => {
-  it("captures the live address bar and is consumed by the first take", () => {
-    // The editor writes its tool route via raw history.pushState, so the save
-    // must read window.location, not a lagging router location.
-    window.history.pushState({}, "", "/compress?x=1");
-    saveEditorReturnPath();
-    expect(takeEditorReturnPath()).toBe("/compress?x=1");
-    expect(takeEditorReturnPath()).toBeNull();
-    window.history.pushState({}, "", "/");
   });
 });
 

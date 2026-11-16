@@ -7,8 +7,7 @@ interface AuthLayoutProps {
 }
 
 /**
- * Editor login layout. The card shell lives in shared so the portal renders
- * the identical screen; this wires the editor's legal/cookie footer into it.
+ * Login card shell used by the desktop app's authentication routes.
  */
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return <AuthShell footer={<Footer />}>{children}</AuthShell>;

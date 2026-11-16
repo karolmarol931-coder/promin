@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test, vi } from "vitest";
 
-const shellOpenMock = vi.fn();
+const openExternalMock = vi.fn<() => Promise<void>>();
 
-vi.mock("@tauri-apps/plugin-shell", () => ({
-  open: (url: string) => shellOpenMock(url),
+vi.mock("@editor/platform/openExternal", () => ({
+  openExternal: () => openExternalMock(),
 }));
 
 import { openExternalTab } from "@editor/platform/openExternalTab";
@@ -12,24 +12,20 @@ import { expectConsole } from "@editor/tests/failOnConsole";
 describe("openExternalTab (desktop/Tauri)", () => {
   afterEach(() => {
     vi.restoreAllMocks();
-    shellOpenMock.mockReset();
+    openExternalMock.mockReset();
   });
 
-  // Regression for #6272: window.open traps the link inside the Tauri webview,
-  // so a PDF link opened a blank in-app window instead of the user's browser.
-  test("hands the URL to the OS instead of the webview", async () => {
+  test("routes valid links through the desktop external-link seam", async () => {
     const openSpy = vi
       .spyOn(window, "open")
       .mockImplementation(() => null as Window | null);
 
     await openExternalTab("https://example.com/");
 
-    expect(shellOpenMock).toHaveBeenCalledWith("https://example.com/");
+    expect(openExternalMock).toHaveBeenCalledOnce();
     expect(openSpy).not.toHaveBeenCalled();
   });
 
-  // Worse than the web case: an unvalidated scheme here reaches an OS handler
-  // rather than staying inside a browser.
   test.each(["javascript:alert(1)", "file:///etc/passwd", "ftp://example.com"])(
     "refuses to hand %s to the OS",
     async (url) => {
@@ -37,7 +33,7 @@ describe("openExternalTab (desktop/Tauri)", () => {
 
       await openExternalTab(url);
 
-      expect(shellOpenMock).not.toHaveBeenCalled();
+      expect(openExternalMock).not.toHaveBeenCalled();
     },
   );
 });

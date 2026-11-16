@@ -160,18 +160,9 @@ class FileRunEventHttpIntegrationTest {
             // Resolved for this reader: a leader looking at a colleague's password failure is
             // offered the run and a way to close the row, not a password they do not have.
             JsonNode actions = row.get("actions");
-            assertThat(actions).hasSize(2);
-            assertThat(actions.get(0).get("id").asString()).isEqualTo("VIEW_IN_PROCESSOR");
-            assertThat(actions.get(0).get("labelKey").asString())
-                    .isEqualTo("portal.failures.action.viewInProcessor");
-            assertThat(actions.get(0).get("defaultLabel").asString())
-                    .isEqualTo("View in processor");
-            assertThat(actions.get(0).get("execution").asString()).isEqualTo("CLIENT");
-            assertThat(actions.get(0).get("slot").asString()).isEqualTo("OVERFLOW");
-            assertThat(actions.get(0).get("enabled").asBoolean()).isTrue();
-            assertThat(actions.get(0).get("disabledReasonKey").isNull()).isTrue();
-            assertThat(actions.get(1).get("id").asString()).isEqualTo("DISMISS");
-            assertThat(actions.get(1).get("execution").asString()).isEqualTo("SERVER");
+            assertThat(actions).hasSize(1);
+            assertThat(actions.get(0).get("id").asString()).isEqualTo("DISMISS");
+            assertThat(actions.get(0).get("execution").asString()).isEqualTo("SERVER");
         }
 
         @Test

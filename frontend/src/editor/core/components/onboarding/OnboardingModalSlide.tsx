@@ -34,7 +34,6 @@ const HERO_ICON: Record<string, IconName> = {
   rocket: "rocket",
   shield: "shield-check",
   lock: "lock",
-  analytics: "chart-column",
 };
 
 export default function OnboardingModalSlide({
@@ -48,32 +47,18 @@ export default function OnboardingModalSlide({
   allowDismiss = true,
 }: OnboardingModalSlideProps) {
   const { t } = useTranslation();
-  const { licenseNotice } = runtimeState;
   const flowState = { selectedRole: runtimeState.selectedRole };
 
   const heroType = slideDefinition.hero.type;
-  const hero =
-    heroType === "dual-icon" || heroType === "logo" ? (
-      <ShellHero appIcon />
-    ) : (
-      <ShellHero>
-        {heroType === "diamond" ? (
-          <Icon name="gem" size={30} />
-        ) : HERO_ICON[heroType] ? (
-          <Icon name={HERO_ICON[heroType]} size={30} />
-        ) : null}
-      </ShellHero>
-    );
+  const hero = (
+    <ShellHero>
+      {HERO_ICON[heroType] ? (
+        <Icon name={HERO_ICON[heroType]} size={30} />
+      ) : null}
+    </ShellHero>
+  );
 
   const resolveLabel = (button: ButtonDefinition) => {
-    if (
-      button.type === "button" &&
-      slideDefinition.id === "server-license" &&
-      button.action === "see-plans" &&
-      licenseNotice.isOverLimit
-    ) {
-      return t("onboarding.serverLicense.upgrade", "Upgrade now →");
-    }
     const label = button.label ?? "";
     if (!label) return "";
     const fallback = label.split(".").pop() || label;

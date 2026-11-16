@@ -1,38 +1,32 @@
-import {
-  loadPolicies as loadServerPolicies,
-  rawStoredPolicies as rawServerPolicies,
-} from "@editor-proprietary/services/policyStorage";
-export {
-  clearPolicies,
-  updatePolicy,
-  forgetPolicies,
-  onPoliciesChange,
-  POLICIES_CHANGE_EVENT,
-} from "@editor-proprietary/services/policyStorage";
-import { connectionModeService } from "@editor/services/connectionModeService";
-import { authService } from "@editor/services/authService";
-import type { PoliciesByKey } from "@editor/types/policies";
+import type { PoliciesByKey, PolicyState } from "@editor/types/policies";
 
-function canReadPolicies(): boolean {
-  const mode = connectionModeService.getCachedMode();
-  const status = authService.getAuthStatus();
-  return (
-    mode !== null &&
-    mode !== "local" &&
-    (status === "authenticated" || status === "refreshing")
-  );
-}
+export const POLICIES_CHANGE_EVENT = "promin:local-policies-changed";
 
-/** Local-only sessions have no policy enforcement, including cached export policies. */
+export function clearPolicies(): void {}
+
 export function loadPolicies(): PoliciesByKey {
-  return canReadPolicies() ? loadServerPolicies() : {};
+  return {};
 }
 
 export function rawStoredPolicies(): string | null {
-  return canReadPolicies() ? rawServerPolicies() : null;
+  return null;
 }
 
-/** Reads through the guarded loadPolicies, so a local-only session enforces nothing. */
-export function isEnforcedPolicy(policyKey: string | undefined): boolean {
-  return policyKey != null && loadPolicies()[policyKey]?.required === true;
+export function isEnforcedPolicy(_policyKey: string | undefined): boolean {
+  return false;
+}
+
+export function updatePolicy(
+  _policyKey: string,
+  _patch: Partial<PolicyState>,
+): PoliciesByKey {
+  return {};
+}
+
+export function forgetPolicies(_ids: string[]): PoliciesByKey {
+  return {};
+}
+
+export function onPoliciesChange(_callback: () => void): () => void {
+  return () => {};
 }

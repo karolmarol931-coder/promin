@@ -48,14 +48,14 @@ security:
     useAsUsername: email # default is 'email'; custom fields can be used as the username
     scopes: openid, profile, email # specify the scopes for which the application will request permissions
     provider: google # set this to your OAuth Provider's name, e.g., 'google' or 'keycloak'
-    redirectBaseUrl: "" # optional public URL users open Stirling-PDF at, e.g. 'https://pdf.example.com' (include any context path). Set it when a reverse proxy (e.g. Azure App Proxy) hides https or the public host, so OAuth callbacks become <redirectBaseUrl>/login/oauth2/code/<provider>. Leave blank to build them from each request
+    redirectBaseUrl: "" # optional public URL users open Promin at, e.g. 'https://pdf.example.com' (include any context path). Set it when a reverse proxy (e.g. Azure App Proxy) hides https or the public host, so OAuth callbacks become <redirectBaseUrl>/login/oauth2/code/<provider>. Leave blank to build them from each request
   saml2:
     enabled: false # Only enabled for paid enterprise clients (enterpriseEdition.enabled must be true)
     provider: "" # The name of your Provider
     autoCreateUser: true # set to 'true' to allow auto-creation of non-existing users
     blockRegistration: false # set to 'true' to deny login with SSO without prior registration by an admin
     registrationId: stirling # The name of your Service Provider (SP) app name. Should match the name in the path for your SSO & SLO URLs
-    redirectBaseUrl: "" # optional public URL users open Stirling-PDF at, e.g. 'https://pdf.example.com' (include any context path). Overrides system.backendUrl for the SAML entity ID, ACS and logout URLs. Leave blank to use system.backendUrl
+    redirectBaseUrl: "" # optional public URL users open Promin at, e.g. 'https://pdf.example.com' (include any context path). Overrides system.backendUrl for the SAML entity ID, ACS and logout URLs. Leave blank to use system.backendUrl
     idpMetadataUri: https://dev-XXXXXXXX.okta.com/app/externalKey/sso/saml/metadata # The uri for your Provider's metadata
     idpSingleLoginUrl: https://dev-XXXXXXXX.okta.com/app/dev-XXXXXXXX_stirlingpdf_1/externalKey/sso/saml # The URL for initiating SSO. Provided by your Provider
     idpSingleLogoutUrl: https://dev-XXXXXXXX.okta.com/app/dev-XXXXXXXX_stirlingpdf_1/externalKey/slo/saml # The URL for initiating SLO. Provided by your Provider
@@ -99,13 +99,8 @@ premium:
     customMetadata:
       autoUpdateMetadata: false
       author: username
-      creator: Stirling-PDF
-      producer: Stirling-PDF
-    googleDrive:
-      enabled: false # Enable Google Drive file picker integration
-      clientId: "" # Google OAuth 2.0 client ID (obtain from Google Cloud Console)
-      apiKey: "" # Google API key for Google Picker API (obtain from Google Cloud Console)
-      appId: "" # Google Drive app ID
+      creator: Promin
+      producer: Promin
   enterpriseFeatures:
     audit:
       enabled: true # Enable audit logging for security and compliance tracking
@@ -180,11 +175,8 @@ system:
   showSettingsWhenNoLogin: true # set to 'false' to hide settings button when login is disabled (enableLogin: false). Only applies when login is disabled.
   customHTMLFiles: false # enable to have files placed in /customFiles/templates override the existing template HTML files
   tessdataDir: "" # path to the directory containing the Tessdata files. This setting is relevant for Windows systems. For Windows users, this path should be adjusted to point to the appropriate directory where the Tessdata files are stored.
-  enableAnalytics: null # Master toggle for analytics: set to 'true' to enable all analytics, 'false' to disable all analytics, or leave as 'null' to prompt admin on first launch
   enableDesktopInstallSlide: true # Set to 'false' to hide the desktop app installation slide in the onboarding flow
   enableEasterEggs: true # Set to 'false' to remove the app's hidden novelty features
-  enablePosthog: null # Enable PostHog analytics (open-source product analytics): set to 'true' to enable, 'false' to disable, or 'null' to enable by default when analytics is enabled
-  enableScarf: null # Enable Scarf tracking pixel: set to 'true' to enable, 'false' to disable, or 'null' to enable by default when analytics is enabled
   enableUrlToPDF: false # Set to 'true' to enable URL to PDF, INTERNAL ONLY, known security issues, should not be used externally
   disableSanitize: false # set to true to disable Sanitize HTML; (can lead to injections in HTML)
   stirlingOfficeConversion: false # Beta: set to 'true' to convert Office files with the built-in Stirling Office Convert (better, faster conversions using less memory) instead of LibreOffice
@@ -193,17 +185,9 @@ system:
   maxImageMegapixels: 0 # Largest image one page render may create, in megapixels. 0 = automatic (a quarter of the Java heap, at most 1 GB)
   corsAllowedOrigins: [] # List of allowed origins for CORS (e.g. ['http://localhost:5173', 'https://app.example.com']). WARNING: leaving this empty falls back to allowing ALL origins (with credentials), it does NOT disable CORS. Set explicit origins to lock it down.
   backendUrl: "" # Backend base URL for SAML/OAuth/API callbacks (e.g. 'http://localhost:8080' for dev, 'https://api.example.com' for production). REQUIRED for SSO authentication to work correctly. This is where your IdP will send SAML responses and OAuth callbacks. Leave empty to default to 'http://localhost:8080' in development.
-  frontendUrl: "" # Base URL of the web app, as a browser reaches it (e.g. 'https://app.example.com', or 'https://example.com/app' if served under a base path). Optional - if not set, will use backendUrl. Used for any link handed to a browser: invite and signing emails, share links, mobile QR codes, and the account-link handshake.
-  enableMobileScanner: true # Enable mobile phone QR code upload feature. Requires frontendUrl to be configured.
-  enableMobileSignature: true # Enable drawing signatures on a phone via QR code from the Sign tool. Requires frontendUrl to be configured.
-  mobileScannerSettings:
-    convertToPdf: true # Automatically convert uploaded images to PDF format. If false, images are kept as-is.
-    imageResolution: full # Image resolution for mobile uploads: 'full' (original size) or 'reduced' (max 1200px on longest side). Only applies when convertToPdf is true.
-    pageFormat: A4 # Page format for converted PDFs: 'keep' (original image dimensions), 'A4' (A4 page size), or 'letter' (US Letter page size). Only applies when convertToPdf is true.
-    stretchToFit: false # Whether to stretch images to fill the entire page (may distort aspect ratio). If false, images are centered with preserved aspect ratio. Only applies when convertToPdf is true.
   serverCertificate:
-    enabled: true # Enable server-side certificate for "Sign with Stirling-PDF" option
-    organizationName: Stirling PDF Inc # Organization name for generated certificates
+    enabled: true # Enable the server-side signing certificate option
+    organizationName: Promin Partner # Organization name for generated certificates
     validity: 365 # Certificate validity in days
     regenerateOnStartup: false # Generate new certificate on each startup
   html:
@@ -268,9 +252,6 @@ storage:
   #   Cloudflare R2       -> endpoint='https://<acct>.r2.cloudflarestorage.com' region='auto'
   #                          pathStyleAccess=false; if uploads fail with 'unsupported header
   #                          x-amz-checksum-*' set requestChecksumCalculation=WHEN_REQUIRED
-  #   Supabase Storage    -> endpoint='https://<project>.supabase.co/storage/v1/s3'
-  #                          region='<project-region>' pathStyleAccess=true
-  #                          (filenames with non-ASCII display fine - the storage key is opaque)
   #   MinIO (in-cluster)  -> endpoint='http://minio:9000' region='us-east-1'
   #                          pathStyleAccess=true allowPrivateEndpoints=true
   #   Backblaze B2        -> endpoint='https://s3.<region>.backblazeb2.com'
@@ -285,7 +266,7 @@ storage:
     region: us-east-1
     accessKey: "" # blank = fall back to AWS DefaultCredentialsProvider (env / profile / IMDS)
     secretKey: ""
-    pathStyleAccess: false # true for MinIO and Supabase; false for AWS/R2/most CDNs
+    pathStyleAccess: false # true for MinIO; false for AWS/R2/most CDNs
     allowPrivateEndpoints: false # true required when endpoint resolves to a private/loopback IP (e.g. in-cluster MinIO). SSRF guard - leave false for any internet-facing vendor.
     requestChecksumCalculation: WHEN_SUPPORTED # WHEN_SUPPORTED|WHEN_REQUIRED|DISABLED. Set WHEN_REQUIRED if your vendor rejects auto-added x-amz-checksum-* headers (older Backblaze B2, some R2 corner cases).
     responseChecksumValidation: WHEN_SUPPORTED # WHEN_SUPPORTED|WHEN_REQUIRED|DISABLED. Set WHEN_REQUIRED if you see false-positive checksum-mismatch errors on GET from a vendor that never returns checksum headers.
@@ -318,15 +299,12 @@ autoPipeline:
     allowedExtensions: [] # Optional extension allow-list (case-insensitive, without the leading dot). Empty list = accept all extensions. Example: ["pdf", "tiff"]
 
 ui:
-  appNameNavbar: "" # custom app/brand name. NOTE: no longer shown in the navbar (the navbar renders the logo). It IS used as the browser tab title and as the TOTP/2FA issuer label in authenticator apps. Empty falls back to "Stirling PDF"
+  appNameNavbar: "" # custom app/brand name. NOTE: no longer shown in the navbar (the navbar renders the logo). It IS used as the browser tab title and as the TOTP/2FA issuer label in authenticator apps. Empty falls back to "Promin"
   languages: [] # If empty, all languages are enabled. To restrict to specific languages, use a whitelist like ["de_DE", "pl_PL", "sv_SE"]. Empty list or not restricting any languages will enable all available languages.
   defaultToolPanelMode: sidebar # Default user preference: open the tool picker in 'sidebar' or 'fullscreen' mode
   defaultStartupView: tools # Default user preference: first view on launch. Options: 'tools', 'read', or 'automate'
   defaultHideUnavailableTools: false # Default user preference: hide disabled tools instead of greying them out
   defaultHideUnavailableConversions: false # Default user preference: hide disabled conversion options instead of greying them out
-  hideDisabledTools:
-    googleDrive: false # Hide Google Drive button when not enabled
-    mobileQRScanner: false # Hide mobile QR scanner button when not enabled
 
 endpoints:
   toRemove: [] # list endpoints to disable (e.g. ['img-to-pdf', 'remove-pages'])
@@ -389,13 +367,11 @@ processExecutor:
 
 aiEngine:
   enabled: false # Set to 'true' to enable the AI engine integration
-  mode: SELF_HOSTED # 'SELF_HOSTED' uses the url below; 'CLOUD' runs AI on Stirling Cloud via the account link
-  url: http://localhost:5001 # URL of the Python AI engine (SELF_HOSTED only)
+  url: http://localhost:5001 # URL of the local Python AI engine
   timeoutSeconds: 120 # Timeout in seconds for AI engine requests
   longRunningTimeoutSeconds: 600 # Timeout (seconds) for heavy operations like RAG ingestion of large documents
   streamTimeoutSeconds: 1800 # SSE stream timeout (seconds) for long-running orchestrator runs
   pushConfigToEngine: true # Push admin AI config to the engine on startup + save; false = engine stays fully env-controlled
-  cloudDocumentIndexing: false # CLOUD only: let Stirling Cloud keep document text so document questions work
   models:
     provider: anthropic # Model provider: 'anthropic', 'openai', 'ollama', or 'custom' (OpenAI-compatible)
     smartModel: claude-haiku-4-5 # High-quality tier model name (no provider prefix)
@@ -442,8 +418,7 @@ policies:
   # Leave allowedFolderRoots empty (default) to disable folder sources/outputs.
   # List absolute directories to permit folder access within them.
   # Stirling's own config directory, the server file-storage directory and the pipeline watched
-  # folders are always off-limits, even inside an allowed root, and folder access is always
-  # disabled in SaaS mode.
+  # folders are always off-limits, even inside an allowed root.
   allowedFolderRoots: [] # e.g. ["/data/inbox", "/data/outbox"]
   scheduleSweepSeconds: 60 # How often (seconds) scheduled policies are checked for being due
   storageFolderSweepSeconds: 60 # Seconds between safety-net sweeps of server processing folders (arrivals sweep immediately)
@@ -471,26 +446,25 @@ mcp:
     resourceId: "" # RFC 8707 resource identifier of THIS MCP server (e.g. http://localhost:8080/mcp).
                    # Required: tokens must list this id in `aud` or the request is rejected.
     acceptedAudiences: [] # Extra `aud` values accepted on top of resourceId. Empty = strict RFC 8707.
-                          # For IdPs that cannot mint resource audiences (Supabase OAuth server always
-                          # issues aud=authenticated) list that audience here, e.g. ['authenticated'].
+                          # For IdPs that cannot mint resource audiences, list accepted values here.
     usernameClaim: sub # JWT claim matched against a Stirling username (e.g. 'sub', 'email', 'preferred_username')
     requireExistingAccount: true # Reject tokens whose subject has no enabled Stirling account (recommended)
   engineCapabilityRefreshMinutes: 5 # How often to refresh the AI capabilities manifest from the engine
 
-# Multi-node Stirling PDF. Two different things are called "nodes" here: cluster.node.* is THIS
-# Stirling PDF instance, cluster.valkey.* is the shared Valkey - so 'mode: cluster' is Valkey's own.
+# Multi-node Promin. Two different things are called "nodes" here: cluster.node.* is THIS
+# Promin instance, cluster.valkey.* is the shared Valkey - so 'mode: cluster' is Valkey's own.
 cluster:
-  enabled: false # Run more than one Stirling PDF node. 'false' (default) = single instance; nothing below applies.
-  backplane: inprocess # How Stirling PDF nodes share state: 'inprocess' (one JVM) or 'valkey'.
+  enabled: false # Run more than one Promin node. 'false' (default) = single instance; nothing below applies.
+  backplane: inprocess # How Promin nodes share state: 'inprocess' (one JVM) or 'valkey'.
   artifactStore: local # Job artifacts: 'local' (per-node disk) or 's3'. Multi-node MUST use 's3'.
   s3:
     keyPrefix: transient/ # Prefix for job artifacts, so one bucket can also hold storage.s3.* uploads.
 
-  # This Stirling PDF instance's own identity.
+  # This Promin instance's own identity.
   node:
     id: "" # Blank = fresh UUID each boot. Set it for a stable name in monitoring.
     role: both # 'web' (serves HTTP), 'worker' (runs jobs), or 'both'.
-    internalAddress: "" # host:port other Stirling PDF nodes reach this one on. Blank = derived at startup.
+    internalAddress: "" # host:port other Promin nodes reach this one on. Blank = derived at startup.
     scheme: http # Scheme peers use for this node's /internal/cluster/** endpoints.
     heartbeatIntervalMs: 5000 # How often this node publishes its heartbeat.
 
@@ -502,7 +476,7 @@ cluster:
     username: "" # Valkey ACL user. Overrides any user in 'url'.
     password: "" # Valkey password. Overrides any password in 'url'. Never logged.
     commandTimeoutMs: 2000 # Per-command timeout, so a slow Valkey cannot stall request threads.
-    clientName: "" # CLIENT SETNAME, so monitoring can tell the Stirling PDF nodes apart. Blank = 'stirling-' + node id; 'off' sends none.
+    clientName: "" # CLIENT SETNAME, so monitoring can tell the Promin nodes apart. Blank = 'promin-' + node id; 'off' sends none.
 
     # mode=sentinel: one Valkey primary plus replicas, with sentinels failing over between them.
     sentinel:

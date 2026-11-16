@@ -188,7 +188,10 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   const gridColumns =
     languageOptions.length <= 4 ? 2 : languageOptions.length <= 9 ? 3 : 4;
 
-  const handleLanguageChange = (value: string, event: React.MouseEvent) => {
+  const handleLanguageChange = async (
+    value: string,
+    event: React.MouseEvent,
+  ) => {
     // Create ripple effect at click position (only for button mode)
     if (!compact) {
       const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -197,27 +200,11 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
       setRippleEffect({ x, y, key: Date.now() });
     }
 
-    // Start transition animation
     setPendingLanguage(value);
-
-    // Simulate processing time for smooth transition
-    setTimeout(() => {
-      // Use setUserLanguage to properly set priority (ensures user choice persists across sessions)
-      setUserLanguage(value);
-
-      setTimeout(() => {
-        setPendingLanguage(null);
-        setOpened(false);
-
-        // Clear ripple effect
-        setTimeout(() => setRippleEffect(null), 50);
-
-        // Force a full reload so RTL/LTR layout and tooltips re-evaluate correctly
-        if (typeof window !== "undefined") {
-          window.location.reload();
-        }
-      }, 150);
-    }, 100);
+    const applied = await setUserLanguage(value);
+    setPendingLanguage(null);
+    if (applied) setOpened(false);
+    setTimeout(() => setRippleEffect(null), 50);
   };
 
   const currentLanguage =

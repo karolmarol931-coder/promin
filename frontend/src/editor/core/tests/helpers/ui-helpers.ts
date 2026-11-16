@@ -195,6 +195,19 @@ export async function dismissTourTooltip(page: Page): Promise<void> {
  * offscreen tile or header is not in the DOM yet. Scroll the picker in steps
  * until the target exists, then return it. No-op when it is already mounted.
  */
+export async function expandToolPicker(page: Page): Promise<void> {
+  await page
+    .locator(".tool-picker-scrollable")
+    .first()
+    .waitFor({ state: "visible", timeout: 10_000 });
+  const viewAllTools = page
+    .getByRole("button", { name: /View all tools/i })
+    .first();
+  if (await viewAllTools.isVisible().catch(() => false)) {
+    await viewAllTools.click();
+  }
+}
+
 export async function revealInPicker(
   page: Page,
   target: Locator,
@@ -214,6 +227,7 @@ export async function revealPickerTool(
   page: Page,
   toolId: string,
 ): Promise<Locator> {
+  await expandToolPicker(page);
   return revealInPicker(
     page,
     page.locator(`[data-tour="tool-button-${toolId}"]`),

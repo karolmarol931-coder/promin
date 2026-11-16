@@ -469,7 +469,6 @@ class ToolUsageTrackingServiceTest {
         @Test
         @DisplayName("external analytics being off does not stop recording")
         void recordsWithoutExternalAnalytics() {
-            properties.getSystem().setEnableAnalytics(false);
 
             service.recordUsage(PRINCIPAL, "compare", chains(List.of("merge")));
 

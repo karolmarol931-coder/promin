@@ -189,6 +189,21 @@ class WatermarkControllerMoreTest {
     }
 
     @Test
+    @DisplayName("text watermark defaults to the roman alphabet when it is omitted")
+    void omittedAlphabetDefaultsToRoman() throws Exception {
+        AddWatermarkRequest request = baseRequest();
+        request.setWatermarkType("text");
+        request.setWatermarkText("DEFAULT");
+        request.setAlphabet(null);
+
+        ResponseEntity<Resource> response = controller.addWatermark(request);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().contentLength() > 0);
+    }
+
+    @Test
     @DisplayName("unknown watermark type leaves the document otherwise unmodified")
     void unknownTypeNoOp() throws Exception {
         AddWatermarkRequest request = baseRequest();

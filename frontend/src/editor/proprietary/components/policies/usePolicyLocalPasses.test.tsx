@@ -1,6 +1,6 @@
 // The Classification policy hook: classifies each settled document locally and escalates an unsure
 // verdict to the AI engine itself. Drives the real policyRunStore and mocks only IO (storage, the
-// heuristic engine, the meter, the shared dispatch primitive).
+// heuristic engine, and the shared dispatch primitive).
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
@@ -29,7 +29,6 @@ const mocks = vi.hoisted(() => ({
   getStirlingFile: vi.fn(),
   updateFileMetadata: vi.fn(async (_id: string, _updates: unknown) => true),
   classify: vi.fn(),
-  meter: vi.fn(),
   runPolicyOnFile: vi.fn(),
 }));
 
@@ -82,9 +81,6 @@ vi.mock("@editor/services/heuristic/heuristicClassification", () => ({
     ...(await mocks.classify(file)),
   }),
 }));
-vi.mock("@editor/services/automationMeter", () => ({
-  meterAutomationRun: (payload: unknown) => mocks.meter(payload),
-}));
 
 import { usePolicyLocalPasses } from "@editor/components/policies/usePolicyLocalPasses";
 import {
@@ -117,7 +113,6 @@ describe("usePolicyLocalPasses delivery", () => {
     mocks.updateStirlingFileStub.mockClear();
     mocks.bumpRevision.mockClear();
     mocks.updateFileMetadata.mockClear();
-    mocks.meter.mockClear();
     mocks.getStirlingFile.mockReset();
     mocks.getStirlingFile.mockImplementation(async (id: string) =>
       fakeFile(id),
@@ -129,7 +124,7 @@ describe("usePolicyLocalPasses delivery", () => {
     mocks.runPolicyOnFile.mockResolvedValue(undefined);
   });
 
-  it("classifies pending uploads, writes labels, and meters once per file", async () => {
+  it("classifies pending uploads and writes labels", async () => {
     mocks.workspace = [stub("a"), stub("b")];
     mocks.classify.mockImplementation(async (file: File) => ({
       labels: [file.name.startsWith("a") ? "invoice" : "resume"],
@@ -146,7 +141,6 @@ describe("usePolicyLocalPasses delivery", () => {
     expect(mocks.updateStirlingFileStub).toHaveBeenCalledWith("b", {
       classificationLabels: ["resume"],
     });
-    expect(mocks.meter).toHaveBeenCalledTimes(2);
     expect(mocks.bumpRevision).toHaveBeenCalled();
   });
 
@@ -179,7 +173,6 @@ describe("usePolicyLocalPasses delivery", () => {
       }),
     );
     expect(mocks.classify).toHaveBeenCalledTimes(2);
-    expect(mocks.meter).toHaveBeenCalledTimes(2);
   });
 
   it("persists a definitive [] verdict for an unlabelled file and does not retry it", async () => {
@@ -194,11 +187,9 @@ describe("usePolicyLocalPasses delivery", () => {
       }),
     );
     expect(mocks.classify).toHaveBeenCalledTimes(1);
-    expect(mocks.meter).toHaveBeenCalledTimes(1);
   });
 
-  it("heals a previously-dispatched file whose result was lost, without re-metering", async () => {
-    // A past session classified + metered this file but the delivery was lost.
+  it("heals a previously-dispatched file whose result was lost", async () => {
     markDispatched("classification", "lost");
     mocks.workspace = [stub("lost")];
     mocks.classify.mockResolvedValue({ labels: ["bank-statement"] });
@@ -210,10 +201,9 @@ describe("usePolicyLocalPasses delivery", () => {
         classificationLabels: ["bank-statement"],
       }),
     );
-    expect(mocks.meter).not.toHaveBeenCalled();
   });
 
-  it("leaves an unreadable file undelivered (no verdict, no meter) so it can retry", async () => {
+  it("leaves an unreadable file undelivered so it can retry", async () => {
     // An extraction failure may be environmental, so it must never poison the
     // file with a persisted verdict. The read path deliberately warns.
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -231,19 +221,16 @@ describe("usePolicyLocalPasses delivery", () => {
     expect(mocks.classify).toHaveBeenCalledTimes(1); // claimed: once per session
     expect(mocks.updateStirlingFileStub).not.toHaveBeenCalled();
     expect(mocks.updateFileMetadata).not.toHaveBeenCalled();
-    expect(mocks.meter).not.toHaveBeenCalled();
     warn.mockRestore();
   });
 
   it("waits for app-config before classifying (AI flag unknown = possible double-run)", async () => {
-    // While the config loads, aiEnabled reads false even on an AI-on tenant; classifying
-    // then would race the server-side classify policy and double-bill the same files.
+    // Classifying before local backend configuration loads could duplicate a server policy run.
     mocks.configLoading = true;
     mocks.workspace = [stub("early")];
     mocks.classify.mockResolvedValue({ labels: ["invoice"] });
 
     const { rerender } = renderHook(() => usePolicyLocalPasses());
-    await new Promise((r) => setTimeout(r, 50));
     expect(mocks.classify).not.toHaveBeenCalled();
 
     // Config resolves (AI stays off): the pending file classifies normally.
@@ -259,14 +246,12 @@ describe("usePolicyLocalPasses delivery", () => {
   it("skips already-classified files (a real label, or the no-label [] verdict)", async () => {
     mocks.workspace = [
       stub("done", { classificationLabels: ["invoice"] }),
-      // [] means classified-nothing-found: it must NOT be re-classified (or re-billed).
+      // [] means classification completed without a matching label.
       stub("verdict", { classificationLabels: [] }),
     ];
 
     renderHook(() => usePolicyLocalPasses());
 
-    // Nothing to classify; give the (immediate) idle path a beat to prove it.
-    await new Promise((r) => setTimeout(r, 50));
     expect(mocks.classify).not.toHaveBeenCalled();
   });
 
@@ -283,7 +268,6 @@ describe("usePolicyLocalPasses delivery", () => {
         classificationLabels: ["invoice"],
       }),
     );
-    expect(mocks.meter).toHaveBeenCalledTimes(1);
   });
 
   it("escalates an unsure local verdict to the AI engine itself", async () => {
@@ -309,9 +293,6 @@ describe("usePolicyLocalPasses delivery", () => {
       classificationLabels: ["invoice"],
       classificationConfidence: "low",
     });
-    // ...but the local pass is not metered: the AI run it escalates to bills it instead, so one
-    // classification is charged once.
-    expect(mocks.meter).not.toHaveBeenCalled();
   });
 
   it("lets a confident local verdict stand without asking the AI", async () => {
@@ -331,8 +312,6 @@ describe("usePolicyLocalPasses delivery", () => {
       }),
     );
     expect(mocks.runPolicyOnFile).not.toHaveBeenCalled();
-    // The verdict stands, so the local pass is the billable run.
-    expect(mocks.meter).toHaveBeenCalledTimes(1);
   });
 
   it("never escalates when the AI engine is off, however unsure the verdict", async () => {
@@ -352,14 +331,10 @@ describe("usePolicyLocalPasses delivery", () => {
       }),
     );
     expect(mocks.runPolicyOnFile).not.toHaveBeenCalled();
-    // AI is off, so the unsure verdict is final and never escalates - it must still be billed once
-    // here, not fall through the gap between local and (never-run) server billing.
-    expect(mocks.meter).toHaveBeenCalledTimes(1);
   });
 
   it("does not run on upload when the policy is set to run on export", async () => {
-    // An export-time policy is enforced by the export path, not this upload engine, so an upload
-    // must not classify, meter, or escalate.
+    // An export-time policy is enforced by the export path, not this upload engine.
     runOn.value = "export";
     aiEnabled.value = true;
     mocks.workspace = [stub("a")];
@@ -370,11 +345,8 @@ describe("usePolicyLocalPasses delivery", () => {
 
     renderHook(() => usePolicyLocalPasses());
 
-    // Give the (immediate) idle path a beat to prove it stays silent.
-    await new Promise((r) => setTimeout(r, 50));
     expect(mocks.classify).not.toHaveBeenCalled();
     expect(mocks.updateStirlingFileStub).not.toHaveBeenCalled();
-    expect(mocks.meter).not.toHaveBeenCalled();
     expect(mocks.runPolicyOnFile).not.toHaveBeenCalled();
   });
 
@@ -402,7 +374,6 @@ describe("usePolicyLocalPasses delivery", () => {
     mocks.classify.mockResolvedValue({ labels: ["invoice"] });
 
     renderHook(() => usePolicyLocalPasses());
-    await new Promise((resolve) => setTimeout(resolve, 20));
     expect(mocks.classify).not.toHaveBeenCalled();
 
     act(() => settleDamageCheck("checking"));

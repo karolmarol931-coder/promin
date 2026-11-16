@@ -1,5 +1,4 @@
 import { test, expect } from "@playwright/test";
-import { ensureCookieConsent } from "@editor/tests/helpers/login";
 import { bypassOnboarding } from "@editor/tests/helpers/api-stubs";
 import { openSettings } from "@editor/tests/helpers/ui-helpers";
 
@@ -17,7 +16,6 @@ const PASSWORD = "adminadmin";
 
 async function uiLogin(page: import("@playwright/test").Page) {
   await bypassOnboarding(page);
-  await ensureCookieConsent(page);
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await page.locator("#email").fill(ADMIN);
   await page.locator("#password").fill(PASSWORD);

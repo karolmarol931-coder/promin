@@ -1,7 +1,6 @@
 package stirling.software.proprietary.service;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
-@Profile("!saas")
 @RequiredArgsConstructor
 @Slf4j
 public class OrgOwnerBootstrap {

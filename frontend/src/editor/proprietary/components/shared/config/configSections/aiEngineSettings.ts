@@ -42,22 +42,13 @@ export interface AiEngineFeatures {
   classify?: boolean;
 }
 
-/** Where the reasoning runs; mirrors ApplicationProperties.AiEngine.AiEngineMode. */
-export type AiEngineMode = "SELF_HOSTED" | "CLOUD";
+export type AiEngineMode = "SELF_HOSTED";
 
 export interface AiEngineSettingsData {
   enabled?: boolean;
   mode?: AiEngineMode;
-  /**
-   * Cloud mode only. Whether Stirling Cloud may keep a document's text indexed for later
-   * questions. Retention, not transmission: every AI tool sends page text either way.
-   */
-  cloudDocumentIndexing?: boolean;
   url?: string;
-  /**
-   * Whether the processor forwards settings to the engine; SaaS pins it false, so a save
-   * persists but never reaches the engine (the toast must say so, not promise a live push).
-   */
+  /** Whether saving settings also sends the new values to the engine. */
   pushConfigToEngine?: boolean;
   timeoutSeconds?: number;
   longRunningTimeoutSeconds?: number;
@@ -69,8 +60,7 @@ export interface AiEngineSettingsData {
 }
 
 /**
- * Post-save toast body; the processor pushes only when AI is enabled AND config push is on,
- * so the message must not promise a live push unconditionally.
+ * Post-save toast body for whether changed settings were sent to the engine.
  */
 export const savedToastBody = (
   settings: AiEngineSettingsData,

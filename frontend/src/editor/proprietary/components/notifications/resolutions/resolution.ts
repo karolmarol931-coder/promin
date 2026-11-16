@@ -169,7 +169,7 @@ export function unavailable(t: Translate): ClientActionOutcome {
     ok: false,
     message: t(
       "notifications.retryUnavailable",
-      "This document can no longer be retried from this browser.",
+      "This document is no longer available in this workspace.",
     ),
   };
 }
@@ -289,7 +289,7 @@ export function resolutionSpec(
   };
 
   return {
-    // A produced document needs somewhere to land, so the processor shell promotes past this.
+    // A produced document needs somewhere in the workbench to land.
     available: (context) =>
       fileContext !== undefined &&
       canRetry(context, fileContext) &&

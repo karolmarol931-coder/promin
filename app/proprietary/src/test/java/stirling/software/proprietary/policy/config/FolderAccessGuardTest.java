@@ -11,7 +11,8 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.springframework.core.env.StandardEnvironment;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import stirling.software.common.configuration.InstallationPathConfig;
 import stirling.software.common.configuration.RuntimePathConfig;
@@ -26,8 +27,9 @@ import stirling.software.proprietary.policy.source.SourceStore;
 
 /**
  * Tests for {@link FolderAccessGuard}: folder access is fail-closed, confined to the configured
- * allowed roots, never reaches Stirling's own config directory, and is off entirely under SaaS.
+ * allowed roots and never reaches Stirling's own config directory.
  */
+@ResourceLock(value = "STIRLING_PDF_TAURI_MODE", mode = ResourceAccessMode.READ_WRITE)
 class FolderAccessGuardTest {
 
     private static final String TAURI_MODE_PROPERTY = "STIRLING_PDF_TAURI_MODE";
@@ -36,14 +38,11 @@ class FolderAccessGuardTest {
 
     private final SourceStore sourceStore = new InProcessSourceStore();
 
-    private FolderAccessGuard guard(List<String> allowedRoots, String... activeProfiles) {
+    private FolderAccessGuard guard(List<String> allowedRoots) {
         ApplicationProperties properties = new ApplicationProperties();
         properties.getSecurity().setEnableLogin(true);
         properties.getPolicies().setAllowedFolderRoots(allowedRoots);
-        StandardEnvironment environment = new StandardEnvironment();
-        environment.setActiveProfiles(activeProfiles);
-        return new FolderAccessGuard(
-                properties, new RuntimePathConfig(properties), environment, sourceStore);
+        return new FolderAccessGuard(properties, new RuntimePathConfig(properties), sourceStore);
     }
 
     private FolderAccessGuard guardWithStorage(
@@ -55,11 +54,7 @@ class FolderAccessGuardTest {
         storage.setEnabled(storageEnabled);
         storage.setProvider(provider);
         storage.getLocal().setBasePath(basePath);
-        return new FolderAccessGuard(
-                properties,
-                new RuntimePathConfig(properties),
-                new StandardEnvironment(),
-                sourceStore);
+        return new FolderAccessGuard(properties, new RuntimePathConfig(properties), sourceStore);
     }
 
     private FolderAccessGuard guardWithWatchedFolder(String watchedDir, List<String> allowedRoots) {
@@ -71,11 +66,7 @@ class FolderAccessGuardTest {
                 .getCustomPaths()
                 .getPipeline()
                 .setWatchedFoldersDirs(List.of(watchedDir));
-        return new FolderAccessGuard(
-                properties,
-                new RuntimePathConfig(properties),
-                new StandardEnvironment(),
-                sourceStore);
+        return new FolderAccessGuard(properties, new RuntimePathConfig(properties), sourceStore);
     }
 
     @Test
@@ -135,11 +126,7 @@ class FolderAccessGuardTest {
 
     private FolderAccessGuard guardWithLoginOff() {
         ApplicationProperties properties = new ApplicationProperties();
-        return new FolderAccessGuard(
-                properties,
-                new RuntimePathConfig(properties),
-                new StandardEnvironment(),
-                sourceStore);
+        return new FolderAccessGuard(properties, new RuntimePathConfig(properties), sourceStore);
     }
 
     /** Runs the body with the flag the desktop sidecar sets, restoring whatever was there. */
@@ -299,15 +286,6 @@ class FolderAccessGuardTest {
                 assertThrows(
                         IllegalArgumentException.class,
                         () -> guard.requirePermitted(configDir.resolve("settings.yml")));
-        assertFalse(ex instanceof FolderAccessDeniedException);
-    }
-
-    @Test
-    void refusesAllFolderAccessUnderTheSaasProfile() {
-        FolderAccessGuard guard = guard(List.of(tempDir.toString()), "saas");
-        // Not a FolderAccessDeniedException: SaaS has no folder allowlist to point the admin at.
-        IllegalArgumentException ex =
-                assertThrows(IllegalArgumentException.class, () -> guard.requirePermitted(tempDir));
         assertFalse(ex instanceof FolderAccessDeniedException);
     }
 

@@ -32,10 +32,7 @@ import stirling.software.proprietary.security.configuration.ee.KeygenLicenseVeri
 import stirling.software.proprietary.security.configuration.ee.KeygenLicenseVerifier.License;
 import stirling.software.proprietary.security.configuration.ee.LicenseKeyChecker;
 
-/**
- * Admin controller for license management. Provides installation ID for Stripe checkout metadata
- * and endpoints for managing license keys.
- */
+/** Admin endpoints for managing installed license keys. */
 @RestController
 @Slf4j
 @RequestMapping("/api/v1/admin")
@@ -52,32 +49,7 @@ public class AdminLicenseController {
     @Autowired private ApplicationProperties applicationProperties;
 
     /**
-     * Get the installation ID (machine fingerprint) for this self-hosted instance. This ID is used
-     * as metadata in Stripe checkout to link licenses to specific installations.
-     *
-     * @return Map containing the installation ID
-     */
-    @GetMapping("/installation-id")
-    @Operation(
-            summary = "Get installation ID",
-            description =
-                    "Returns the unique installation ID (MAC-based fingerprint) for this"
-                            + " self-hosted instance")
-    public ResponseEntity<Map<String, String>> getInstallationId() {
-        try {
-            String installationId = GeneralUtils.generateMachineFingerprint();
-            log.info("Admin requested installation ID: {}", installationId);
-            return ResponseEntity.ok(Map.of("installationId", installationId));
-        } catch (Exception e) {
-            log.error("Failed to generate installation ID", e);
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Failed to generate installation ID"));
-        }
-    }
-
-    /**
-     * Save and activate a license key. This endpoint accepts a license key from the frontend (e.g.,
-     * after Stripe checkout) and activates it on the backend.
+     * Save and activate an installed license key.
      *
      * @param request Map containing the license key
      * @return Response with success status, license type, and whether restart is required
@@ -151,24 +123,11 @@ public class AdminLicenseController {
         }
     }
 
-    /**
-     * Re-reads everything that decides this instance's tier: the linked cloud team's plan, fetched
-     * fresh rather than from cache, and the licence key if one is installed.
-     *
-     * <p>Deliberately does not require a licence key. A Team plan is bought on a SaaS account and
-     * issues no key, so a key check here would reject the one customer this path exists for and
-     * leave their purchase waiting for the next daily sync.
-     *
-     * @return Response with updated license information
-     */
+    /** Rechecks the installed license key and updates the current license state. */
     @PostMapping("/license/resync")
     @Operation(
-            summary = "Resync entitlements",
-            description =
-                    "Re-reads what decides this instance's tier: the linked cloud team's plan,"
-                            + " fetched fresh rather than from cache, and the licence key if one is"
-                            + " installed. Used after a purchase, and as the recovery when the"
-                            + " automatic check has not caught up.")
+            summary = "Refresh license state",
+            description = "Rechecks the installed license key and updates its current state.")
     public ResponseEntity<Map<String, Object>> resyncLicense() {
         try {
             if (licenseKeyChecker == null) {
@@ -176,7 +135,7 @@ public class AdminLicenseController {
                         .body(Map.of("success", false, "error", "License checker not available"));
             }
 
-            log.info("Resyncing entitlements");
+            log.info("Refreshing installed license state");
 
             licenseKeyChecker.resyncLicense();
 
@@ -189,16 +148,13 @@ public class AdminLicenseController {
             response.put("licenseType", license.name());
             response.put("enabled", premium.isEnabled());
             response.put(
-                    "linkedTeamUsers",
-                    licenseKeyChecker == null ? null : licenseKeyChecker.linkedTeamUsers());
-            response.put(
                     "maxAllowedUsers",
                     licenseKeyChecker == null ? null : licenseKeyChecker.maxAllowedUsers());
             response.put("maxUsers", premium.getMaxUsers());
             response.put("message", "License resynced successfully");
 
             log.info(
-                    "License resynced: type={}, maxUsers={}",
+                    "License refreshed: type={}, maxUsers={}",
                     license.name(),
                     premium.getMaxUsers());
 
@@ -240,9 +196,6 @@ public class AdminLicenseController {
 
             ApplicationProperties.Premium premium = applicationProperties.getPremium();
             response.put("enabled", premium.isEnabled());
-            response.put(
-                    "linkedTeamUsers",
-                    licenseKeyChecker == null ? null : licenseKeyChecker.linkedTeamUsers());
             response.put(
                     "maxAllowedUsers",
                     licenseKeyChecker == null ? null : licenseKeyChecker.maxAllowedUsers());

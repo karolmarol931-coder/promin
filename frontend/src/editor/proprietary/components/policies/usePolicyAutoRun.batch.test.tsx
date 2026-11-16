@@ -45,7 +45,6 @@ const mocks = vi.hoisted(() => ({
   updateStirlingFileStub: vi.fn(),
   consumeFiles: vi.fn(),
   classify: vi.fn(),
-  meter: vi.fn(),
 }));
 
 // The second (file-producing) policy's timing, flippable per test to prove classification's local
@@ -106,7 +105,7 @@ vi.mock("@editor/services/policyApi", () => ({
   getPolicyRun: mocks.getPolicyRun,
   listPolicyRuns: mocks.listPolicyRuns,
   downloadPolicyOutput: mocks.downloadPolicyOutput,
-  resolvePolicyRunTarget: () => "saas",
+  resolvePolicyRunTarget: () => "local",
 }));
 vi.mock("@editor/services/fileStorage", () => ({
   fileStorage: {
@@ -125,9 +124,6 @@ vi.mock("@editor/services/fileClassification", () => ({
 }));
 vi.mock("@editor/services/heuristic/heuristicClassification", () => ({
   classifyFileHeuristically: (file: File) => mocks.classify(file),
-}));
-vi.mock("@editor/services/automationMeter", () => ({
-  meterAutomationRun: (payload: unknown) => mocks.meter(payload),
 }));
 
 import { usePolicyAutoRun } from "@editor/components/policies/usePolicyAutoRun";

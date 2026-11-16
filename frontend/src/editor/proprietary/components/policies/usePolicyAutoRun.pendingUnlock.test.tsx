@@ -35,7 +35,7 @@ vi.mock("@editor/services/policyApi", () => ({
   runStoredPolicy: vi.fn(),
   getPolicyRun: vi.fn(),
   downloadPolicyOutput: vi.fn(),
-  resolvePolicyRunTarget: () => "saas",
+  resolvePolicyRunTarget: () => "local",
 }));
 vi.mock("@editor/services/fileStorage", () => ({
   fileStorage: {
@@ -107,7 +107,6 @@ describe("an upload waiting on its unlock prompt", () => {
       "backend-sec",
       expect.anything(),
       "file-locked",
-      "background",
     );
   });
 

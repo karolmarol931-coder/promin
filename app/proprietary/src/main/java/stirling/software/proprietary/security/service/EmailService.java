@@ -29,13 +29,11 @@ import stirling.software.proprietary.security.model.api.Email;
 public class EmailService {
 
     /** Content id {@link #sendBrandedEmail} attaches the brand lockup under. */
-    public static final String BRAND_LOGO_CONTENT_ID = "stirling-logo";
+    public static final String BRAND_LOGO_CONTENT_ID = "promin-logo";
 
-    // The ui/Logo.tsx lockup (logo-mark.svg + wordmark-light.svg) rasterised at 3x on white: most
-    // email clients do not render SVG, and the white ground keeps it legible if a client darkens
-    // the email.
+    // Email clients commonly block remote images and do not render SVG attachments.
     private static final ClassPathResource BRAND_LOGO =
-            new ClassPathResource("email/stirling-lockup.png");
+            new ClassPathResource("email/promin-lockup.png");
 
     private final JavaMailSender mailSender;
     private final ApplicationProperties applicationProperties;
@@ -168,7 +166,7 @@ public class EmailService {
     public void sendInviteEmail(
             String to, String username, String temporaryPassword, String loginUrl)
             throws MessagingException {
-        String subject = "Welcome to Stirling PDF";
+        String subject = "Welcome to Promin";
 
         String body =
                 """
@@ -177,11 +175,11 @@ public class EmailService {
                   <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
                     <!-- Logo -->
                     <div style="text-align: center; padding: 20px; background-color: #222;">
-                      <img src="https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/main/docs/stirling-transparent.svg" alt="Stirling PDF" style="max-height: 60px;">
+                      <img src="cid:promin-logo" alt="Promin Partner" style="max-height: 60px;">
                     </div>
                     <!-- Content -->
                     <div style="padding: 30px; color: #333;">
-                      <h2 style="color: #222; margin-top: 0;">Welcome to Stirling PDF!</h2>
+                      <h2 style="color: #222; margin-top: 0;">Welcome to Promin!</h2>
                       <p>Hi there,</p>
                       <p>You have been invited to join the workspace. Below are your login credentials:</p>
                       <!-- Credentials Box -->
@@ -194,18 +192,18 @@ public class EmailService {
                       </div>
                       <!-- CTA Button -->
                       <div style="text-align: center; margin: 30px 0;">
-                        <a href="%s" style="display: inline-block; background-color: #007bff; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold;">Log In to Stirling PDF</a>
+                        <a href="%s" style="display: inline-block; background-color: #007bff; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold;">Log In to Promin</a>
                       </div>
                       <p style="font-size: 14px; color: #666;">Or copy and paste this link in your browser:</p>
                       <div style="background-color: #f8f9fa; padding: 12px; margin: 15px 0; border-radius: 4px; word-break: break-all; font-size: 13px; color: #555;">
                         %s
                       </div>
                       <p>Please keep these credentials secure and do not share them with anyone.</p>
-                      <p style="margin-bottom: 0;">— The Stirling PDF Team</p>
+                      <p style="margin-bottom: 0;">— The Promin Team</p>
                     </div>
                     <!-- Footer -->
                     <div style="text-align: center; padding: 15px; font-size: 12px; color: #777; background-color: #f0f0f0;">
-                      &copy; 2025 Stirling PDF. All rights reserved.
+                      &copy; 2025 Promin. All rights reserved.
                     </div>
                   </div>
                 </div>
@@ -213,7 +211,7 @@ public class EmailService {
                 """
                         .formatted(username, temporaryPassword, loginUrl, loginUrl);
 
-        sendPlainEmail(to, subject, body, true);
+        sendBrandedEmail(to, subject, body);
     }
 
     /**
@@ -227,7 +225,7 @@ public class EmailService {
     @Async
     public void sendInviteLinkEmail(String to, String inviteUrl, String expiresAt)
             throws MessagingException {
-        String subject = "You've been invited to Stirling PDF";
+        String subject = "You've been invited to Promin";
 
         String body =
                 """
@@ -236,13 +234,13 @@ public class EmailService {
                   <div style="max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;">
                     <!-- Logo -->
                     <div style="text-align: center; padding: 20px; background-color: #222;">
-                      <img src="https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/main/docs/stirling-transparent.svg" alt="Stirling PDF" style="max-height: 60px;">
+                      <img src="cid:promin-logo" alt="Promin Partner" style="max-height: 60px;">
                     </div>
                     <!-- Content -->
                     <div style="padding: 30px; color: #333;">
-                      <h2 style="color: #222; margin-top: 0;">Welcome to Stirling PDF!</h2>
+                      <h2 style="color: #222; margin-top: 0;">Welcome to Promin!</h2>
                       <p>Hi there,</p>
-                      <p>You have been invited to join the Stirling PDF workspace. Click the button below to set up your account:</p>
+                      <p>You have been invited to join the Promin workspace. Click the button below to set up your account:</p>
                       <!-- CTA Button -->
                       <div style="text-align: center; margin: 30px 0;">
                         <a href="%s" style="display: inline-block; background-color: #007bff; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold;">Accept Invitation</a>
@@ -255,11 +253,11 @@ public class EmailService {
                         <p style="margin: 0; color: #856404; font-size: 14px;"><strong>⚠️ Important:</strong> This invitation link will expire on %s. Please complete your registration before then.</p>
                       </div>
                       <p>If you didn't expect this invitation, you can safely ignore this email.</p>
-                      <p style="margin-bottom: 0;">— The Stirling PDF Team</p>
+                      <p style="margin-bottom: 0;">— The Promin Team</p>
                     </div>
                     <!-- Footer -->
                     <div style="text-align: center; padding: 15px; font-size: 12px; color: #777; background-color: #f0f0f0;">
-                      &copy; 2025 Stirling PDF. All rights reserved.
+                      &copy; 2025 Promin. All rights reserved.
                     </div>
                   </div>
                 </div>
@@ -267,14 +265,14 @@ public class EmailService {
                 """
                         .formatted(inviteUrl, inviteUrl, expiresAt);
 
-        sendPlainEmail(to, subject, body, true);
+        sendBrandedEmail(to, subject, body);
     }
 
     @Async
     public void sendPasswordChangedNotification(
             String to, String username, String newPassword, String loginUrl)
             throws MessagingException {
-        String subject = "Your Stirling PDF password has been updated";
+        String subject = "Your Promin password has been updated";
 
         String passwordSection =
                 newPassword == null
@@ -292,16 +290,16 @@ public class EmailService {
                 <div style=\"font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px;\">
                   <div style=\"max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e0e0e0;\">
                     <div style=\"text-align: center; padding: 20px; background-color: #222;\">
-                      <img src=\"https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/main/docs/stirling-transparent.svg\" alt=\"Stirling PDF\" style=\"max-height: 60px;\">
+                      <img src=\"cid:promin-logo\" alt=\"Promin Partner\" style=\"max-height: 60px;\">
                     </div>
                     <div style=\"padding: 30px; color: #333;\">
                       <h2 style=\"color: #222; margin-top: 0;\">Your password was changed</h2>
                       <p>Hello %s,</p>
-                      <p>An administrator has updated the password for your Stirling PDF account.</p>
+                      <p>An administrator has updated the password for your Promin account.</p>
                       %s
                       <p>If you did not expect this change, please contact your administrator immediately.</p>
                       <div style=\"text-align: center; margin: 30px 0;\">
-                        <a href=\"%s\" style=\"display: inline-block; background-color: #007bff; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold;\">Go to Stirling PDF</a>
+                        <a href=\"%s\" style=\"display: inline-block; background-color: #007bff; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold;\">Go to Promin</a>
                       </div>
                       <p style=\"font-size: 14px; color: #666;\">Or copy and paste this link in your browser:</p>
                       <div style=\"background-color: #f8f9fa; padding: 12px; margin: 15px 0; border-radius: 4px; word-break: break-all; font-size: 13px; color: #555;\">
@@ -309,7 +307,7 @@ public class EmailService {
                       </div>
                     </div>
                     <div style=\"text-align: center; padding: 15px; font-size: 12px; color: #777; background-color: #f0f0f0;\">
-                      &copy; 2025 Stirling PDF. All rights reserved.
+                      &copy; 2025 Promin. All rights reserved.
                     </div>
                   </div>
                 </div>
@@ -317,12 +315,12 @@ public class EmailService {
                 """
                         .formatted(username, passwordSection, loginUrl, loginUrl);
 
-        sendPlainEmail(to, subject, body, true);
+        sendBrandedEmail(to, subject, body);
     }
 
     /**
-     * Sends an HTML email with the Stirling lockup attached inline, so the body can show it as
-     * {@code <img src="cid:stirling-logo">} without the recipient's client fetching anything.
+     * Sends an HTML email with the Promin lockup attached inline, so clients do not need to fetch
+     * the image from the network.
      *
      * @throws MessagingException if the recipient is blank or the message cannot be sent
      */

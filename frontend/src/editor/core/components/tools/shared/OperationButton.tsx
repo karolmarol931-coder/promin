@@ -7,7 +7,6 @@ import {
 } from "@editor/ui/Button";
 import { Tooltip } from "@editor/components/shared/Tooltip";
 import { useBackendHealth } from "@editor/hooks/useBackendHealth";
-import { CloudBadge } from "@editor/components/shared/CloudBadge";
 import type { ExecuteDisabledReason } from "@editor/hooks/tools/shared/toolOperationTypes";
 import { useToolActions } from "@editor/contexts/ToolActionsContext";
 
@@ -23,7 +22,6 @@ export interface OperationButtonProps {
   fullWidth?: boolean;
   mt?: string;
   type?: "button" | "submit" | "reset";
-  showCloudBadge?: boolean;
   "data-testid"?: string;
   "data-tour"?: string;
 }
@@ -60,7 +58,6 @@ const OperationButton = ({
   fullWidth = false,
   mt = "md",
   type = "button",
-  showCloudBadge = false,
   "data-testid": dataTestId,
   "data-tour": dataTour,
 }: OperationButtonProps) => {
@@ -130,11 +127,6 @@ const OperationButton = ({
       {isLoading
         ? loadingText || t("loading", "Loading...")
         : submitText || t("submit", "Submit")}
-      {showCloudBadge && (
-        <Box style={{ position: "absolute", top: 4, right: 4 }}>
-          <CloudBadge />
-        </Box>
-      )}
     </Button>
   );
 

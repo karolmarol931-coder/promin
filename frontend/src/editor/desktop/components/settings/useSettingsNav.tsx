@@ -1,34 +1,21 @@
-import { useEffect, useState } from "react";
-import { useSettingsNav as useProprietarySettingsNav } from "@editor-proprietary/components/settings/useSettingsNav";
+import { useConfigNavSections } from "@editor/components/shared/config/configNavSections";
 import type { SettingsNav } from "@editor/components/settings/settingsNavTypes";
-import { connectionModeService } from "@editor/services/connectionModeService";
 
 export type { SettingsNav };
 
-/** Desktop billing opens on the web; existing Plan links land on its browser handoff. */
+const LOCAL_SECTION_ALIASES: NonNullable<SettingsNav["aliases"]> = {
+  help: "about",
+  legal: "about",
+  backendThirdPartyLicenses: "about",
+  frontendThirdPartyLicenses: "about",
+  hotkeys: "general",
+  account: "general",
+};
+
 export function useSettingsNav(onLeave: () => void): SettingsNav {
-  const nav = useProprietarySettingsNav(onLeave);
-  const [connectionReady, setConnectionReady] = useState(false);
-  useEffect(() => {
-    let active = true;
-    void connectionModeService
-      .getCurrentMode()
-      .catch(() => undefined)
-      .finally(() => {
-        if (active) setConnectionReady(true);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-  const hasBilling = nav.sections.some((group) =>
-    group.items.some((item) => item.key === "billing"),
-  );
   return {
-    ...nav,
-    pending: nav.pending || !connectionReady,
-    aliases: hasBilling
-      ? { ...nav.aliases, plan: "billing", adminPlan: "billing" }
-      : nav.aliases,
+    sections: useConfigNavSections(false, false, false, onLeave, false),
+    aliases: LOCAL_SECTION_ALIASES,
+    pending: false,
   };
 }

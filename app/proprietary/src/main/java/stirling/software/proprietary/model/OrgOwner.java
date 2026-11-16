@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-/** Deployment ownership; never populated or consulted on SaaS. */
+/** Local deployment ownership used to protect the initial administrator account. */
 @Entity
 @Table(name = "org_owner")
 @Getter
@@ -19,12 +19,4 @@ public class OrgOwner {
     private String ownerUsername;
     private LocalDateTime assignedAt;
     private String assignedReason;
-    private Long handoverTargetId;
-    private String handoverTargetUsername;
-    private String handoverTargetEmail;
-    private String handoverCloudEmail;
-    private Long handoverCloudUserId;
-    private String handoverDeviceId;
-    private Long handoverTeamId;
-    private Long handoverLeaderId;
 }

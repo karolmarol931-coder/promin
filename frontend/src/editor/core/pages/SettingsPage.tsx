@@ -22,7 +22,6 @@ import { useEditorSearchScopes } from "@editor/hooks/useSuperSearch";
 import { useTitleBarStrip } from "@editor/contexts/TitleBarStripContext";
 import type { NavKey } from "@editor/components/shared/config/types";
 import { useIsMobile } from "@editor/hooks/useIsMobile";
-import { useLicenseAlert } from "@editor/hooks/useLicenseAlert";
 import {
   UnsavedChangesProvider,
   useUnsavedChanges,
@@ -51,7 +50,6 @@ const SettingsPageInner: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
-  const licenseAlert = useLicenseAlert();
   const { confirmIfDirty } = useUnsavedChanges();
   const { preferences } = usePreferences();
   const goToStartupView = () => {
@@ -244,10 +242,6 @@ const SettingsPageInner: React.FC = () => {
                   {section.items.map((item) => {
                     const isActive = activeItem?.key === item.key;
                     const isDisabled = item.disabled ?? false;
-                    const showPlanWarning =
-                      item.key === "adminPlan" &&
-                      licenseAlert.active &&
-                      licenseAlert.audience === "admin";
                     const row = (
                       <button
                         type="button"
@@ -278,13 +272,6 @@ const SettingsPageInner: React.FC = () => {
                           >
                             {item.badge}
                           </Badge>
-                        )}
-                        {showPlanWarning && (
-                          <Icon
-                            name="triangle-alert"
-                            size={14}
-                            className="settings-page__nav-warning"
-                          />
                         )}
                         <SettingsNavChevron show={isMobile} />
                       </button>

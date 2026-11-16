@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useAppConfig } from "@editor/contexts/AppConfigContext";
 import { useSignature } from "@editor/contexts/SignatureContext";
-import { useIsMobile } from "@editor/hooks/useIsMobile";
 import { useHistoryAvailability } from "@editor/hooks/useHistoryAvailability";
 import type { SignParameters } from "@editor/hooks/tools/sign/useSignParameters";
 import type { SavedSignature } from "@editor/types/signature";
@@ -55,8 +53,6 @@ export function SignatureWallet({
   onSave,
 }: SignatureWalletProps) {
   const { t } = useTranslation();
-  const { config } = useAppConfig();
-  const isMobile = useIsMobile();
   const { placedSignatures, historyApiRef } = useSignature();
   const history = useHistoryAvailability(historyApiRef);
   const library = useSignatureLibrary();
@@ -73,7 +69,6 @@ export function SignatureWallet({
     placement.arm,
   );
 
-  const showPhone = Boolean(config?.enableMobileSignature) && !isMobile;
   const closeDialog = () => setDialog(null);
   const openCreate = (tab: CreateTab) => {
     if (library.draft) {
@@ -100,7 +95,6 @@ export function SignatureWallet({
     if (library.isEmpty) {
       return (
         <SignatureWalletIntro
-          showPhone={showPhone}
           browserStorage={library.browserStorage}
           disabled={disabled}
           onCreate={openCreate}
@@ -183,7 +177,6 @@ export function SignatureWallet({
             browserStorage: library.browserStorage,
             remainingSlots: library.maxLimit - library.count,
           }}
-          showPhoneTab={showPhone}
           existingLabels={library.labels}
         />
       )}

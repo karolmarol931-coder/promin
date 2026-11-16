@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Text, Loader } from "@mantine/core";
+import { Text, Loader, Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
+import { Button } from "@editor/ui/Button";
 import {
   getAutoOcrLanguage,
   getBrowserLanguagesForOcr,
@@ -42,14 +43,22 @@ const LanguagePicker: React.FC<LanguagePickerProps> = ({
   );
   const [isLoadingLanguages, setIsLoadingLanguages] = useState(true);
   const [hasAutoFilled, setHasAutoFilled] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [suggestedLanguage, setSuggestedLanguage] = useState<string | null>(
+    null,
+  );
 
   useEffect(() => {
-    // Fetch available languages from backend
+    let isCurrentRequest = true;
+    setIsLoadingLanguages(true);
+
     const fetchLanguages = async () => {
       try {
         const { data } = await apiClient.get<{ languages: string[] }>(
           languagesEndpoint,
         );
+        if (!isCurrentRequest) return;
 
         const displayNames =
           typeof Intl.DisplayNames !== "undefined"
@@ -85,20 +94,21 @@ const LanguagePicker: React.FC<LanguagePickerProps> = ({
           .sort((a, b) => a.name.localeCompare(b.name, i18n.language));
 
         setAvailableLanguages(languageOptions);
-      } catch (error) {
-        console.error("[LanguagePicker] Fetch failed with error:", error);
-        console.error("[LanguagePicker] Error details:", {
-          name: error instanceof Error ? error.name : "Unknown",
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-        });
+        setLoadError(false);
+      } catch {
+        if (!isCurrentRequest) return;
+        setLoadError(true);
       } finally {
-        setIsLoadingLanguages(false);
+        if (isCurrentRequest) setIsLoadingLanguages(false);
       }
     };
 
     fetchLanguages();
-  }, [languagesEndpoint, i18n.language, t]);
+
+    return () => {
+      isCurrentRequest = false;
+    };
+  }, [languagesEndpoint, i18n.language, t, retryCount]);
 
   // Auto-fill OCR language based on browser language when languages are loaded
   useEffect(() => {
@@ -121,6 +131,7 @@ const LanguagePicker: React.FC<LanguagePickerProps> = ({
 
         if (matchingLanguage) {
           onChange([matchingLanguage.value]);
+          setSuggestedLanguage(matchingLanguage.value);
         }
       }
 
@@ -147,49 +158,75 @@ const LanguagePicker: React.FC<LanguagePickerProps> = ({
     );
   }
 
-  const footer = (
-    <>
-      <div className="flex flex-col items-center gap-1 text-center">
-        <Text size="xs" c="dimmed" className="text-center">
+  if (loadError) {
+    return (
+      <Stack gap="xs" role="alert">
+        <Text size="sm">
           {t(
-            "ocr.languagePicker.additionalLanguages",
-            "Looking for additional languages?",
+            "ocr.languagePicker.loadFailed",
+            "Could not load the locally installed OCR languages.",
           )}
         </Text>
-        <Text
-          size="xs"
-          style={{
-            color: "var(--c-accent-text)",
-            cursor: "pointer",
-            textDecoration: "underline",
-            textAlign: "center",
+        <Button
+          variant="tertiary"
+          size="sm"
+          disabled={disabled}
+          onClick={() => {
+            setIsLoadingLanguages(true);
+            setRetryCount((count) => count + 1);
           }}
-          onClick={() =>
-            window.open(
-              "https://docs.stirlingpdf.com/Configuration/OCR",
-              "_blank",
-            )
-          }
         >
-          {t("ocr.languagePicker.viewSetupGuide", "View setup guide →")}
-        </Text>
-      </div>
-    </>
+          {t("ocr.languagePicker.retry", "Try again")}
+        </Button>
+      </Stack>
+    );
+  }
+
+  if (availableLanguages.length === 0) {
+    return (
+      <Text size="sm" c="dimmed" role="status">
+        {t(
+          "ocr.languagePicker.noLanguages",
+          "No OCR languages are installed in this local copy of Promin.",
+        )}
+      </Text>
+    );
+  }
+
+  const footer = (
+    <Text size="xs" c="dimmed" className="text-center">
+      {t(
+        "ocr.languagePicker.additionalLanguages",
+        "Only languages installed in this local copy are available.",
+      )}
+    </Text>
   );
 
   return (
-    <DropdownListWithFooter
-      value={value}
-      onChange={(newValue) => onChange(newValue as string[])}
-      items={availableLanguages}
-      placeholder={resolvedPlaceholder}
-      disabled={disabled}
-      label={label}
-      footer={footer}
-      multiSelect={true}
-      maxHeight={300}
-      searchable={true}
-    />
+    <Stack gap="xs">
+      <DropdownListWithFooter
+        value={value}
+        onChange={(newValue) => onChange(newValue as string[])}
+        items={availableLanguages}
+        placeholder={resolvedPlaceholder}
+        disabled={disabled}
+        label={label}
+        footer={footer}
+        multiSelect={true}
+        maxHeight={300}
+        searchable={true}
+      />
+      {suggestedLanguage &&
+        value.length === 1 &&
+        value[0] === suggestedLanguage && (
+          <Text size="xs" c="dimmed">
+            {t(
+              "ocr.languagePicker.suggestedLanguage",
+              "Suggested from the app language. Check that it matches the PDF.",
+            )}
+          </Text>
+        )}
+    </Stack>
   );
 };
 
