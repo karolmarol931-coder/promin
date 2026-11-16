@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from "react";
-import { Box, Stack } from "@mantine/core";
+import { Box, Group, Paper, Skeleton, Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Button } from "@editor/ui/Button";
 import { ToolRegistryEntry } from "@editor/data/toolsTaxonomy";
@@ -75,7 +75,7 @@ const ToolPicker = ({
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   const { sections: visibleSections } = useToolSections(filteredTools);
-  const { toolRegistry } = useToolWorkflowData();
+  const { toolRegistry, toolAvailabilityLoading } = useToolWorkflowData();
   const { allTools } = useToolRegistry();
   const { favoriteTools } = useToolWorkflowFavorites();
 
@@ -156,6 +156,30 @@ const ToolPicker = ({
               )
             )}
           </Stack>
+        ) : compact && toolAvailabilityLoading ? (
+          <Box
+            className="tool-picker__compact"
+            p="sm"
+            role="status"
+            aria-label={t("toolPanel.loadingTools", "Loading tools…")}
+          >
+            <div style={HEADER_TEXT_STYLE}>
+              {t("toolPanel.fullscreen.recommended", "Recommended")}
+            </div>
+            <Stack gap="xs">
+              {Array.from({ length: 6 }, (_, index) => (
+                <Paper key={index} p="sm" radius="md" withBorder>
+                  <Group gap="sm" wrap="nowrap">
+                    <Skeleton circle height={24} />
+                    <Stack gap={6} style={{ flex: 1 }}>
+                      <Skeleton height={12} width="52%" />
+                      <Skeleton height={10} width="88%" />
+                    </Stack>
+                  </Group>
+                </Paper>
+              ))}
+            </Stack>
+          </Box>
         ) : compact ? (
           <Box className="tool-picker__compact">
             {favoriteToolItems.length > 0 && (
@@ -238,7 +262,7 @@ const ToolPicker = ({
                     {recommendedItems.map(({ id, tool }) => (
                       <ToolButton
                         key={`rec-${id}`}
-                        id={id as ToolId}
+                        id={id}
                         tool={tool}
                         isSelected={selectedToolKey === id}
                         onSelect={onSelect}

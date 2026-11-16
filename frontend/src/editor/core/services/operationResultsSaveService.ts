@@ -9,6 +9,7 @@ export interface OperationSaveContext {
   downloadFilename: string;
   downloadLocalPath?: string | null;
   outputFileIds?: string[] | null;
+  outputFiles?: File[] | null;
   getFile: (fileId: FileId) => File | undefined;
   getStub: (fileId: FileId) => StirlingFileStub | undefined;
   markSaved: (fileId: FileId, savedPath?: string) => void;

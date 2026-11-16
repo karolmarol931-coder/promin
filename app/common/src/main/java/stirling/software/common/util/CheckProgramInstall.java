@@ -1,8 +1,11 @@
 package stirling.software.common.util;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import stirling.software.common.util.ProcessExecutor.ProcessExecutorResult;
 
@@ -39,6 +42,10 @@ public class CheckProgramInstall {
      * @return true if the command is available, false otherwise.
      */
     private static boolean checkPythonVersion(String pythonCommand) {
+        // Apple's Python launcher opens a system install prompt when a desktop app probes it.
+        if (isApplePythonLauncher(pythonCommand)) {
+            return false;
+        }
         try {
             ProcessExecutorResult result =
                     ProcessExecutor.getInstance(ProcessExecutor.Processes.PYTHON_OPENCV)
@@ -48,6 +55,42 @@ public class CheckProgramInstall {
         } catch (IOException | InterruptedException e) {
             return false; // Command failed, Python is not available
         }
+    }
+
+    private static boolean isApplePythonLauncher(String pythonCommand) {
+        if (!"true".equalsIgnoreCase(System.getProperty("STIRLING_PDF_TAURI_MODE"))
+                || !System.getProperty("os.name", "").toLowerCase(Locale.ROOT).contains("mac")) {
+            return false;
+        }
+
+        String path = System.getenv("PATH");
+        if (path == null) {
+            return false;
+        }
+
+        for (String directory :
+                path.split(java.util.regex.Pattern.quote(java.io.File.pathSeparator))) {
+            if (directory.isBlank()) {
+                continue;
+            }
+            Path executable = Path.of(directory, pythonCommand);
+            if (!Files.isExecutable(executable) || Files.isDirectory(executable)) {
+                continue;
+            }
+            try {
+                Path resolved = executable.toRealPath();
+                return isApplePythonPath(executable) || isApplePythonPath(resolved);
+            } catch (IOException ignored) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    static boolean isApplePythonPath(Path path) {
+        Path normalized = path.toAbsolutePath().normalize();
+        return normalized.equals(Path.of("/usr/bin/python3"))
+                || normalized.equals(Path.of("/usr/bin/python"));
     }
 
     /**

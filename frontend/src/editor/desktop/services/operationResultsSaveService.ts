@@ -15,23 +15,36 @@ export async function saveOperationResults(
 ): Promise<DownloadResult | null> {
   if (!context.downloadUrl) return null;
 
-  if (context.outputFileIds && context.outputFileIds.length > 0) {
-    for (const fileId of context.outputFileIds) {
-      const file = context.getFile(fileId as FileId);
-      const stub = context.getStub(fileId as FileId);
-      if (!file) continue;
+  const outputFileIds = context.outputFileIds ?? [];
+  const outputFiles = outputFileIds.map(
+    (fileId, index) =>
+      context.getFile(fileId as FileId) ?? context.outputFiles?.[index],
+  );
+
+  if (
+    outputFileIds.length > 0 &&
+    outputFiles.every((file): file is File => file instanceof File)
+  ) {
+    const savedPaths: string[] = [];
+    for (const [index, fileId] of outputFileIds.entries()) {
+      const file = outputFiles[index];
+      const typedFileId = fileId as FileId;
+      const stub = context.getStub(typedFileId);
 
       const result = await downloadFile({
         data: file,
         filename: file.name,
         localPath: stub?.localFilePath,
+        fileId: typedFileId,
       });
 
-      if (result.savedPath) {
-        context.markSaved(fileId as FileId, result.savedPath);
-      }
+      if (result.cancelled) return result;
+      if (!result.savedPath) return result;
+
+      savedPaths.push(result.savedPath);
+      context.markSaved(typedFileId, result.savedPath);
     }
-    return null;
+    return savedPaths.length === 1 ? { savedPath: savedPaths[0] } : {};
   }
 
   const result = await downloadFromUrl(
@@ -40,10 +53,8 @@ export async function saveOperationResults(
     context.downloadLocalPath || undefined,
   );
 
-  if (context.outputFileIds && result.savedPath) {
-    for (const fileId of context.outputFileIds) {
-      context.markSaved(fileId as FileId, result.savedPath);
-    }
+  if (outputFileIds.length === 1 && result.savedPath) {
+    context.markSaved(outputFileIds[0] as FileId, result.savedPath);
   }
 
   return result;

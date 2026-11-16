@@ -5,11 +5,11 @@ import {
   TextInput,
   Checkbox,
   Anchor,
+  List,
   Text,
   Select,
 } from "@mantine/core";
 import { Icon } from "@editor/ui/Icon";
-import { Button } from "@editor/ui/Button";
 import { useTranslation } from "react-i18next";
 import { SPLIT_METHODS } from "@editor/constants/splitConstants";
 import {
@@ -390,6 +390,13 @@ const SplitSettings = ({
 
   const renderByPageDividerForm = () => (
     <Stack gap="sm">
+      <List size="sm" spacing={4} c="dimmed">
+        {[1, 2, 3, 4].map((step) => (
+          <List.Item key={step}>
+            {t(`split.tooltip.byPageDivider.bullet${step}`)}
+          </List.Item>
+        ))}
+      </List>
       <Anchor
         href="/files/Auto%20Splitter%20Divider%20(with%20instructions).pdf"
         download="promin-auto-split-divider.pdf"

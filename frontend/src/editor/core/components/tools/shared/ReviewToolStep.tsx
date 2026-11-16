@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import { Stack } from "@mantine/core";
+import React, { useEffect, useRef, useState } from "react";
+import { Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Button } from "@editor/ui/Button";
 import { Icon } from "@editor/ui/Icon";
@@ -61,6 +61,9 @@ function ReviewStepContent<TParams = unknown>({
   const stepRef = useRef<HTMLDivElement>(null);
   const { actions: fileActions } = useFileActions();
   const selectors = useFileSelectors();
+  const [isSaving, setIsSaving] = useState(false);
+  const [savedResult, setSavedResult] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const handleUndo = async () => {
     try {
@@ -79,12 +82,16 @@ function ReviewStepContent<TParams = unknown>({
 
   const handleDownload = async () => {
     if (!operation.downloadUrl) return;
+    setIsSaving(true);
+    setSavedResult(false);
+    setSaveError(null);
     try {
-      await saveOperationResults({
+      const result = await saveOperationResults({
         downloadUrl: operation.downloadUrl,
         downloadFilename: operation.downloadFilename || "download",
         downloadLocalPath: operation.downloadLocalPath,
         outputFileIds: operation.outputFileIds,
+        outputFiles: operation.files,
         getFile: (fileId) => selectors.getFile(fileId),
         getStub: (fileId) => selectors.getStirlingFileStub(fileId),
         markSaved: (fileId, savedPath) => {
@@ -95,12 +102,20 @@ function ReviewStepContent<TParams = unknown>({
           });
         },
       });
+      if (result && !result.cancelled) setSavedResult(true);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error("[ReviewToolStep] Failed to download file:", message);
-      alert(`Failed to download file: ${message}`);
+      setSaveError(message);
+    } finally {
+      setIsSaving(false);
     }
   };
+
+  useEffect(() => {
+    setSavedResult(false);
+    setSaveError(null);
+  }, [operation.downloadUrl, operation.outputFileIds]);
 
   // Reveal the results when they appear, or the download button lands below the
   // fold behind a tall settings step and reads as missing.
@@ -141,6 +156,7 @@ function ReviewStepContent<TParams = unknown>({
         error={operation.errorMessage}
         onClose={operation.clearError}
       />
+      <ErrorNotification error={saveError} onClose={() => setSaveError(null)} />
 
       {notice}
 
@@ -176,11 +192,18 @@ function ReviewStepContent<TParams = unknown>({
           data-testid="download-result-button"
           leftSection={<Icon name={icons.download} />}
           fullWidth
+          loading={isSaving}
+          disabled={isSaving}
           style={{ marginBottom: "1rem" }}
           onClick={handleDownload}
         >
           {terminology.download}
         </Button>
+      )}
+      {savedResult && (
+        <Text size="sm" c="green" role="status" aria-live="polite">
+          {t("saved", "Saved")}
+        </Text>
       )}
 
       <SuggestedToolsSection />

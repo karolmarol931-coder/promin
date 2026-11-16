@@ -95,7 +95,7 @@ export const useConfigNavSections = (
     // rather than four rows you have to open in turn.
     {
       id: "about",
-      title: t("settings.about.title", "About"),
+      title: t("settings.title", "Settings"),
       items: [
         {
           key: "about",

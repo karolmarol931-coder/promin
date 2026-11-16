@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 import org.junit.jupiter.api.AfterEach;
@@ -226,6 +227,13 @@ class CheckProgramInstallTest {
         assertTrue(CheckProgramInstall.isFfmpegAvailable());
         verify(mockFfmpegExecutor)
                 .runCommandWithOutputHandling(Arrays.asList("ffmpeg", "-version"));
+    }
+
+    @Test
+    void applePythonShimsAreIdentifiedWithoutInvokingThem() {
+        assertTrue(CheckProgramInstall.isApplePythonPath(Path.of("/usr/bin/python3")));
+        assertTrue(CheckProgramInstall.isApplePythonPath(Path.of("/usr/bin/python")));
+        assertFalse(CheckProgramInstall.isApplePythonPath(Path.of("/opt/homebrew/bin/python3")));
     }
 
     @Test
