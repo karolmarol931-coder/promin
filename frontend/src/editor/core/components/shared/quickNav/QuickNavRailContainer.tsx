@@ -31,6 +31,8 @@ export interface QuickNavRailContainerProps extends Omit<
   docsActive?: boolean;
   onToggleNotifications?: () => void;
   notificationsOpen?: boolean;
+  onOpenUpdates?: () => void;
+  updatesActive?: boolean;
   identity?: QuickNavIdentity | null;
   onReturnHome: () => void;
 }
@@ -43,6 +45,8 @@ export function QuickNavRailContainer({
   docsActive = false,
   onToggleNotifications,
   notificationsOpen,
+  onOpenUpdates,
+  updatesActive,
   identity = null,
   onReturnHome,
   ...railProps
@@ -57,7 +61,6 @@ export function QuickNavRailContainer({
           footer={
             // Always rendered: the bell lives here too, so gating the footer hides it.
             <div className="quick-nav-rail-footer">
-              <QuickNavRailFooterExtensions />
               <QuickNavRailNotifications
                 onToggle={onToggleNotifications}
                 open={notificationsOpen}
@@ -73,6 +76,10 @@ export function QuickNavRailContainer({
                   onClick={onOpenDocs}
                 />
               )}
+              <QuickNavRailFooterExtensions
+                onOpenUpdates={onOpenUpdates}
+                updatesActive={updatesActive}
+              />
               {onOpenAccount && (
                 <QuickNavRailAccount
                   onOpen={onOpenAccount}

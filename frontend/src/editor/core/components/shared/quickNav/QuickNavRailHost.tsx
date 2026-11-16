@@ -27,7 +27,7 @@ export function QuickNavRailHost() {
   const { t } = useTranslation();
   const localOnly = useLocalProcessingOnly();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   const host = useQuickNavHost();
   const [signMenuOpen, setSignMenuOpen] = useState(false);
   const connectedServer = useConnectedServer();
@@ -250,6 +250,8 @@ export function QuickNavRailHost() {
         host?.actions.current?.toggleNotifications?.()
       }
       notificationsOpen={host?.notificationsOpen}
+      onOpenUpdates={() => go("/settings/about#desktop-updates")}
+      updatesActive={path === "/settings/about" && hash === "#desktop-updates"}
     />
   );
 }

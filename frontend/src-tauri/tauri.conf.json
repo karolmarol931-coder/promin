@@ -2,7 +2,7 @@
   "$schema": "../../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Promin",
   "mainBinaryName": "Promin",
-  "version": "3.2.3",
+  "version": "3.2.4",
   "identifier": "com.promin.pdf",
   "build": {
     "frontendDist": "../dist",
@@ -20,23 +20,12 @@
     "active": true,
     "createUpdaterArtifacts": false,
     "publisher": "Promin Partner",
-    "targets": [
-      "dmg",
-      "app"
-    ],
-    "icon": [
-      "icons/macos/promin-app-icon.icns",
-      "icons/macos/app-512.png"
-    ],
-    "resources": [
-      "libs/*.jar",
-      "runtime/jre/**/*"
-    ],
+    "targets": ["dmg", "app"],
+    "icon": ["icons/macos/promin-app-icon.icns", "icons/macos/app-512.png"],
+    "resources": ["libs/*.jar", "runtime/jre/**/*"],
     "fileAssociations": [
       {
-        "ext": [
-          "pdf"
-        ],
+        "ext": ["pdf"],
         "name": "PDF Document",
         "role": "Editor",
         "mimeType": "application/pdf"

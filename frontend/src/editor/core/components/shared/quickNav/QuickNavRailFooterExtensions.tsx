@@ -1,4 +1,10 @@
-/** Extra footer entries a build contributes to the rail, above the bell. Empty here. */
-export function QuickNavRailFooterExtensions() {
+export interface QuickNavRailFooterExtensionsProps {
+  onOpenUpdates?: () => void;
+  updatesActive?: boolean;
+}
+
+export function QuickNavRailFooterExtensions(
+  _props: QuickNavRailFooterExtensionsProps,
+) {
   return null;
 }

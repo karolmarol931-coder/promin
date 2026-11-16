@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { SettingsCard } from "@editor/components/shared/config/SettingsCard";
 import HelpSection from "@editor/components/shared/config/configSections/HelpSection";
+import { DesktopUpdateSettings } from "@editor/components/shared/config/configSections/DesktopUpdateSettings";
 import LegalSection from "@editor/components/shared/config/configSections/LegalSection";
 import {
   BackendThirdPartyLicensesSection,
@@ -29,6 +30,8 @@ export default function AboutSection({
   return (
     <div className="settings-section-container">
       <div className="about-section">
+        <DesktopUpdateSettings />
+
         <SettingsCard
           id="help"
           title={t("settings.help.label", "Tours")}

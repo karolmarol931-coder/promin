@@ -4032,8 +4032,18 @@ saveFilesTitle_one = "Save {{count}} file"
 saveFilesTitle_other = "Save {{count}} files"
 
 [desktop.updates]
+checkFailed = "Could not check for updates. You can keep using this version."
+checking = "Checking for updates…"
+checkNow = "Check for updates"
+description = "View the installed version and check for Promin updates."
+installedVersion = "Installed version"
+label = "Updates and version"
+loadingVersion = "Loading…"
 readyBody = "The new version will be active the next time you open Promin."
 readyTitle = "Update ready"
+readyVersion = "Version {{version}} is ready and will be active the next time you open Promin."
+upToDate = "Promin is up to date."
+versionUnavailable = "Unavailable"
 
 [desktopFileLink]
 saveAs = "Save as…"

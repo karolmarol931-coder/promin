@@ -20,15 +20,18 @@ vi.mock("@editor/i18n", () => ({
 }));
 vi.mock("@editor/components/toast", () => ({ alert: mocks.alert }));
 
-import { useDesktopUpdateCheck } from "@editor/hooks/useDesktopUpdateCheck";
+let useDesktopUpdateCheck: typeof import("@editor/hooks/useDesktopUpdateCheck").useDesktopUpdateCheck;
 
-beforeEach(() => {
+beforeEach(async () => {
+  vi.resetModules();
   vi.clearAllMocks();
   mocks.isTauri.mockReturnValue(true);
   mocks.windowLabel = "main";
   mocks.check.mockResolvedValue(null);
   mocks.downloadAndInstall.mockResolvedValue(undefined);
   mocks.closeUpdate.mockResolvedValue(undefined);
+  ({ useDesktopUpdateCheck } =
+    await import("@editor/hooks/useDesktopUpdateCheck"));
 });
 
 afterEach(() => {
