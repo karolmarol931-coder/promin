@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import OnboardingSlideShell, {
   ShellHero,
   type ShellButton,
@@ -36,11 +36,20 @@ export function DesktopOnboardingModal() {
       opened
       hero={<ShellHero appIcon />}
       slideKey="desktop-local-welcome"
-      title={t("onboarding.desktopWelcome.title", "Welcome to Promin")}
-      body={t(
-        "onboarding.desktopWelcome.body",
-        "Your PDFs stay on this Mac. Promin processes documents using its local app and bundled services.",
-      )}
+      title={
+        <Trans
+          i18nKey="onboarding.desktopWelcome.title"
+          defaults="Welcome to Promin <product>Desktop</product>"
+          components={{ product: <span /> }}
+        />
+      }
+      body={
+        <Trans
+          i18nKey="onboarding.desktopWelcome.body"
+          defaults="There's a whole host of new changes to explore, including <strong>Agent Chat</strong>, automatic document <strong>classification</strong>, and more."
+          components={{ strong: <strong /> }}
+        />
+      }
       stepIndex={0}
       stepCount={1}
       buttons={buttons}

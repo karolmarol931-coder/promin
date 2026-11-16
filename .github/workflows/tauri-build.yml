@@ -35,6 +35,16 @@ on:
         required: false
         type: boolean
         default: false
+      allow_unsigned_macos:
+        description: "Build a macOS package without an Apple signing certificate."
+        required: false
+        type: boolean
+        default: false
+      release_body:
+        description: "Optional text shown on the GitHub release page."
+        required: false
+        type: string
+        default: ""
   workflow_dispatch:
     inputs:
       platform:
@@ -59,6 +69,16 @@ on:
         required: false
         default: false
         type: boolean
+      allow_unsigned_macos:
+        description: "Build a macOS package without an Apple signing certificate."
+        required: false
+        default: false
+        type: boolean
+      release_body:
+        description: "Optional text shown on the GitHub release page."
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: write
@@ -87,6 +107,7 @@ jobs:
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           PLATFORM: ${{ inputs.platform }}
+          ALLOW_UNSIGNED_MACOS: ${{ inputs.allow_unsigned_macos }}
         run: |
           WINDOWS='{"platform":"windows-latest","args":"--target x86_64-pc-windows-msvc","name":"windows-x86_64","jpdfium_platforms":"windows-x64"}'
           # ARM64: NSIS only (WiX MSI has no arm64 support in Tauri) and no JPDFium
@@ -104,8 +125,8 @@ jobs:
             *)             ENTRIES=("$WINDOWS" "$WINDOWS_ARM64" "$MACOS" "$LINUX") ;;
           esac
 
-          # Drop macOS entries when Apple certificate secret is unavailable
-          if [ -z "$APPLE_CERTIFICATE" ]; then
+          # Drop macOS entries without a certificate unless an unsigned build was requested.
+          if [ -z "$APPLE_CERTIFICATE" ] && [ "$ALLOW_UNSIGNED_MACOS" != "true" ]; then
             echo "⚠️ APPLE_CERTIFICATE secret not available - skipping macOS builds"
             FILTERED=()
             for entry in "${ENTRIES[@]}"; do
@@ -443,8 +464,9 @@ jobs:
             --config '{"bundle":{"createUpdaterArtifacts":${{ inputs.release }}}}'
           tagName: ${{ inputs.release && github.ref_name || '' }}
           releaseName: ${{ inputs.release && format('Promin {0}', github.ref_name) || '' }}
+          releaseBody: ${{ inputs.release_body }}
           releaseDraft: ${{ inputs.release }}
-          uploadUpdaterJson: ${{ inputs.release }}
+          uploadUpdaterJson: ${{ inputs.release && secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
 
       - name: Build Tauri app (unsigned)
         if: env.SIGN_BUNDLE != 'true'
@@ -452,6 +474,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SIGN: "0"
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' && secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD || '' }}
           CI: true
         with:
           projectPath: ./frontend
@@ -461,7 +485,12 @@ jobs:
           # persistent linuxdeploy failure (#6127 onwards) does not tank uploads.
           args: >-
             ${{ matrix.platform == 'ubuntu-22.04' && (inputs.minimal && '--bundles deb' || '--bundles deb,rpm') || matrix.args }}
-            --config '{"bundle":{"createUpdaterArtifacts":false}}'
+            --config '{"bundle":{"createUpdaterArtifacts":${{ inputs.release && secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}}}'
+          tagName: ${{ inputs.release && github.ref_name || '' }}
+          releaseName: ${{ inputs.release && format('Promin {0}', github.ref_name) || '' }}
+          releaseBody: ${{ inputs.release_body }}
+          releaseDraft: ${{ inputs.release }}
+          uploadUpdaterJson: ${{ inputs.release && secrets.TAURI_SIGNING_PRIVATE_KEY != '' }}
 
       # AppImage is decoupled so its linuxdeploy run gets a fresh process
       # (rpm scratch state torn down) and its failure can't tank deb/rpm.
@@ -536,6 +565,27 @@ jobs:
 
           codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
           codesign -dv --verbose=4 "$APP_BUNDLE" 2>&1 | grep -q "Authority=Developer ID Application:"
+
+      - name: Verify universal macOS binaries
+        if: matrix.platform == 'macos-15'
+        run: |
+          set -euo pipefail
+          APP_BUNDLE=$(find ./frontend/src-tauri/target -name "Promin.app" -type d -print -quit)
+          if [ -z "$APP_BUNDLE" ]; then
+            echo "::error::No Promin macOS application bundle was built."
+            exit 1
+          fi
+
+          APP_ARCHS=$(lipo -archs "$APP_BUNDLE/Contents/MacOS/Promin")
+          JRE_ARCHS=$(lipo -archs "$APP_BUNDLE/Contents/Resources/runtime/jre/bin/java")
+          for arch in arm64 x86_64; do
+            for binary in "Promin:$APP_ARCHS" "bundled JRE:$JRE_ARCHS"; do
+              if [[ "$binary" != *"$arch"* ]]; then
+                echo "::error::macOS ${binary%%:*} binary is missing $arch (${binary#*:})."
+                exit 1
+              fi
+            done
+          done
 
       - name: Rename artifacts
         shell: bash

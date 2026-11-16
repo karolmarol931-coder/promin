@@ -13,10 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Validate release version and signing secrets
+      - name: Validate release version and updater signing secrets
         env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           TAG_NAME: ${{ github.ref_name }}
@@ -27,7 +25,7 @@ jobs:
             exit 1
           fi
 
-          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD; do
+          for name in TAURI_SIGNING_PRIVATE_KEY TAURI_SIGNING_PRIVATE_KEY_PASSWORD; do
             if [[ -z "${!name}" ]]; then
               echo "::error::Missing required Actions secret: $name"
               exit 1
@@ -43,10 +41,17 @@ jobs:
     secrets: inherit
     with:
       platform: macos
-      sign: true
+      allow_unsigned_macos: true
+      sign: false
       minimal: false
       use_shared_cache: false
       release: true
+      release_body: |
+        Универсальная сборка подходит для Mac с процессором Intel и Apple Silicon.
+
+        **Установка:** скачайте и откройте DMG, перетащите Promin в Applications, затем запустите его из Applications. Если macOS заблокирует запуск, откройте «Системные настройки» → «Конфиденциальность и безопасность», нажмите «Открыть всё равно» для Promin и подтвердите запуск. Подробная инструкция: https://github.com/karolmarol931-coder/promin/blob/main/docs/PROMIN_INSTALL_MACOS_RU.md
+
+        Из-за отсутствия Apple Developer ID и нотариализации macOS требует это ручное подтверждение. Скачивайте Promin только из официального раздела: https://github.com/karolmarol931-coder/promin/releases/latest
 
   publish:
     needs: release
