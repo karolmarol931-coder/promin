@@ -113,7 +113,7 @@ jobs:
           # ARM64: NSIS only (WiX MSI has no arm64 support in Tauri) and no JPDFium
           # natives yet - flip jpdfium_platforms to windows-arm64 once JPDFium ships it.
           WINDOWS_ARM64='{"platform":"windows-11-arm","args":"--target aarch64-pc-windows-msvc --bundles nsis","name":"windows-arm64","jpdfium_platforms":"none"}'
-          MACOS='{"platform":"macos-15","args":"--target universal-apple-darwin","name":"macos-universal","jpdfium_platforms":"darwin-arm64,darwin-x64"}'
+          MACOS='{"platform":"macos-15","runner":"macos-15-intel","args":"--target universal-apple-darwin","name":"macos-universal","jpdfium_platforms":"darwin-arm64,darwin-x64"}'
           LINUX='{"platform":"ubuntu-22.04","args":"","name":"linux-x86_64","jpdfium_platforms":"linux-x64"}'
 
           case "$PLATFORM" in
@@ -149,7 +149,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.determine-matrix.outputs.matrix) }}
-    runs-on: ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner || matrix.platform }}
     timeout-minutes: 90
     env:
       TAURI_BUNDLER_DMG_IGNORE_CI: "true"
