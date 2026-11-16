@@ -58,7 +58,6 @@ const CONTENT_SIZED_SCROLLABLE_STYLE: React.CSSProperties = {
   overflowY: "auto",
   overflowX: "hidden",
   minHeight: 0,
-  maxHeight: "100%",
   marginTop: -2,
 };
 const CONTAINER_STYLE: React.CSSProperties = {

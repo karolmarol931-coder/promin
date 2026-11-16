@@ -88,6 +88,10 @@
   overflow: hidden;
 }
 
+.tool-panel__content-sized-tools .tool-picker-scrollable {
+  max-height: calc(var(--titlebar-body-h, 100dvh) - 4.5rem);
+}
+
 .tool-panel__expand-btn {
   flex-shrink: 0;
   color: var(--c-text-muted) !important;
