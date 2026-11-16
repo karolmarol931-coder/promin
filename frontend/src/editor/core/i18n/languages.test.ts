@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import {
   normalizeLanguageCode,
   supportedLanguages,
+  getInitialLanguage,
   toUnderscoreFormat,
 } from "@editor/i18n/languages";
 
@@ -41,6 +42,20 @@ describe("app language choices", () => {
       "ru-RU": "Русский",
       "uk-UA": "Українська",
     });
+  });
+});
+
+describe("initial language", () => {
+  it("starts a fresh desktop install in Russian", () => {
+    expect(getInitialLanguage("desktop", null)).toBe("ru-RU");
+  });
+
+  it("preserves a saved language", () => {
+    expect(getInitialLanguage("desktop", "pl-PL")).toBeUndefined();
+  });
+
+  it("keeps the web app language detection unchanged", () => {
+    expect(getInitialLanguage("development", null)).toBeUndefined();
   });
 });
 

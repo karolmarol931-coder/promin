@@ -17,7 +17,7 @@ on:
         type: string
         default: "all"
       sign:
-        description: "Sign and notarize the bundles."
+        description: "Sign the application bundles."
         required: false
         type: boolean
         default: true
@@ -50,7 +50,7 @@ on:
           - linux
           - windows-macos
       sign:
-        description: "Sign and notarize the bundles."
+        description: "Sign the application bundles."
         required: false
         default: true
         type: boolean
@@ -419,9 +419,6 @@ jobs:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           # AppImage signing — three env vars work together:
           #   SIGN=1                        tells linuxdeploy-plugin-appimage to forward --sign to appimagetool
           #   APPIMAGETOOL_SIGN_PASSPHRASE  appimagetool uses this to unlock the GPG key non-interactively
@@ -527,20 +524,18 @@ jobs:
             gpg --batch --yes --delete-keys "$RELEASE_GPG_FINGERPRINT" || true
           fi
 
-      - name: Verify notarization (macOS only)
+      - name: Verify macOS code signature
         if: env.SIGN_BUNDLE == 'true' && matrix.platform == 'macos-15'
         run: |
-          echo "🔍 Verifying notarization status..."
-          cd ./frontend/src-tauri/target
-          DMG_FILE=$(find . -name "*.dmg" | head -1)
-          if [ -n "$DMG_FILE" ]; then
-            echo "Found DMG: $DMG_FILE"
-            echo "Checking notarization ticket..."
-            spctl -a -vvv -t install "$DMG_FILE" || echo "⚠️ Notarization check failed or not yet complete"
-            stapler validate "$DMG_FILE" || echo "⚠️ No notarization ticket attached"
-          else
-            echo "⚠️ No DMG file found to verify"
+          set -euo pipefail
+          APP_BUNDLE=$(find ./frontend/src-tauri/target -name "*.app" -type d -print -quit)
+          if [ -z "$APP_BUNDLE" ]; then
+            echo "::error::No macOS application bundle was built."
+            exit 1
           fi
+
+          codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
+          codesign -dv --verbose=4 "$APP_BUNDLE" 2>&1 | grep -q "Authority=Developer ID Application:"
 
       - name: Rename artifacts
         shell: bash

@@ -23,6 +23,15 @@ export const I18N_STORAGE_KEYS = {
   LANGUAGE_SOURCE: "i18nextLng-source",
 } as const;
 
+export function getInitialLanguage(
+  buildMode: string,
+  savedLanguage: string | null,
+): string | undefined {
+  return buildMode === "desktop" && savedLanguage === null
+    ? "ru-RU"
+    : undefined;
+}
+
 /**
  * Language selection priority levels.
  * Higher number = higher priority (cannot be overridden by lower priority).
@@ -31,7 +40,8 @@ export enum LanguageSource {
   Fallback = 0,
   Browser = 1,
   ServerDefault = 2,
-  User = 3,
+  DesktopDefault = 3,
+  User = 4,
 }
 
 export function normalizeLanguageCode(languageCode: string): string {

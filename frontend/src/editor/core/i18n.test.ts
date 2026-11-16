@@ -70,6 +70,20 @@ describe("updateSupportedLanguages", () => {
     );
   });
 
+  it("keeps the Russian desktop first-run default over a server default", async () => {
+    await i18n.changeLanguage("ru-RU");
+    localStorage.setItem(I18N_STORAGE_KEYS.LANGUAGE, "ru-RU");
+    localStorage.setItem(
+      I18N_STORAGE_KEYS.LANGUAGE_SOURCE,
+      String(LanguageSource.DesktopDefault),
+    );
+
+    await updateSupportedLanguages(null, "en-US");
+
+    expect(i18n.language).toBe("ru-RU");
+    expect(localStorage.getItem(I18N_STORAGE_KEYS.LANGUAGE_SOURCE)).toBe("3");
+  });
+
   it("ignores a server default outside the supported app languages", async () => {
     const spy = vi.spyOn(i18n, "changeLanguage");
     await updateSupportedLanguages(null, "de-DE");

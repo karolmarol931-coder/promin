@@ -7,6 +7,7 @@ import {
   rtlLanguages,
   I18N_STORAGE_KEYS,
   LanguageSource,
+  getInitialLanguage,
   normalizeLanguageCode,
   toUnderscoreFormat,
   toUnderscoreLanguages,
@@ -19,16 +20,23 @@ export {
   rtlLanguages,
   I18N_STORAGE_KEYS,
   LanguageSource,
+  getInitialLanguage,
   normalizeLanguageCode,
   toUnderscoreFormat,
   toUnderscoreLanguages,
 };
+
+const initialLanguage = getInitialLanguage(
+  import.meta.env.MODE,
+  localStorage.getItem(I18N_STORAGE_KEYS.LANGUAGE),
+);
 
 export const i18nReady = i18n
   .use(TomlBackend)
   .use(LanguageDetector)
   .use(initReactI18next)
   .init({
+    ...(initialLanguage ? { lng: initialLanguage } : {}),
     fallbackLng: "en-US",
     supportedLngs: Object.keys(supportedLanguages),
     load: "currentOnly",
@@ -89,7 +97,11 @@ i18n.on("initialized", () => {
       localStorage.setItem(I18N_STORAGE_KEYS.LANGUAGE, detectedLang);
       localStorage.setItem(
         I18N_STORAGE_KEYS.LANGUAGE_SOURCE,
-        String(LanguageSource.Browser),
+        String(
+          initialLanguage
+            ? LanguageSource.DesktopDefault
+            : LanguageSource.Browser,
+        ),
       );
     }
   }
