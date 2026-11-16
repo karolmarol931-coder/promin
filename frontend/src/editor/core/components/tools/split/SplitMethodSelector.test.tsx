@@ -12,7 +12,7 @@ vi.mock("react-i18next", () => ({
 }));
 
 describe("SplitMethodSelector", () => {
-  test("shows clear primary methods and explains the selected method", () => {
+  test("shows clear primary methods and lets users switch methods", () => {
     const onSelect = vi.fn();
     render(
       <MantineProvider>
@@ -39,10 +39,6 @@ describe("SplitMethodSelector", () => {
         name: "translated:split.methods.bySize.name",
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("translated:split.methods.byPages.tooltip"),
-    ).toBeInTheDocument();
-
     fireEvent.click(
       screen.getByRole("button", {
         name: "translated:split.methods.byPageCount.name",

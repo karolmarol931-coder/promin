@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from "react";
-import { Box, Skeleton, Stack } from "@mantine/core";
+import { Box, Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Button } from "@editor/ui/Button";
 import { ToolRegistryEntry } from "@editor/data/toolsTaxonomy";
@@ -74,7 +74,7 @@ const ToolPicker = ({
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   const { sections: visibleSections } = useToolSections(filteredTools);
-  const { toolRegistry, toolAvailabilityLoading } = useToolWorkflowData();
+  const { toolRegistry } = useToolWorkflowData();
   const { favoriteTools } = useToolWorkflowFavorites();
 
   const favoriteToolItems = useFavoriteToolItems(favoriteTools, toolRegistry);
@@ -85,7 +85,7 @@ const ToolPicker = ({
   );
 
   const recommendedItems = useMemo(() => {
-    const items: Array<{ id: string; tool: ToolRegistryEntry }> = [];
+    const items: Array<{ id: ToolId; tool: ToolRegistryEntry }> = [];
     quickSection?.subcategories.forEach((sc: SubcategoryGroup) =>
       sc.tools.forEach((toolEntry) => items.push(toolEntry)),
     );
@@ -140,66 +140,52 @@ const ToolPicker = ({
           </Stack>
         ) : compact ? (
           <Box className="tool-picker__compact">
-            {toolAvailabilityLoading ? (
-              <div
-                className="tool-picker__compact-loading"
-                aria-busy="true"
-                aria-label={t("toolPicker.loadingTools", "Loading tools")}
-              >
-                {[0, 1, 2, 3, 4, 5, 6].map((row) => (
-                  <Skeleton key={row} height={48} radius="sm" />
-                ))}
-              </div>
-            ) : (
+            {favoriteToolItems.length > 0 && (
               <>
-                {favoriteToolItems.length > 0 && (
-                  <>
-                    <div style={HEADER_TEXT_STYLE}>
-                      {t("toolPanel.fullscreen.favorites", "Favourites")}
-                    </div>
-                    <div className="tool-picker__compact-list">
-                      {favoriteToolItems.map(({ id, tool }) => (
-                        <ToolButton
-                          key={`fav-${id}`}
-                          id={id}
-                          tool={tool}
-                          isSelected={selectedToolKey === id}
-                          onSelect={onSelect}
-                          hasStars
-                          isFavorited
-                          showDescription
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-                {compactRecommendedItems.length > 0 && (
-                  <>
-                    <div style={HEADER_TEXT_STYLE}>
-                      {t("toolPanel.fullscreen.recommended", "Recommended")}
-                    </div>
-                    <div className="tool-picker__compact-list">
-                      {compactRecommendedItems.map(({ id, tool }) => (
-                        <ToolButton
-                          key={`rec-${id}`}
-                          id={id as ToolId}
-                          tool={tool}
-                          isSelected={selectedToolKey === id}
-                          onSelect={onSelect}
-                          hasStars
-                          isFavorited={false}
-                          showDescription
-                        />
-                      ))}
-                    </div>
-                  </>
-                )}
-                {favoriteToolItems.length === 0 &&
-                compactRecommendedItems.length === 0 ? (
-                  <NoToolsFound />
-                ) : null}
+                <div style={HEADER_TEXT_STYLE}>
+                  {t("toolPanel.fullscreen.favorites", "Favourites")}
+                </div>
+                <div className="tool-picker__compact-list">
+                  {favoriteToolItems.map(({ id, tool }) => (
+                    <ToolButton
+                      key={`fav-${id}`}
+                      id={id}
+                      tool={tool}
+                      isSelected={selectedToolKey === id}
+                      onSelect={onSelect}
+                      hasStars
+                      isFavorited
+                      showDescription
+                    />
+                  ))}
+                </div>
               </>
             )}
+            {compactRecommendedItems.length > 0 && (
+              <>
+                <div style={HEADER_TEXT_STYLE}>
+                  {t("toolPanel.fullscreen.recommended", "Recommended")}
+                </div>
+                <div className="tool-picker__compact-list">
+                  {compactRecommendedItems.map(({ id, tool }) => (
+                    <ToolButton
+                      key={`rec-${id}`}
+                      id={id}
+                      tool={tool}
+                      isSelected={selectedToolKey === id}
+                      onSelect={onSelect}
+                      hasStars
+                      isFavorited={false}
+                      showDescription
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+            {favoriteToolItems.length === 0 &&
+            compactRecommendedItems.length === 0 ? (
+              <NoToolsFound />
+            ) : null}
           </Box>
         ) : (
           <>

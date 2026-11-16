@@ -124,11 +124,12 @@ const SplitMethodSelector = ({
           </Accordion.Item>
         </Accordion>
       )}
-      {selectedOption?.tooltipKey && (
-        <Text size="sm" c="dimmed">
-          {t(selectedOption.tooltipKey, "")}
-        </Text>
-      )}
+      {selectedOption?.tooltipKey &&
+        selectedMethod !== SPLIT_METHODS.BY_PAGES && (
+          <Text size="sm" c="dimmed">
+            {t(selectedOption.tooltipKey, "")}
+          </Text>
+        )}
     </Stack>
   );
 };

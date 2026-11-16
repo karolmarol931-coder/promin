@@ -9865,11 +9865,10 @@ text = "Choose how you want to split your PDF document. Each method is optimized
 title = "Split Method Selection"
 
 [split.pages]
-description = "Add one cut point for each place where a new PDF should begin."
-descriptionWithCount = "Each PDF has at least {{count}} pages. Add cut points between pages."
-invalid = "Enter valid page numbers or ranges. A cut after the last page would not split the PDF."
-label = "Cut after page"
-placeholder = "For example: 2, 5"
+description = "Enter page numbers after which to start a new PDF. Example: 3, 8 creates files for pages 1–3, 4–8, then the remainder. Enter 'all' to make one PDF per page."
+invalid = "Enter valid page numbers before the last page. Splitting after the final page cannot create another PDF."
+label = "Start new PDFs after page(s)"
+placeholder = "Example: 3, 8"
 preview = "{{count}} files will be created: {{ranges}}{{more}}"
 previewMore = " and {{count}} more"
 

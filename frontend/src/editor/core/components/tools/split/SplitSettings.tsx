@@ -1,6 +1,4 @@
 import {
-  Accordion,
-  Group,
   NumberInput,
   Paper,
   Stack,
@@ -10,7 +8,6 @@ import {
   Text,
   Select,
 } from "@mantine/core";
-import { useState } from "react";
 import { Icon } from "@editor/ui/Icon";
 import { Button } from "@editor/ui/Button";
 import { useTranslation } from "react-i18next";
@@ -38,8 +35,6 @@ const SplitSettings = ({
   disabled = false,
 }: SplitSettingsProps) => {
   const { t } = useTranslation();
-  const [advancedPagesOpen, setAdvancedPagesOpen] = useState(false);
-
   const getPageSplitPreview = (): {
     count: number;
     ranges: string[];
@@ -117,14 +112,6 @@ const SplitSettings = ({
   };
 
   const renderByPagesForm = () => {
-    const rawPagePoints = parameters.pages.trim();
-    const simplePagePoints =
-      rawPagePoints === "" ||
-      rawPagePoints
-        .split(",")
-        .every((point) => point.trim() === "" || /^\d+$/.test(point.trim()));
-    const pagePoints = rawPagePoints === "" ? [] : rawPagePoints.split(",");
-    const hasAdvancedPageSyntax = !simplePagePoints;
     const isInvalid =
       parameters.pages.trim() !== "" &&
       !validateSplitParameters(parameters, pageCount);
@@ -134,75 +121,30 @@ const SplitSettings = ({
       ? splitPreview.count - splitPreview.ranges.length
       : 0;
 
-    const updatePagePoints = (points: string[]) =>
-      onParameterChange("pages", points.join(","));
-
-    const addPagePoint = () => {
-      const lastPoint = pagePoints.reduce((last, point) => {
-        const value = Number(point);
-        return Number.isSafeInteger(value) ? Math.max(last, value) : last;
-      }, 0);
-      const nextPoint = lastPoint + 1;
-      if (pageCount != null && nextPoint >= pageCount) return;
-      updatePagePoints([...pagePoints, String(nextPoint)]);
-    };
-
     return (
       <Stack gap="sm">
-        <Text size="sm" c="dimmed">
-          {pageCount
-            ? t(
-                "split.pages.descriptionWithCount",
-                "Each PDF has at least {{count}} pages. Add cut points between pages.",
-                { count: pageCount, lastPage: Math.max(0, pageCount - 1) },
-              )
-            : t("split.pages.description")}
-        </Text>
+        <TextInput
+          label={t("split.pages.label", "Start new PDFs after page(s)")}
+          description={t("split.pages.description")}
+          placeholder={t("split.pages.placeholder", "Example: 3, 8")}
+          value={parameters.pages}
+          onChange={(event) => onParameterChange("pages", event.target.value)}
+          error={
+            isInvalid
+              ? t(
+                  "split.pages.invalid",
+                  "Введите правильные номера страниц. Нельзя разделить после последней страницы.",
+                )
+              : undefined
+          }
+          disabled={disabled || pageCount === 1}
+        />
 
-        {simplePagePoints && pagePoints.length > 0 && (
-          <Stack gap="xs">
-            {pagePoints.map((point, index) => (
-              <Group key={index} align="end" wrap="nowrap">
-                <NumberInput
-                  label={t("split.pages.label", "Cut after page")}
-                  value={point.trim() === "" ? "" : Number(point)}
-                  min={1}
-                  max={pageCount == null ? undefined : pageCount - 1}
-                  decimalScale={0}
-                  allowNegative={false}
-                  onChange={(value) => {
-                    const updatedPoints = [...pagePoints];
-                    updatedPoints[index] = String(value);
-                    updatePagePoints(updatedPoints);
-                  }}
-                  disabled={disabled}
-                  style={{ flex: 1 }}
-                />
-                <Button
-                  variant="quiet"
-                  accent="danger"
-                  aria-label={`${t("remove", "Remove")} ${index + 1}`}
-                  onClick={() =>
-                    updatePagePoints(pagePoints.filter((_, i) => i !== index))
-                  }
-                  disabled={disabled}
-                  leftSection={<Icon name="trash" size={16} />}
-                />
-              </Group>
-            ))}
-          </Stack>
-        )}
-
-        {simplePagePoints && (
-          <Button
-            variant="secondary"
-            leftSection={<Icon name="plus" size={16} />}
-            onClick={addPagePoint}
-            disabled={disabled || (pageCount != null && pageCount <= 1)}
-          >
-            {t("add", "Add")}
-          </Button>
-        )}
+        {pageCount === 1 ? (
+          <Text size="sm" c="orange">
+            {t("split.pages.invalid")}
+          </Text>
+        ) : null}
 
         {splitPreview && (
           <Paper id="split-page-preview" p="sm" radius="md" withBorder>
@@ -224,44 +166,6 @@ const SplitSettings = ({
             </Text>
           </Paper>
         )}
-
-        {isInvalid && simplePagePoints && (
-          <Text size="sm" c="red">
-            {t(
-              "split.pages.invalid",
-              "Check the page numbers. The last page cannot be a cut point.",
-            )}
-          </Text>
-        )}
-
-        <Accordion
-          value={advancedPagesOpen || hasAdvancedPageSyntax ? "advanced" : null}
-          onChange={(value) => setAdvancedPagesOpen(value === "advanced")}
-        >
-          <Accordion.Item value="advanced">
-            <Accordion.Control disabled={disabled}>
-              {t("moreOptions", "More options")}
-            </Accordion.Control>
-            <Accordion.Panel>
-              <TextInput
-                label={t("pages", "Pages")}
-                description={t("pageSelectionPrompt")}
-                placeholder={t("split.pages.placeholder", "For example: 2, 5")}
-                value={parameters.pages}
-                onChange={(e) => onParameterChange("pages", e.target.value)}
-                error={
-                  isInvalid
-                    ? t(
-                        "split.pages.invalid",
-                        "Check the page numbers. The last page cannot be a cut point.",
-                      )
-                    : undefined
-                }
-                disabled={disabled}
-              />
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
       </Stack>
     );
   };
@@ -411,9 +315,7 @@ const SplitSettings = ({
               parameters.method === SPLIT_METHODS.BY_PAGE_COUNT ? "5" : "3"
             }
             value={parameters.splitValue}
-            onChange={(value) =>
-              onParameterChange("splitValue", String(value))
-            }
+            onChange={(value) => onParameterChange("splitValue", String(value))}
             min={1}
             decimalScale={0}
             allowNegative={false}
