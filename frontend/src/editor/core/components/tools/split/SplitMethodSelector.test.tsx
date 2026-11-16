@@ -29,6 +29,9 @@ describe("SplitMethodSelector", () => {
         name: "translated:split.methods.byPages.name",
       }),
     ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByText("translated:split.methods.byPages.tooltip"),
+    ).toBeInTheDocument();
     const pageCountButton = screen.getByRole("button", {
       name: "translated:split.methods.byPageCount.name",
     });
