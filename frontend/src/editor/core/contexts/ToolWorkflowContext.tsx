@@ -161,7 +161,6 @@ export interface ToolWorkflowActionsValue {
 
 export interface ToolWorkflowDataValue {
   toolAvailability: ToolAvailabilityMap;
-  toolAvailabilityLoading: boolean;
   toolRegistry: Partial<ToolRegistry>;
   getSelectedTool: (toolId: ToolId | null) => ToolRegistryEntry | null;
 }
@@ -274,7 +273,6 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
     toolRegistry,
     getSelectedTool,
     toolAvailability,
-    toolAvailabilityLoading,
   } = useToolManagement();
   const { allTools } = useToolRegistry();
 
@@ -781,11 +779,10 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
   const dataValue = useMemo<ToolWorkflowDataBaseValue>(
     () => ({
       toolAvailability,
-      toolAvailabilityLoading,
       toolRegistry,
       getSelectedTool,
     }),
-    [toolAvailability, toolAvailabilityLoading, toolRegistry, getSelectedTool],
+    [toolAvailability, toolRegistry, getSelectedTool],
   );
 
   // Properly memoized context value
