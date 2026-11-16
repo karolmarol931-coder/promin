@@ -15,6 +15,7 @@ import {
   useToolWorkflowData,
   useToolWorkflowFavorites,
 } from "@editor/contexts/ToolWorkflowContext";
+import { useToolRegistry } from "@editor/contexts/ToolRegistryContext";
 import { ToolId } from "@editor/types/toolId";
 import { getSubcategoryLabel } from "@editor/data/toolsTaxonomy";
 import { ToolPickerFooterExtensions } from "@editor/components/tools/toolPicker/ToolPickerFooterExtensions";
@@ -75,13 +76,30 @@ const ToolPicker = ({
 
   const { sections: visibleSections } = useToolSections(filteredTools);
   const { toolRegistry } = useToolWorkflowData();
+  const { allTools } = useToolRegistry();
   const { favoriteTools } = useToolWorkflowFavorites();
 
-  const favoriteToolItems = useFavoriteToolItems(favoriteTools, toolRegistry);
+  const compactCatalogTools = useMemo<ToolPickerProps["filteredTools"]>(
+    () =>
+      Object.entries(allTools).map(([id, tool]) => ({
+        item: [id as ToolId, tool],
+      })),
+    [allTools],
+  );
+  const { sections: compactCatalogSections } =
+    useToolSections(compactCatalogTools);
+  const compactToolRegistry = compact ? allTools : toolRegistry;
+  const favoriteToolItems = useFavoriteToolItems(
+    favoriteTools,
+    compactToolRegistry,
+  );
 
   const quickSection = useMemo(
-    () => visibleSections.find((s) => s.key === "quick"),
-    [visibleSections],
+    () =>
+      (compact ? compactCatalogSections : visibleSections).find(
+        (section) => section.key === "quick",
+      ),
+    [compact, compactCatalogSections, visibleSections],
   );
 
   const recommendedItems = useMemo(() => {
