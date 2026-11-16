@@ -45,6 +45,11 @@ tasks:
     cmds:
       - task: desktop:build
 
+  release:promin:
+    desc: "Publish a Promin macOS release"
+    cmds:
+      - ./scripts/release-promin.sh {{.CLI_ARGS}}
+
   test:
     desc: "Run frontend, backend, and native shell tests"
     cmds:
