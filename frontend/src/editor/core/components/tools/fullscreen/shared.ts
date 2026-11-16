@@ -2,6 +2,7 @@ import { useHotkeys } from "@editor/contexts/HotkeyContext";
 import {
   useToolWorkflowActions,
   useToolWorkflowData,
+  useToolWorkflowFavorites,
 } from "@editor/contexts/ToolWorkflowContext";
 import { ToolRegistryEntry } from "@editor/data/toolsTaxonomy";
 import { ToolId } from "@editor/types/toolId";
@@ -133,7 +134,8 @@ export const getDisabledLabel = (
 
 export function useToolMeta(id: string, tool: ToolRegistryEntry) {
   const { hotkeys } = useHotkeys();
-  const { isFavorite, toolAvailability } = useToolWorkflowData();
+  const { toolAvailability } = useToolWorkflowData();
+  const { isFavorite } = useToolWorkflowFavorites();
   const { toggleFavorite } = useToolWorkflowActions();
   const { config } = useAppConfig();
   const premiumEnabled = config?.premiumEnabled;

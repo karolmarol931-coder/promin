@@ -44,20 +44,28 @@ describe("buildLabelGroups", () => {
     expect(legal.stubs.map((s) => s.id)).toEqual(["a", "b", "c"]);
   });
 
-  it("puts a label in no category into Other", () => {
+  it("does not repeat a recent unclassified file in Other", () => {
     const groups = buildLabelGroups([stub("a", ["weird-one"])], t, [LEGAL])!;
     expect(groups.some((g) => g.id.startsWith("category:"))).toBe(false);
-    expect(groups.at(-1)!.id).toBe("other");
-    expect(groups.at(-1)!.stubs.map((s) => s.id)).toEqual(["a"]);
+    expect(groups.map((group) => group.id)).toEqual(["recent"]);
   });
 
-  it("moves a hidden category's files into Other", () => {
-    const groups = buildLabelGroups([stub("a", ["invoice"])], t, [
-      cat("finance", "Financial", ["invoice"], true),
-    ])!;
+  it("moves older hidden-category files into Other", () => {
+    const groups = buildLabelGroups(
+      [
+        ...Array.from({ length: 8 }, (_, index) =>
+          stub(`recent-${index}`, ["invoice"], 8 - index),
+        ),
+        stub("older-hidden", ["invoice"], 0),
+      ],
+      t,
+      [
+        cat("finance", "Financial", ["invoice"], true),
+      ],
+    )!;
     expect(groups.some((g) => g.id === "category:finance")).toBe(false);
     expect(groups.at(-1)!.id).toBe("other");
-    expect(groups.at(-1)!.stubs.map((s) => s.id)).toEqual(["a"]);
+    expect(groups.at(-1)!.stubs.map((s) => s.id)).toEqual(["older-hidden"]);
   });
 
   it("a file with labels in two categories appears in both", () => {
@@ -76,7 +84,13 @@ describe("buildLabelGroups", () => {
 
   it("puts unlabelled files in Other at the bottom", () => {
     const groups = buildLabelGroups(
-      [stub("a", ["invoice"]), stub("b"), stub("c", [])],
+      [
+        ...Array.from({ length: 8 }, (_, index) =>
+          stub(`recent-${index}`, ["invoice"], 10 - index),
+        ),
+        stub("b", undefined, 1),
+        stub("c", [], 0),
+      ],
       t,
       [FINANCE],
     )!;
@@ -88,10 +102,16 @@ describe("buildLabelGroups", () => {
   it("orders groups: Recent, categories alphabetically, Other last", () => {
     const groups = buildLabelGroups(
       [
-        stub("a", ["invoice"]),
-        stub("b", ["nda"]),
-        stub("c", ["zzz"]),
-        stub("d"),
+        stub("a", ["invoice"], 10),
+        stub("b", ["nda"], 9),
+        stub("recent-c", ["invoice"], 8),
+        stub("recent-d", ["nda"], 7),
+        stub("recent-e", ["invoice"], 6),
+        stub("recent-f", ["nda"], 5),
+        stub("recent-g", ["invoice"], 4),
+        stub("recent-h", ["nda"], 3),
+        stub("c", ["zzz"], 2),
+        stub("d", undefined, 1),
       ],
       t,
       [LEGAL, FINANCE],

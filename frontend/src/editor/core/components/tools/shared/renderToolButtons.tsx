@@ -23,6 +23,7 @@ export const renderToolButtons = (
     matchedText?: string;
   }>,
   hasStars: boolean = false,
+  favoriteToolIds?: ReadonlySet<ToolId>,
 ) => {
   // Create a map of matched text for quick lookup
   const matchedTextMap = new Map<string, string>();
@@ -53,6 +54,7 @@ export const renderToolButtons = (
               disableNavigation={disableNavigation}
               matchedSynonym={matchedSynonym}
               hasStars={hasStars}
+              isFavorited={favoriteToolIds?.has(id) ?? false}
             />
           );
         })}

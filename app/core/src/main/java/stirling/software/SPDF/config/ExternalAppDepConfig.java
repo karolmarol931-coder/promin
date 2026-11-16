@@ -39,6 +39,8 @@ public class ExternalAppDepConfig {
 
     private final boolean isWindows =
             System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("windows");
+    private final boolean isMac =
+            System.getProperty("os.name").toLowerCase(Locale.ROOT).contains("mac");
 
     private final String weasyprintPath;
     private final String unoconvPath;
@@ -278,11 +280,29 @@ public class ExternalAppDepConfig {
         // First try OS-native lookup
         List<String> lookup = isWindows ? List.of("where", command) : List.of("which", command);
         ProbeResult res = runAndWait(lookup, DEFAULT_TIMEOUT);
-        if (res.exitCode() == 0) return true;
+        if (res.exitCode() == 0) {
+            if (isAppleDeveloperToolsPython(command, res.stdout())) return false;
+            return true;
+        }
 
-        // Fallback: try `--version` when helpful (covers py-launcher shims on Windows etc.)
-        ProbeResult ver = runAndWait(List.of(command, "--version"), DEFAULT_TIMEOUT);
-        return ver.exitCode() == 0;
+        // Launching a missing Python command on macOS can prompt to install Command Line Tools.
+        if (!isWindows && (command.equals("python3") || command.equals("python"))) {
+            return false;
+        }
+
+        // Windows launchers can resolve binaries that are not listed by `where`.
+        ProbeResult version = runAndWait(List.of(command, "--version"), DEFAULT_TIMEOUT);
+        return version.exitCode() == 0;
+    }
+
+    private boolean isAppleDeveloperToolsPython(String command, String resolvedPath) {
+        if (!isMac
+                || !(command.equals("python3") || command.equals("python"))
+                || !resolvedPath.trim().equals("/usr/bin/" + command)) {
+            return false;
+        }
+
+        return runAndWait(List.of("xcode-select", "-p"), DEFAULT_TIMEOUT).exitCode() != 0;
     }
 
     private Optional<String> getVersionSafe(String command, String arg) {

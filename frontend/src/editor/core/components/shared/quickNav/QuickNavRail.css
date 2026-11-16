@@ -36,8 +36,8 @@
   color: var(--c-text-subtle);
   cursor: pointer;
   transition:
-    background-color var(--motion-fast),
-    color var(--motion-fast);
+    background-color 75ms linear,
+    color 75ms linear;
 }
 
 .quick-nav-rail-item svg,

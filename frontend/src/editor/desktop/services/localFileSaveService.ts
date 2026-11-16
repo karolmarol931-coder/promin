@@ -4,6 +4,7 @@ import type {
 } from "@editor-core/services/localFileSaveService";
 import i18n from "i18next";
 import { beginSelfWrite, endSelfWrite } from "@editor/services/diskFileSync";
+import { preferencesService } from "@editor/services/preferencesService";
 export type { SaveResult, MultiFileSaveResult };
 import { assertFilesNotBlocked } from "@editor/services/policyFileGuard";
 
@@ -54,9 +55,12 @@ export async function showSaveDialog(
     const ext = defaultFilename.split(".").pop()?.toLowerCase() ?? "";
     const filters = ext ? [{ name: ext.toUpperCase(), extensions: [ext] }] : [];
 
+    const preferredDirectory =
+      defaultDirectory ??
+      preferencesService.getPreference("defaultSaveDirectory");
     const selectedPath = await save({
-      defaultPath: defaultDirectory
-        ? `${defaultDirectory}/${defaultFilename}`
+      defaultPath: preferredDirectory
+        ? `${preferredDirectory}/${defaultFilename}`
         : defaultFilename,
       filters,
       title: i18n.t("workbenchBar.saveAs", "Save As"),
@@ -89,7 +93,10 @@ export async function saveMultipleFilesWithPrompt(
     const selectedFolder = await open({
       directory: true,
       multiple: false,
-      defaultPath: defaultDirectory,
+      defaultPath:
+        (defaultDirectory ??
+          preferencesService.getPreference("defaultSaveDirectory")) ||
+        undefined,
       title: i18n.t("desktop.fileSave.saveFilesTitle", "Save {{count}} files", {
         count: files.length,
       }),

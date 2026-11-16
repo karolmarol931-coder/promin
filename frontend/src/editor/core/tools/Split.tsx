@@ -9,7 +9,11 @@ import { useSplitOperation } from "@editor/hooks/tools/split/useSplitOperation";
 import { useBaseTool } from "@editor/hooks/tools/shared/useBaseTool";
 import { useSplitSettingsTips } from "@editor/components/tooltips/useSplitSettingsTips";
 import { BaseToolProps, ToolComponent } from "@editor/types/tool";
-import { METHOD_OPTIONS, ENDPOINTS } from "@editor/constants/splitConstants";
+import {
+  METHOD_OPTIONS,
+  ENDPOINTS,
+  SPLIT_METHODS,
+} from "@editor/constants/splitConstants";
 import { useMultipleEndpointsEnabled } from "@editor/hooks/useEndpointConfig";
 import { useViewScopedFileStubs } from "@editor/hooks/tools/shared/useViewScopedFiles";
 import { validateSplitParameters } from "@editor/hooks/tools/split/useSplitParameters";
@@ -58,7 +62,10 @@ const Split = (props: BaseToolProps) => {
         onCollapsedClick: base.hasResults
           ? base.handleSettingsReset
           : undefined,
-        tooltip: settingsTips || undefined,
+        tooltip:
+          base.params.parameters.method === SPLIT_METHODS.BY_PAGES
+            ? undefined
+            : settingsTips || undefined,
         content: (
           <Stack gap="md">
             <SplitMethodSelector

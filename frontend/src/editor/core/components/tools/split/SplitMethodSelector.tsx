@@ -1,4 +1,5 @@
-import { Select, Stack, Text } from "@mantine/core";
+import { Accordion, Select, Stack, Text } from "@mantine/core";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@editor/ui/Button";
 import classes from "@editor/components/tools/split/SplitMethodSelector.module.css";
@@ -34,6 +35,7 @@ const SplitMethodSelector = ({
   disabled = false,
 }: SplitMethodSelectorProps) => {
   const { t } = useTranslation();
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const primaryOptions = PRIMARY_METHODS.flatMap((method) => {
     const option = options.find((candidate) => candidate.value === method);
     return option ? [option] : [];
@@ -52,6 +54,7 @@ const SplitMethodSelector = ({
     primaryOptions.some((option) => option.value === selectedMethod)
       ? selectedMethod
       : undefined;
+  const isAdditionalMethodSelected = Boolean(selectedMethod && !primaryMethod);
 
   return (
     <Stack gap="sm">
@@ -78,7 +81,10 @@ const SplitMethodSelector = ({
               }
               disabled={disabled}
               aria-pressed={selectedMethod === option.value}
-              onClick={() => onSelect(option.value)}
+              onClick={() => {
+                setAdvancedOpen(false);
+                onSelect(option.value);
+              }}
             >
               {t(
                 PRIMARY_LABEL_KEYS[option.value] ?? option.nameKey,
@@ -89,21 +95,34 @@ const SplitMethodSelector = ({
         </div>
       )}
       {additionalOptions.length > 0 && (
-        <Select
-          value={primaryMethod ? null : selectedMethod}
-          onChange={(value) => onSelect(value as SplitMethod | null)}
-          placeholder={t("moreOptions", "More Options")}
-          data={additionalOptions.map((option) => ({
-            value: option.value,
-            label: t(option.nameKey, option.value),
-          }))}
-          disabled={disabled}
-          aria-label={t(
-            "split.methodSelection.tooltip.title",
-            "Choose a split method",
-          )}
-          comboboxProps={{ withinPortal: true }}
-        />
+        <Accordion
+          value={advancedOpen || isAdditionalMethodSelected ? "more" : null}
+          onChange={(value) => setAdvancedOpen(value === "more")}
+          variant="separated"
+        >
+          <Accordion.Item value="more">
+            <Accordion.Control disabled={disabled}>
+              {t("moreOptions", "More split methods")}
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Select
+                value={primaryMethod ? null : selectedMethod}
+                onChange={(value) => onSelect(value as SplitMethod | null)}
+                placeholder={t("split.selectMethod", "Choose a method")}
+                data={additionalOptions.map((option) => ({
+                  value: option.value,
+                  label: t(option.nameKey, option.value),
+                }))}
+                disabled={disabled}
+                aria-label={t(
+                  "split.methodSelection.tooltip.title",
+                  "Choose a split method",
+                )}
+                comboboxProps={{ withinPortal: true }}
+              />
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
       )}
       {selectedOption?.tooltipKey && (
         <Text size="sm" c="dimmed">

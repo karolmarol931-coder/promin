@@ -4033,7 +4033,9 @@ saveFilesTitle_other = "Save {{count}} files"
 
 [desktop.updates]
 checkFailed = "Could not check for updates. You can keep using this version."
+checkFailedTitle = "Update check failed"
 checking = "Checking for updates…"
+checkingTitle = "Checking for updates"
 checkNow = "Check for updates"
 description = "View the installed version and check for Promin updates."
 installedVersion = "Installed version"
@@ -4042,7 +4044,9 @@ loadingVersion = "Loading…"
 readyBody = "The new version will be active the next time you open Promin."
 readyTitle = "Update ready"
 readyVersion = "Version {{version}} is ready and will be active the next time you open Promin."
+upToDateTitle = "No update available"
 upToDate = "Promin is up to date."
+upToDateVersion = "You have the latest version of Promin ({{version}})."
 versionUnavailable = "Unavailable"
 
 [desktopFileLink]
@@ -9035,6 +9039,10 @@ defaultPdfEditorActive = "Promin is your default PDF editor"
 defaultPdfEditorChecking = "Checking..."
 defaultPdfEditorInactive = "Another application is set as default"
 defaultPdfEditorSet = "Already Default"
+defaultSaveLocation = "Default save folder"
+defaultSaveLocationUnset = "Ask where to save each file"
+chooseSaveLocation = "Choose folder"
+clearSaveLocation = "Clear"
 defaultStartupView = "Default view on launch"
 defaultStartupViewDescription = "Choose which view is active when the app starts"
 defaultToolPickerMode = "Default tool picker mode"
@@ -9857,12 +9865,12 @@ text = "Choose how you want to split your PDF document. Each method is optimized
 title = "Split Method Selection"
 
 [split.pages]
-description = "Enter page numbers after which to start a new file, for example 2, 5. Use ‘all’ to save each page separately."
-descriptionWithCount = "Each selected PDF has at least {{count}} pages. Enter cut points from 1 to {{lastPage}}. Use ‘all’ to save each page separately."
+description = "Add one cut point for each place where a new PDF should begin."
+descriptionWithCount = "Each PDF has at least {{count}} pages. Add cut points between pages."
 invalid = "Enter valid page numbers or ranges. A cut after the last page would not split the PDF."
-label = "Split after pages"
+label = "Cut after page"
 placeholder = "For example: 2, 5"
-preview = "Creates {{count}} files: {{ranges}}{{more}}"
+preview = "{{count}} files will be created: {{ranges}}{{more}}"
 previewMore = " and {{count}} more"
 
 [split.poster]
@@ -9926,11 +9934,11 @@ text = "Automatically split scanned documents using physical divider sheets with
 title = "Split by Page Divider"
 
 [split.tooltip.byPages]
-bullet1 = "Single split points: 3,7 (splits after pages 3 and 7)"
-bullet2 = "Range split points: 3-8 (splits before page 3 and after page 8)"
-bullet3 = "Mixed: 2,5-10,15 (splits after page 2, before page 5, after page 10, and after page 15)"
-text = "Split your PDF at specific page numbers. Using 'n' splits after page n. Using 'n-m' splits before page n and after page m."
-title = "Split at Page Numbers"
+bullet1 = "Add a cut after each page where a new PDF should begin."
+bullet2 = "The preview shows the page ranges that each file will contain."
+bullet3 = "Open More options for regular patterns or one PDF per page."
+text = "Create smaller PDFs by adding cut points between pages. For example, cuts after pages 2 and 5 create files containing pages 1–2, 3–5, and the remaining pages."
+title = "Split into Page Ranges"
 
 [split.tooltip.byPoster]
 bullet1 = "Target Page Size: Choose output paper size (A4, Letter, etc.)"

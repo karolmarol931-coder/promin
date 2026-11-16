@@ -19,6 +19,8 @@ export interface PreferencesSectionProps {
   accountSlot?: ReactNode;
   /** Extra rows under Editor defaults: login landing, desktop file defaults. */
   editorDefaultsSlot?: ReactNode;
+  /** Extra controls in the Downloads card for platform-specific save preferences. */
+  downloadsSlot?: ReactNode;
 }
 
 /** True when the URL deep-links at the shortcuts card, which starts collapsed. */
@@ -41,6 +43,7 @@ export default function PreferencesSection({
   hideAdminBanner = false,
   accountSlot,
   editorDefaultsSlot,
+  downloadsSlot,
 }: PreferencesSectionProps) {
   const { t } = useTranslation();
   const startHotkeysOpen = focusIsHotkeys();
@@ -72,6 +75,7 @@ export default function PreferencesSection({
           title={t("settings.preferences.downloads", "Downloads")}
         >
           <DownloadsCard />
+          {downloadsSlot}
         </SettingsCard>
 
         <SettingsCard

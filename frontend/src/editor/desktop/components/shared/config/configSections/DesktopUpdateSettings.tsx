@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
-import { Group, Stack, Text } from "@mantine/core";
+import { Alert, Group, Stack, Text } from "@mantine/core";
 import { Button } from "@editor/ui/Button";
 import { useTranslation } from "react-i18next";
 import { checkAndInstallUpdate } from "@editor/hooks/useDesktopUpdateCheck";
@@ -40,7 +40,11 @@ export function DesktopUpdateSettings() {
   const statusMessage = {
     idle: "",
     checking: t("desktop.updates.checking", "Checking for updates…"),
-    "up-to-date": t("desktop.updates.upToDate", "Promin is up to date."),
+    "up-to-date": t(
+      "desktop.updates.upToDateVersion",
+      "You have the latest version of Promin ({{version}}).",
+      { version: version ?? "" },
+    ),
     ready: t(
       "desktop.updates.readyVersion",
       "Version {{version}} is ready and will be active the next time you open Promin.",
@@ -50,6 +54,13 @@ export function DesktopUpdateSettings() {
       "desktop.updates.checkFailed",
       "Could not check for updates. You can keep using this version.",
     ),
+  }[status];
+  const statusColor = {
+    idle: "gray",
+    checking: "gray",
+    "up-to-date": "green",
+    ready: "blue",
+    failed: "red",
   }[status];
 
   return (
@@ -87,9 +98,22 @@ export function DesktopUpdateSettings() {
           </Button>
         </Group>
         {statusMessage && (
-          <Text size="sm" c="dimmed" aria-live="polite">
-            {statusMessage}
-          </Text>
+          <Alert
+            color={statusColor}
+            variant="light"
+            title={
+              status === "checking"
+                ? t("desktop.updates.checkingTitle", "Checking for updates")
+                : status === "up-to-date"
+                  ? t("desktop.updates.upToDateTitle", "No update available")
+                  : status === "ready"
+                    ? t("desktop.updates.readyTitle", "Update ready")
+                    : t("desktop.updates.checkFailedTitle", "Update check failed")
+            }
+            aria-live="polite"
+          >
+            <Text size="sm">{statusMessage}</Text>
+          </Alert>
         )}
       </Stack>
     </SettingsCard>

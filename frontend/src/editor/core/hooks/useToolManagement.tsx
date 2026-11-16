@@ -30,6 +30,7 @@ interface ToolManagementResult {
   selectedTool: ToolRegistryEntry | null;
   toolSelectedFileIds: FileId[];
   toolRegistry: Partial<ToolRegistry>;
+  toolAvailabilityLoading: boolean;
   setToolSelectedFileIds: (fileIds: FileId[]) => void;
   getSelectedTool: (toolKey: ToolId | null) => ToolRegistryEntry | null;
   toolAvailability: ToolAvailabilityMap;
@@ -178,6 +179,7 @@ export const useToolManagement = (): ToolManagementResult => {
     selectedTool: getSelectedTool(null),
     toolSelectedFileIds,
     toolRegistry,
+    toolAvailabilityLoading: endpointsLoading && selfHostedOfflineIds.size === 0,
     setToolSelectedFileIds,
     getSelectedTool,
     toolAvailability,

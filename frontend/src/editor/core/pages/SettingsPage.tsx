@@ -350,7 +350,7 @@ const SettingsPageInner: React.FC = () => {
           <div className={`modal-body${fullBleed ? " is-full-bleed" : ""}`}>
             {activeItem && !fullBleed && (
               <header className="settings-page__header">
-                {activeGroup && (
+                {activeGroup && activeGroup !== activeItem.label && (
                   <span className="settings-page__eyebrow">{activeGroup}</span>
                 )}
                 <div className="settings-page__title-row">

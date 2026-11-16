@@ -1,5 +1,5 @@
 import React, { useMemo, useRef } from "react";
-import { Box, Stack } from "@mantine/core";
+import { Box, Skeleton, Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Button } from "@editor/ui/Button";
 import { ToolRegistryEntry } from "@editor/data/toolsTaxonomy";
@@ -11,7 +11,10 @@ import NoToolsFound from "@editor/components/tools/shared/NoToolsFound";
 import { renderToolButtons } from "@editor/components/tools/shared/renderToolButtons";
 import ToolButton from "@editor/components/tools/toolPicker/ToolButton";
 import { LazyToolSection } from "@editor/components/tools/toolPicker/LazyToolSection";
-import { useToolWorkflowData } from "@editor/contexts/ToolWorkflowContext";
+import {
+  useToolWorkflowData,
+  useToolWorkflowFavorites,
+} from "@editor/contexts/ToolWorkflowContext";
 import { ToolId } from "@editor/types/toolId";
 import { getSubcategoryLabel } from "@editor/data/toolsTaxonomy";
 import { ToolPickerFooterExtensions } from "@editor/components/tools/toolPicker/ToolPickerFooterExtensions";
@@ -71,7 +74,8 @@ const ToolPicker = ({
   const scrollerRef = useRef<HTMLDivElement | null>(null);
 
   const { sections: visibleSections } = useToolSections(filteredTools);
-  const { favoriteTools, toolRegistry } = useToolWorkflowData();
+  const { toolRegistry, toolAvailabilityLoading } = useToolWorkflowData();
+  const { favoriteTools } = useToolWorkflowFavorites();
 
   const favoriteToolItems = useFavoriteToolItems(favoriteTools, toolRegistry);
 
@@ -88,7 +92,7 @@ const ToolPicker = ({
     return items;
   }, [quickSection]);
 
-  const favoriteToolIds = useMemo<Set<string>>(
+  const favoriteToolIds = useMemo<Set<ToolId>>(
     () => new Set(favoriteToolItems.map(({ id }) => id)),
     [favoriteToolItems],
   );
@@ -129,56 +133,73 @@ const ToolPicker = ({
                   false,
                   filteredTools,
                   true,
+                  favoriteToolIds,
                 ),
               )
             )}
           </Stack>
         ) : compact ? (
           <Box className="tool-picker__compact">
-            {favoriteToolItems.length > 0 && (
+            {toolAvailabilityLoading ? (
+              <div
+                className="tool-picker__compact-loading"
+                aria-busy="true"
+                aria-label={t("toolPicker.loadingTools", "Loading tools")}
+              >
+                {[0, 1, 2, 3, 4, 5, 6].map((row) => (
+                  <Skeleton key={row} height={48} radius="sm" />
+                ))}
+              </div>
+            ) : (
               <>
-                <div style={HEADER_TEXT_STYLE}>
-                  {t("toolPanel.fullscreen.favorites", "Favourites")}
-                </div>
-                <div className="tool-picker__compact-list">
-                  {favoriteToolItems.map(({ id, tool }) => (
-                    <ToolButton
-                      key={`fav-${id}`}
-                      id={id}
-                      tool={tool}
-                      isSelected={selectedToolKey === id}
-                      onSelect={onSelect}
-                      hasStars
-                      showDescription
-                    />
-                  ))}
-                </div>
+                {favoriteToolItems.length > 0 && (
+                  <>
+                    <div style={HEADER_TEXT_STYLE}>
+                      {t("toolPanel.fullscreen.favorites", "Favourites")}
+                    </div>
+                    <div className="tool-picker__compact-list">
+                      {favoriteToolItems.map(({ id, tool }) => (
+                        <ToolButton
+                          key={`fav-${id}`}
+                          id={id}
+                          tool={tool}
+                          isSelected={selectedToolKey === id}
+                          onSelect={onSelect}
+                          hasStars
+                          isFavorited
+                          showDescription
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+                {compactRecommendedItems.length > 0 && (
+                  <>
+                    <div style={HEADER_TEXT_STYLE}>
+                      {t("toolPanel.fullscreen.recommended", "Recommended")}
+                    </div>
+                    <div className="tool-picker__compact-list">
+                      {compactRecommendedItems.map(({ id, tool }) => (
+                        <ToolButton
+                          key={`rec-${id}`}
+                          id={id as ToolId}
+                          tool={tool}
+                          isSelected={selectedToolKey === id}
+                          onSelect={onSelect}
+                          hasStars
+                          isFavorited={false}
+                          showDescription
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+                {favoriteToolItems.length === 0 &&
+                compactRecommendedItems.length === 0 ? (
+                  <NoToolsFound />
+                ) : null}
               </>
             )}
-            {compactRecommendedItems.length > 0 && (
-              <>
-                <div style={HEADER_TEXT_STYLE}>
-                  {t("toolPanel.fullscreen.recommended", "Recommended")}
-                </div>
-                <div className="tool-picker__compact-list">
-                  {compactRecommendedItems.map(({ id, tool }) => (
-                    <ToolButton
-                      key={`rec-${id}`}
-                      id={id as ToolId}
-                      tool={tool}
-                      isSelected={selectedToolKey === id}
-                      onSelect={onSelect}
-                      hasStars
-                      showDescription
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-            {favoriteToolItems.length === 0 &&
-            compactRecommendedItems.length === 0 ? (
-              <NoToolsFound />
-            ) : null}
           </Box>
         ) : (
           <>
@@ -198,6 +219,7 @@ const ToolPicker = ({
                         isSelected={selectedToolKey === id}
                         onSelect={onSelect}
                         hasStars
+                        isFavorited
                       />
                     ))}
                   </div>
@@ -217,6 +239,7 @@ const ToolPicker = ({
                         isSelected={selectedToolKey === id}
                         onSelect={onSelect}
                         hasStars
+                        isFavorited={favoriteToolIds.has(id)}
                       />
                     ))}
                   </div>
@@ -245,6 +268,7 @@ const ToolPicker = ({
                         false,
                         undefined,
                         true,
+                        favoriteToolIds,
                       )}
                     </Box>
                   </LazyToolSection>

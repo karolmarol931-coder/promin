@@ -136,7 +136,8 @@ if (!existingContext) {
  * Slim subset contexts for hot consumers that don't need the full state.
  *
  *  - `useToolWorkflowActions()` — referentially-stable callbacks.
- *  - `useToolWorkflowData()` — tool registry, availability, favorites.
+ *  - `useToolWorkflowData()` — tool registry and availability.
+ *  - `useToolWorkflowFavorites()` — favorites for consumers that render them.
  */
 export interface ToolWorkflowActionsValue {
   selectTool: (toolId: ToolId | null) => void;
@@ -160,9 +161,13 @@ export interface ToolWorkflowActionsValue {
 
 export interface ToolWorkflowDataValue {
   toolAvailability: ToolAvailabilityMap;
+  toolAvailabilityLoading: boolean;
   toolRegistry: Partial<ToolRegistry>;
-  favoriteTools: ToolId[];
   getSelectedTool: (toolId: ToolId | null) => ToolRegistryEntry | null;
+}
+
+export interface ToolWorkflowFavoritesValue {
+  favoriteTools: ToolId[];
   isFavorite: (toolId: ToolId) => boolean;
 }
 
@@ -170,18 +175,12 @@ type ToolWorkflowActionsBaseValue = Omit<
   ToolWorkflowActionsValue,
   "toggleFavorite"
 >;
-type ToolWorkflowDataBaseValue = Omit<
-  ToolWorkflowDataValue,
-  "favoriteTools" | "isFavorite"
->;
+type ToolWorkflowDataBaseValue = ToolWorkflowDataValue;
 type ToolFavoriteActionsValue = Pick<
   ToolWorkflowActionsValue,
   "toggleFavorite"
 >;
-type ToolFavoriteDataValue = Pick<
-  ToolWorkflowDataValue,
-  "favoriteTools" | "isFavorite"
->;
+type ToolFavoriteDataValue = ToolWorkflowFavoritesValue;
 
 const ToolWorkflowActionsContext = createContext<
   ToolWorkflowActionsBaseValue | undefined
@@ -271,8 +270,12 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
   const navigationState = useNavigationState();
 
   // Tool management hook
-  const { toolRegistry, getSelectedTool, toolAvailability } =
-    useToolManagement();
+  const {
+    toolRegistry,
+    getSelectedTool,
+    toolAvailability,
+    toolAvailabilityLoading,
+  } = useToolManagement();
   const { allTools } = useToolRegistry();
 
   // Tool history hook
@@ -778,10 +781,11 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
   const dataValue = useMemo<ToolWorkflowDataBaseValue>(
     () => ({
       toolAvailability,
+      toolAvailabilityLoading,
       toolRegistry,
       getSelectedTool,
     }),
-    [toolAvailability, toolRegistry, getSelectedTool],
+    [toolAvailability, toolAvailabilityLoading, toolRegistry, getSelectedTool],
   );
 
   // Properly memoized context value
@@ -884,17 +888,22 @@ export function useToolWorkflowActions(): ToolWorkflowActionsValue {
   return value;
 }
 
-/** Tool registry, availability, and favorites — stable while unchanged. */
+/** Tool registry and availability, stable while unchanged. */
 export function useToolWorkflowData(): ToolWorkflowDataValue {
   const ctx = useContext(ToolWorkflowDataContext);
-  const favoriteData = useContext(ToolFavoriteDataContext);
-  const value = useMemo(
-    () => (ctx && favoriteData ? { ...ctx, ...favoriteData } : undefined),
-    [ctx, favoriteData],
-  );
-  if (!value) {
+  if (!ctx) {
     throw new Error(
       "useToolWorkflowData must be used within ToolWorkflowProvider",
+    );
+  }
+  return ctx;
+}
+
+export function useToolWorkflowFavorites(): ToolWorkflowFavoritesValue {
+  const value = useContext(ToolFavoriteDataContext);
+  if (!value) {
+    throw new Error(
+      "useToolWorkflowFavorites must be used within ToolWorkflowProvider",
     );
   }
   return value;

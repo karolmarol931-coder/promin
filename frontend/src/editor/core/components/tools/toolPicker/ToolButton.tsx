@@ -31,6 +31,7 @@ interface ToolButtonProps {
   disableNavigation?: boolean;
   matchedSynonym?: string;
   hasStars?: boolean;
+  isFavorited?: boolean;
   showDescription?: boolean;
   /** Called when an unavailable tool is clicked; if provided, overrides the default no-op */
   onUnavailableClick?: () => void;
@@ -45,6 +46,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({
   disableNavigation = false,
   matchedSynonym,
   hasStars = false,
+  isFavorited = false,
   showDescription = false,
   onUnavailableClick,
   badgeCount,
@@ -52,7 +54,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({
   const { t } = useTranslation();
   const { config } = useAppConfig();
   const premiumEnabled = config?.premiumEnabled;
-  const { isFavorite, toolAvailability } = useToolWorkflowData();
+  const { toolAvailability } = useToolWorkflowData();
   const { toggleFavorite } = useToolWorkflowActions();
   const disabledReason = getToolDisabledReason(
     id,
@@ -72,7 +74,6 @@ const ToolButton: React.FC<ToolButtonProps> = ({
   const { hotkeys } = useHotkeys();
   const binding = hotkeys[id];
   const { getToolNavigation } = useToolNavigation();
-  const fav = isFavorite(id);
 
   const handleClick = (id: ToolId) => {
     if (isUnavailable) {
@@ -300,7 +301,7 @@ const ToolButton: React.FC<ToolButtonProps> = ({
   const star =
     hasStars && !visuallyUnavailable ? (
       <FavoriteStar
-        isFavorite={fav}
+        isFavorite={isFavorited}
         onToggle={() => toggleFavorite(id)}
         className="tool-button-star"
         size="xs"

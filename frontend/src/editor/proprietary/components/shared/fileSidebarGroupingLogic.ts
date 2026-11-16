@@ -29,8 +29,8 @@ export function bucketStubsByLabel(
 /**
  * Pure grouping: Recent (top {@link RECENT_COUNT} by lastModified), then one group per VISIBLE
  * category with ≥1 file (a file lands in every category it has a label in), sorted alphabetically,
- * then Other (files in no visible category) last. Categories are the fixed, shared set; a category
- * the user has hidden forms no group, so its files fall to Other.
+ * then Other (older files in no visible category) last. Categories are the fixed, shared set; a
+ * category the user has hidden forms no group, so its older files fall to Other.
  */
 export function buildLabelGroups(
   stubs: StirlingFileStub[],
@@ -72,7 +72,10 @@ export function buildLabelGroups(
   for (const group of visible) {
     for (const stub of group.stubs) covered.add(stub.id);
   }
-  const other = stubs.filter((stub) => !covered.has(stub.id as string));
+  const recentIds = new Set(recent.map((stub) => stub.id));
+  const other = stubs.filter(
+    (stub) => !covered.has(stub.id as string) && !recentIds.has(stub.id),
+  );
 
   const groups: FileSidebarGroup[] = [
     {
