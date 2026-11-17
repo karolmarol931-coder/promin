@@ -74,24 +74,6 @@
   border-inline-start: 1px solid var(--c-border-subtle);
 }
 
-.tool-panel--floating.tool-panel--content-sized {
-  height: fit-content;
-  max-height: 100%;
-}
-
-.tool-panel__content-sized-tools {
-  display: flex;
-  flex: 0 1 auto;
-  flex-direction: column;
-  min-height: 0;
-  max-height: 100%;
-  overflow: hidden;
-}
-
-.tool-panel__content-sized-tools .tool-picker-scrollable {
-  max-height: calc(var(--titlebar-body-h, 100dvh) - 4.5rem);
-}
-
 .tool-panel__expand-btn {
   flex-shrink: 0;
   color: var(--c-text-muted) !important;

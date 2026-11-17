@@ -270,12 +270,17 @@ export function FilesPageProvider({ children }: { children: React.ReactNode }) {
     map.set(ROOT_FOLDER_ID, 0);
     for (const f of folders.folders) map.set(f.id, 0);
     for (const file of allFiles) {
-      const fid = file.folderId ?? null;
-      if (fid === null && getFileOrigin(file) === "local") continue;
+      const storedFolderId = file.folderId ?? null;
+      const fid =
+        localOnly && storedFolderId && !folders.foldersById.has(storedFolderId)
+          ? null
+          : storedFolderId;
+      if (fid === null && getFileOrigin(file) === "local" && !localOnly)
+        continue;
       map.set(fid, (map.get(fid) ?? 0) + 1);
     }
     return map;
-  }, [allFiles, folders.folders]);
+  }, [allFiles, folders.folders, folders.foldersById, localOnly]);
 
   const {
     selectedFileIds,

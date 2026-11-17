@@ -19,7 +19,7 @@ export function getFileOrigin(file: StirlingFileStub): FileOrigin {
   return "local";
 }
 
-/** Local files without a known folder are hidden from Promin library but remain in Recents. */
+/** Identifies local records that have not been assigned to a library folder. */
 export function isUnfiledLocalFile(
   file: StirlingFileStub,
   foldersById: ReadonlyMap<FolderId, FolderRecord>,

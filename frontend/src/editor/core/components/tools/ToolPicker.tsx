@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Box, Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Button } from "@editor/ui/Button";
@@ -17,7 +17,10 @@ import {
 } from "@editor/contexts/ToolWorkflowContext";
 import { useToolRegistry } from "@editor/contexts/ToolRegistryContext";
 import { ToolId } from "@editor/types/toolId";
-import { getSubcategoryLabel } from "@editor/data/toolsTaxonomy";
+import {
+  getSubcategoryLabel,
+  SubcategoryId,
+} from "@editor/data/toolsTaxonomy";
 import { ToolPickerFooterExtensions } from "@editor/components/tools/toolPicker/ToolPickerFooterExtensions";
 
 interface ToolPickerProps {
@@ -30,8 +33,6 @@ interface ToolPickerProps {
   isSearching?: boolean;
   /** Compact "resting" view: favourites + recommended only, with a button to expand. */
   compact?: boolean;
-  /** Size the desktop all-tools panel to its content while keeping a height limit. */
-  contentSized?: boolean;
   /** Called when the user clicks "View all tools" in compact mode. */
   onShowAllTools?: () => void;
 }
@@ -53,13 +54,6 @@ const SCROLLABLE_STYLE: React.CSSProperties = {
   height: "100%",
   marginTop: -2,
 };
-const CONTENT_SIZED_SCROLLABLE_STYLE: React.CSSProperties = {
-  flex: "0 1 auto",
-  overflowY: "auto",
-  overflowX: "hidden",
-  minHeight: 0,
-  marginTop: -2,
-};
 const CONTAINER_STYLE: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
@@ -77,12 +71,15 @@ const ToolPicker = ({
   filteredTools,
   isSearching = false,
   compact = false,
-  contentSized = false,
   onShowAllTools,
 }: ToolPickerProps) => {
   const { t } = useTranslation();
 
   const scrollerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    scrollerRef.current?.scrollTo({ top: 0 });
+  }, [compact, isSearching]);
 
   const { sections: visibleSections } = useToolSections(filteredTools);
   const { toolRegistry } = useToolWorkflowData();
@@ -141,16 +138,12 @@ const ToolPicker = ({
 
   return (
     <Box
-      h={contentSized ? "auto" : "100%"}
-      style={
-        contentSized
-          ? { ...CONTAINER_STYLE, flex: "0 1 auto", maxHeight: "100%" }
-          : CONTAINER_STYLE
-      }
+      h="100%"
+      style={{ ...CONTAINER_STYLE, flex: 1, minHeight: 0 }}
     >
       <Box
         ref={scrollerRef}
-        style={contentSized ? CONTENT_SIZED_SCROLLABLE_STYLE : SCROLLABLE_STYLE}
+        style={SCROLLABLE_STYLE}
         className="tool-picker-scrollable"
       >
         {isSearching ? (
@@ -225,7 +218,13 @@ const ToolPicker = ({
         ) : (
           <>
             {/* All-tools view: favourites + recommended + all subcategories. */}
-            <Stack px="sm" pb="sm" pt={4} gap="xs">
+            <Stack
+              px="sm"
+              pb="sm"
+              pt={4}
+              gap="xs"
+              style={{ minHeight: "100%", justifyContent: "space-between" }}
+            >
               {favoriteToolItems.length > 0 && (
                 <Box w="100%">
                   <div style={HEADER_TEXT_STYLE}>
@@ -267,33 +266,57 @@ const ToolPicker = ({
                 </Box>
               )}
               {allSection &&
-                allSection.subcategories.map((sc: SubcategoryGroup) => (
-                  <LazyToolSection
-                    key={sc.subcategoryId}
-                    estimatedHeight={32 + sc.tools.length * 44}
-                    scrollRoot={scrollerRef}
-                    label={toTitleCase(
-                      getSubcategoryLabel(t, sc.subcategoryId),
-                    )}
-                  >
-                    <Box w="100%">
-                      <div style={HEADER_TEXT_STYLE}>
-                        {toTitleCase(getSubcategoryLabel(t, sc.subcategoryId))}
-                      </div>
-                      {renderToolButtons(
-                        t,
-                        sc,
-                        selectedToolKey,
-                        onSelect,
-                        false,
-                        false,
-                        undefined,
-                        true,
-                        favoriteToolIds,
-                      )}
-                    </Box>
-                  </LazyToolSection>
-                ))}
+                allSection.subcategories.map((sc: SubcategoryGroup) => {
+                  const isDeveloperTools =
+                    sc.subcategoryId === SubcategoryId.DEVELOPER_TOOLS;
+                  const label = toTitleCase(
+                    getSubcategoryLabel(t, sc.subcategoryId),
+                  );
+                  const toolButtons = renderToolButtons(
+                    t,
+                    sc,
+                    selectedToolKey,
+                    onSelect,
+                    false,
+                    false,
+                    undefined,
+                    true,
+                    favoriteToolIds,
+                  );
+
+                  return (
+                    <LazyToolSection
+                      key={sc.subcategoryId}
+                      estimatedHeight={
+                        isDeveloperTools ? 32 : 32 + sc.tools.length * 44
+                      }
+                      scrollRoot={scrollerRef}
+                      label={label}
+                    >
+                      <Box w="100%">
+                        {isDeveloperTools ? (
+                          <details>
+                            <summary
+                              style={{
+                                ...HEADER_TEXT_STYLE,
+                                cursor: "pointer",
+                                userSelect: "none",
+                              }}
+                            >
+                              {label}
+                            </summary>
+                            {toolButtons}
+                          </details>
+                        ) : (
+                          <>
+                            <div style={HEADER_TEXT_STYLE}>{label}</div>
+                            {toolButtons}
+                          </>
+                        )}
+                      </Box>
+                    </LazyToolSection>
+                  );
+                })}
             </Stack>
 
             {!quickSection && !allSection && <NoToolsFound />}

@@ -9,6 +9,7 @@ import type { StirlingFileStub } from "@editor/types/fileContext";
 import { FolderId, folderKind } from "@editor/types/folder";
 import type { DiskFileEntry } from "@editor/services/localFolderContents";
 import { libraryFileDate } from "@editor/components/filesPage/libraryFileDate";
+import { useLocalProcessingOnly } from "@editor/hooks/useLocalProcessingOnly";
 import {
   getFileOrigin,
   isUnfiledLocalFile,
@@ -41,6 +42,7 @@ export function useLibraryFiles({
   stagedFiles?: StirlingFileStub[];
 }) {
   const { folders: folderRecords, foldersById } = useFolders();
+  const localOnly = useLocalProcessingOnly();
   const subtreeFolderIds = useMemo(() => {
     const set = new Set<FolderId | null>();
     set.add(currentFolderId);
@@ -104,7 +106,7 @@ export function useLibraryFiles({
         return allFiles.filter((f) => {
           if (currentTab === "cloud" && f.remoteStorageId == null) return false;
           const folder = f.folderId ? foldersById.get(f.folderId) : undefined;
-          if (isUnfiledLocalFile(f, foldersById)) return false;
+          if (!localOnly && isUnfiledLocalFile(f, foldersById)) return false;
           const effectiveFolder =
             folder &&
             ((currentTab !== "cloud" && originFilter !== "cloud") ||
@@ -133,6 +135,7 @@ export function useLibraryFiles({
     search,
     subtreeFolderIds,
     foldersById,
+    localOnly,
   ]);
 
   const stagedInScope =

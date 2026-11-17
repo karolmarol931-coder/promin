@@ -87,14 +87,13 @@ export default function RightSidebar() {
       : null;
 
   const expandedWidth = "18.5rem";
-  const contentSized = allToolsView && !isMobile;
 
   return (
     <div
       ref={toolPanelRef}
       data-sidebar="tool-panel"
       data-tour={fullscreenExpanded ? undefined : "tool-panel"}
-      className={`tool-panel flex flex-col ${fullscreenExpanded ? "tool-panel--fullscreen-active" : "overflow-hidden"} ${isMobile || fullscreenExpanded ? "border-l border-[var(--c-border-subtle)]" : "tool-panel--floating"} ${contentSized ? "tool-panel--content-sized" : ""} transition-all duration-300 ease-out ${isMobile ? "h-full border-r-0" : fullscreenExpanded ? "h-screen" : ""} ${fullscreenExpanded ? "tool-panel--fullscreen" : ""}`}
+      className={`tool-panel flex flex-col ${fullscreenExpanded ? "tool-panel--fullscreen-active" : "overflow-hidden"} ${isMobile || fullscreenExpanded ? "border-l border-[var(--c-border-subtle)]" : "tool-panel--floating"} transition-all duration-300 ease-out ${isMobile ? "h-full border-r-0" : fullscreenExpanded ? "h-screen" : ""} ${fullscreenExpanded ? "tool-panel--fullscreen" : ""}`}
       style={{
         width: isMobile ? "100%" : expandedWidth,
         padding: "0",
@@ -105,12 +104,11 @@ export default function RightSidebar() {
           style={{
             opacity: 1,
             transition: "opacity 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-            height: contentSized ? "auto" : "100%",
+            height: "100%",
             width: isMobile ? "100%" : expandedWidth,
-            maxHeight: contentSized ? "100%" : undefined,
             maxWidth: isMobile ? "44rem" : undefined,
             marginInline: isMobile ? "auto" : undefined,
-            flexShrink: contentSized ? 1 : 0,
+            flexShrink: 0,
             display: "flex",
             flexDirection: "column",
             position: "relative",
@@ -175,7 +173,6 @@ export default function RightSidebar() {
 
             <ToolPanel
               allToolsView={allToolsView}
-              contentSized={contentSized}
               onShowAllTools={handleShowAllTools}
               onToolSelect={handleToolSelectWithTransition}
               compact={!allToolsView}

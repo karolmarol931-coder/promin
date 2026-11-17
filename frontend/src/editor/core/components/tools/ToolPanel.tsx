@@ -11,8 +11,6 @@ import { ToolId } from "@editor/types/toolId";
 interface ToolPanelProps {
   /** Whether to expand into the full categorised tools view (with search). */
   allToolsView: boolean;
-  /** Let the desktop all-tools rail size itself to its visible list. */
-  contentSized?: boolean;
   /** Trigger to enter the all-tools view (from the "View all tools" button). */
   onShowAllTools: () => void;
   /**
@@ -30,7 +28,6 @@ interface ToolPanelProps {
 /** Tool list and renderer for the right rail; rail chrome lives in RightSidebar. */
 export default function ToolPanel({
   allToolsView,
-  contentSized = false,
   onShowAllTools,
   onToolSelect,
   compact: compactProp,
@@ -73,13 +70,7 @@ export default function ToolPanel({
       )}
 
       {searching && (allToolsView || panelSearch) ? (
-        <div
-          className={
-            contentSized
-              ? "tool-panel__content-sized-tools"
-              : "flex-1 flex flex-col overflow-y-auto"
-          }
-        >
+        <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
           <SearchResults
             filteredTools={filteredTools}
             onSelect={(id) => selectTool(id as ToolId)}
@@ -87,13 +78,7 @@ export default function ToolPanel({
           />
         </div>
       ) : leftPanelView === "toolPicker" ? (
-        <div
-          className={
-            contentSized
-              ? "tool-panel__content-sized-tools"
-              : "flex-1 flex flex-col overflow-auto"
-          }
-        >
+        <div className="flex-1 flex flex-col overflow-auto min-h-0">
           <ToolPicker
             selectedToolKey={selectedToolKey}
             onSelect={(id) => selectTool(id as ToolId)}
@@ -101,7 +86,6 @@ export default function ToolPanel({
             isSearching={searching}
             compact={compactProp ?? !allToolsView}
             onShowAllTools={onShowAllTools}
-            contentSized={contentSized}
           />
         </div>
       ) : (
