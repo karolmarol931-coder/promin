@@ -1225,6 +1225,10 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
         subcategoryId: SubcategoryId.GENERAL,
         maxFiles: -1,
         endpoints: ["ocr-pdf"],
+        unavailableMessage: t(
+          "home.ocr.unavailable",
+          "В этой сборке не включён движок распознавания Tesseract.",
+        ),
         operationConfig: asRegistryConfig(ocrOperationConfig),
         automationSettings: lazySettings(
           () => import("@editor/components/tools/ocr/OCRSettings"),

@@ -1,4 +1,3 @@
-import { isAxiosError } from "axios";
 import { isOffDeviceEndpointName } from "@editor/services/documentPrivacyService";
 import apiClient from "@editor/services/apiClient";
 import { tauriBackendService } from "@editor/services/tauriBackendService";
@@ -31,21 +30,12 @@ async function ensureBackendReady(): Promise<void> {
 async function fetchAvailabilityMap(
   endpoints: string[],
 ): Promise<EndpointAvailabilityMap> {
-  try {
-    const response = await apiClient.get<EndpointAvailabilityMap>(
-      "/api/v1/config/endpoints-availability",
-      { suppressErrorToast: true },
-    );
-    return response.data;
-  } catch (error) {
-    if (!isAxiosError(error) || error.response?.status !== 400) throw error;
-    const query = encodeURIComponent(endpoints.join(","));
-    const response = await apiClient.get<EndpointAvailabilityMap>(
-      `/api/v1/config/endpoints-availability?endpoints=${query}`,
-      { suppressErrorToast: true },
-    );
-    return response.data;
-  }
+  const query = encodeURIComponent(endpoints.join(","));
+  const response = await apiClient.get<EndpointAvailabilityMap>(
+    `/api/v1/config/endpoints-availability?endpoints=${query}`,
+    { suppressErrorToast: true },
+  );
+  return response.data;
 }
 
 function normalise(

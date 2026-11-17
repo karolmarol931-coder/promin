@@ -59,9 +59,7 @@ describe("buildLabelGroups", () => {
         stub("older-hidden", ["invoice"], 0),
       ],
       t,
-      [
-        cat("finance", "Financial", ["invoice"], true),
-      ],
+      [cat("finance", "Financial", ["invoice"], true)],
     )!;
     expect(groups.some((g) => g.id === "category:finance")).toBe(false);
     expect(groups.at(-1)!.id).toBe("other");

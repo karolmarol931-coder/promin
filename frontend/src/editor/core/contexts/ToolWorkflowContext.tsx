@@ -269,11 +269,8 @@ export function ToolWorkflowProvider({ children }: ToolWorkflowProviderProps) {
   const navigationState = useNavigationState();
 
   // Tool management hook
-  const {
-    toolRegistry,
-    getSelectedTool,
-    toolAvailability,
-  } = useToolManagement();
+  const { toolRegistry, getSelectedTool, toolAvailability } =
+    useToolManagement();
   const { allTools } = useToolRegistry();
 
   // Tool history hook

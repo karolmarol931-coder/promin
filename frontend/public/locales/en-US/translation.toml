@@ -84,6 +84,7 @@ remove = "Remove"
 reset = "Reset"
 review = "Review"
 save = "Save"
+saved = "Saved"
 saveUnavailable = "Save unavailable for this item"
 size = "Size"
 startingNumberTooltip = "The first number to display. Subsequent pages will increment from this number."
@@ -4384,6 +4385,15 @@ dropHint = "or drop files anywhere"
 fromComputer = "Upload from computer"
 moreOptions = "More upload options"
 
+[fileEditor.folderImport]
+addPdfFolder = "Add PDFs from Folder"
+complete = "PDF files added"
+empty = "No PDF files were found in this folder."
+failed = "Could not load the folder"
+nextStep = "Choose a tool on the right to process them."
+searching = "Searching the folder for PDFs..."
+skipped = "Added {{imported}}. Could not read {{count}}."
+
 [fileEditor.unzip]
 error = "Error unzipping {{name}}"
 extracted_one = "Extracted {{count}} file from {{name}}"
@@ -5481,6 +5491,7 @@ title = "PDF Multi Tool"
 desc = "Cleanup scans and detects text from images within a PDF and re-adds it as text."
 tags = "extract,scan,OCR,optical character recognition,text recognition,scan to text,image to text,scanned document,searchable PDF,make searchable,extract text,recognize text,read scanned"
 title = "OCR / Cleanup scans"
+unavailable = "OCR is unavailable because this build does not include the Tesseract engine."
 
 [home.overlay-pdfs]
 desc = "Overlay one PDF on top of another"
