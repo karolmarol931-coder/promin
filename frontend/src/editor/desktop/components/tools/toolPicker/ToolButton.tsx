@@ -20,12 +20,19 @@ const ToolButton: React.FC<CoreToolButtonProps> = (props) => {
     toolAvailability,
     premiumEnabled,
   );
+  // Endpoint checks finish after first paint, so compact rows stay stable while they settle.
+  const keepCompactEndpointRow =
+    props.showDescription &&
+    Boolean(props.tool.endpoints?.length) &&
+    (props.tool.component !== null ||
+      props.id === "read" ||
+      props.id === "multiTool");
+  const isUnavailable =
+    props.tool.hiddenFromToolList || disabledReason !== null;
 
   if (
     localOnly &&
-    (props.tool.hiddenFromToolList ||
-      props.tool.link ||
-      disabledReason !== null)
+    (props.tool.link || (isUnavailable && !keepCompactEndpointRow))
   ) {
     return null;
   }
