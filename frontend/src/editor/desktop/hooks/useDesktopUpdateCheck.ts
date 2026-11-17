@@ -4,7 +4,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { check, type DownloadEvent } from "@tauri-apps/plugin-updater";
 import i18n from "@editor/i18n";
 
-const UPDATE_CHECK_INTERVAL_MS = 8 * 60 * 60 * 1000;
+const UPDATE_CHECK_INTERVAL_MS = 30 * 60 * 1000;
 const UPDATE_CHECK_TIMEOUT_MS = 20 * 1000;
 const UPDATE_DOWNLOAD_TIMEOUT_MS = 2 * 60 * 60 * 1000;
 

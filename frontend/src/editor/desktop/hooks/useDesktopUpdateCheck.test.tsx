@@ -66,7 +66,7 @@ describe("desktop update lifecycle", () => {
       durationMs: 8000,
       expandable: false,
     });
-    expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 28_800_000);
+    expect(setInterval).toHaveBeenCalledWith(expect.any(Function), 1_800_000);
 
     unmount();
     expect(clearInterval).toHaveBeenCalledWith(
