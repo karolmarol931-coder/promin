@@ -18,7 +18,7 @@ test.describe("PDF Library cleanup", () => {
     await expect(page).toHaveURL(/\/files(?:$|[/?#])/);
   });
 
-  test("opens computer files through quick navigation using the shared picker", async ({
+  test("opens all sidebar files in Recents after importing a file", async ({
     page,
   }) => {
     await page.goto("/editor");
@@ -30,5 +30,11 @@ test.describe("PDF Library cleanup", () => {
     await expect(page.locator(".file-sidebar-file-item").first()).toBeVisible({
       timeout: 10_000,
     });
+
+    await page.locator(sidebar).locator(".file-sidebar-view-all").click();
+    await expect(page).toHaveURL(/\/files\?view=recent$/);
+    await expect(
+      page.getByRole("button", { name: "Recents", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
   });
 });

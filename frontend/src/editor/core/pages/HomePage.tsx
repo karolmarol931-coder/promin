@@ -171,6 +171,18 @@ export default function HomePage() {
     if (consumeReaderModeRequest()) setReaderMode(true);
   }, [setReaderMode]);
   const { actions } = useNavigationActions();
+  // Preserve this destination through the workbench effect's default /files route.
+  const pendingLibraryPathRef = useRef<string | null>(null);
+  const openRecentFilesPage = useCallback(() => {
+    requestNavigation(() => {
+      pendingLibraryPathRef.current = "/files?view=recent";
+      actions.restoreWorkbench("myFiles");
+      if (location.pathname.startsWith("/files")) {
+        pendingLibraryPathRef.current = null;
+        navigate("/files?view=recent");
+      }
+    });
+  }, [actions, location.pathname, navigate, requestNavigation]);
 
   const { searchInterfaceActions } = useViewer();
 
@@ -256,7 +268,9 @@ export default function HomePage() {
     wasInLibraryRef.current = inLibrary;
     const onFilesPath = location.pathname.startsWith("/files");
     if (inLibrary && !onFilesPath) {
-      navigate("/files");
+      const target = pendingLibraryPathRef.current ?? "/files";
+      pendingLibraryPathRef.current = null;
+      navigate(target);
     } else if (!inLibrary && onFilesPath && !readerMode) {
       // Reading also leaves the library, and its own effect names the path it
       // leaves for. Both navigating puts the editor between the two in history,
@@ -834,6 +848,7 @@ export default function HomePage() {
                   active={navigationState.workbench === "myFiles"}
                   onOpenSettings={openSettings}
                   onRegisterOpenFromComputer={registerOpenFromComputer}
+                  onOpenRecentFilesPage={openRecentFilesPage}
                 />
               </div>
             )}

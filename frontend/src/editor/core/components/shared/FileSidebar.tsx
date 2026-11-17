@@ -87,6 +87,7 @@ export interface FileSidebarProps {
   onUploadFiles?: (files: File[]) => void | Promise<void>;
   /** Publishes the sidebar's picker so the quick navigation rail can reuse it. */
   onRegisterOpenFromComputer?: (open: (() => void) | null) => void;
+  onOpenRecentFilesPage: () => void;
   /** Action rows inserted under Open-from-computer (New folder, Refresh). A
    *  control with more than one destination renders itself instead. */
   extraActions?: Array<{
@@ -459,6 +460,7 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
       accountHoisted = false,
       onUploadFiles,
       onRegisterOpenFromComputer,
+      onOpenRecentFilesPage,
       extraActions,
     },
     ref,
@@ -479,7 +481,6 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
     const damagedRepair = useDamagedFileRepair();
     const { actions: navActions } = useNavigationActions();
     const { workbench: currentWorkbench } = useNavigationState();
-    const filesPage = useFilesPage();
     const policyFileBadges = usePolicyFileBadges();
     // The page editor lays out every open file, so an added file belongs there.
     const staysOnAdd = currentWorkbench === "pageEditor";
@@ -1068,11 +1069,6 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
       ...(extraActions ?? []),
     ];
 
-    const openRecentFilesPage = useCallback(() => {
-      filesPage.setCurrentTab("recent");
-      navActions.setWorkbench("myFiles");
-    }, [filesPage.setCurrentTab, navActions]);
-
     return (
       <div
         ref={ref}
@@ -1122,7 +1118,7 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
                   renderFileRow={renderFileRow}
                   onAddFiles={openNativeFilePicker}
                   onOpenFilesPage={() => navActions.setWorkbench("myFiles")}
-                  onOpenRecentFilesPage={openRecentFilesPage}
+                  onOpenRecentFilesPage={onOpenRecentFilesPage}
                 />
               )}
             </div>
