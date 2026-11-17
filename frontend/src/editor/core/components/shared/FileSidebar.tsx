@@ -381,6 +381,7 @@ interface LibraryFileListProps extends Omit<
   groups: FileSidebarGroup[] | null;
   scrollRef: RefCallback<HTMLElement>;
   onOpenFilesPage: () => void;
+  onOpenRecentFilesPage: () => void;
 }
 
 function LibraryFileList({
@@ -389,6 +390,7 @@ function LibraryFileList({
   groups,
   scrollRef,
   onOpenFilesPage,
+  onOpenRecentFilesPage,
   ...grouping
 }: LibraryFileListProps) {
   const { t } = useTranslation();
@@ -417,7 +419,7 @@ function LibraryFileList({
         <GroupedFileList
           groups={groups}
           total={stubs.length}
-          onViewAll={onOpenFilesPage}
+          onViewAll={onOpenRecentFilesPage}
           {...grouping}
         />
       ) : (
@@ -477,6 +479,7 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
     const damagedRepair = useDamagedFileRepair();
     const { actions: navActions } = useNavigationActions();
     const { workbench: currentWorkbench } = useNavigationState();
+    const filesPage = useFilesPage();
     const policyFileBadges = usePolicyFileBadges();
     // The page editor lays out every open file, so an added file belongs there.
     const staysOnAdd = currentWorkbench === "pageEditor";
@@ -1065,6 +1068,11 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
       ...(extraActions ?? []),
     ];
 
+    const openRecentFilesPage = useCallback(() => {
+      filesPage.setCurrentTab("recent");
+      navActions.setWorkbench("myFiles");
+    }, [filesPage.setCurrentTab, navActions]);
+
     return (
       <div
         ref={ref}
@@ -1114,6 +1122,7 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
                   renderFileRow={renderFileRow}
                   onAddFiles={openNativeFilePicker}
                   onOpenFilesPage={() => navActions.setWorkbench("myFiles")}
+                  onOpenRecentFilesPage={openRecentFilesPage}
                 />
               )}
             </div>
