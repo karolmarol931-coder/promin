@@ -685,7 +685,7 @@ export default function HomePage() {
         variant="tertiary"
         className="mobile-bottom-button"
         aria-label={t("home.mobile.openFiles", "Open files")}
-        onClick={() => navigate("/files")}
+        onClick={openRecentFilesPage}
       >
         <Icon name="folder" size="1.5rem" />
         <span className="mobile-bottom-button-label">
@@ -720,7 +720,7 @@ export default function HomePage() {
         onGoToStartupView={goToStartupView}
         onSelectTool={handleToolSelect}
         activeTool={selectedToolKey}
-        onShowFileLibrary={() => actions.setWorkbench("myFiles")}
+        onShowFileLibrary={openRecentFilesPage}
         onCreateProcessingFolder={processingFolderCreation.open}
         toolReasons={quickNavToolReasons}
         onOpenFromComputer={

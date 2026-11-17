@@ -1117,7 +1117,7 @@ const FileSidebar = forwardRef<HTMLDivElement, FileSidebarProps>(
                   onGroupOpenChange={setGroupOpenState}
                   renderFileRow={renderFileRow}
                   onAddFiles={openNativeFilePicker}
-                  onOpenFilesPage={() => navActions.setWorkbench("myFiles")}
+                  onOpenFilesPage={onOpenRecentFilesPage}
                   onOpenRecentFilesPage={onOpenRecentFilesPage}
                 />
               )}
