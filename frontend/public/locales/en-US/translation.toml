@@ -5858,6 +5858,10 @@ noLanguages = "No OCR languages are installed in this local copy of Promin."
 retry = "Try again"
 suggestedLanguage = "Suggested from the app language. Check that it matches the PDF."
 
+[ocr.local]
+noScannedPages = "No scanned pages were found. This PDF already contains selectable text."
+textAlreadyPresent = "This PDF already contains selectable text. Choose Force OCR to rebuild it."
+
 [ocr.operation]
 submit = "Process OCR and Review"
 

@@ -18,8 +18,8 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
       localOnly
         ? [
             ...new Set(
-              Object.values(catalog.allTools).flatMap(
-                (tool) => tool.endpoints ?? [],
+              Object.entries(catalog.allTools).flatMap(([id, tool]) =>
+                id === "ocr" ? [] : (tool.endpoints ?? []),
               ),
             ),
           ]
@@ -33,20 +33,28 @@ export function useTranslatedToolCatalog(): TranslatedToolCatalog {
       registry: T,
     ): T =>
       Object.fromEntries(
-        Object.entries(registry).map(([id, tool]) => [
-          id,
-          {
-            ...tool,
-            hiddenFromToolList:
-              tool.hiddenFromToolList ||
-              Boolean(
-                tool.endpoints?.length &&
-                !tool.endpoints.some(
-                  (endpoint) => endpointStatus[endpoint] === true,
+        Object.entries(registry).map(([id, tool]) => {
+          const locallyProcessed = id === "ocr";
+          return [
+            id,
+            {
+              ...tool,
+              endpoints: locallyProcessed ? [] : tool.endpoints,
+              unavailableMessage: locallyProcessed
+                ? undefined
+                : tool.unavailableMessage,
+              hiddenFromToolList:
+                tool.hiddenFromToolList ||
+                Boolean(
+                  !locallyProcessed &&
+                  tool.endpoints?.length &&
+                  !tool.endpoints.some(
+                    (endpoint) => endpointStatus[endpoint] === true,
+                  ),
                 ),
-              ),
-          },
-        ]),
+            },
+          ];
+        }),
       ) as T;
     return {
       allTools: restrict(catalog.allTools),

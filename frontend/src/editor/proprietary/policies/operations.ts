@@ -12,7 +12,7 @@ import { redactOperationConfig } from "@editor/hooks/tools/redact/useRedactOpera
 import { sanitizeOperationConfig } from "@editor/hooks/tools/sanitize/useSanitizeOperation";
 import { timestampPdfOperationConfig } from "@editor/hooks/tools/timestampPdf/useTimestampPdfOperation";
 import { addWatermarkOperationConfig } from "@editor/hooks/tools/addWatermark/useAddWatermarkOperation";
-import { ocrOperationConfig } from "@editor/hooks/tools/ocr/useOCROperation";
+import { ocrOperationConfig } from "@editor-core/hooks/tools/ocr/useOCROperation";
 import { flattenOperationConfig } from "@editor/hooks/tools/flatten/useFlattenOperation";
 import { compressOperationConfig } from "@editor/hooks/tools/compress/useCompressOperation";
 import {

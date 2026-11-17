@@ -31,9 +31,11 @@ test("catalogue and search hide unavailable tools but keep conversions with a lo
   state.localOnly = true;
   state.status = {};
   const { result, rerender } = renderHook(useTranslatedToolCatalog);
-  expect(filterToolRegistryByQuery(result.current.regularTools, "")).toEqual(
-    [],
-  );
+  expect(
+    filterToolRegistryByQuery(result.current.regularTools, "").map(
+      ({ item }) => item[0],
+    ),
+  ).toEqual(["ocr"]);
   state.status = {
     "merge-pdfs": true,
     "ocr-pdf": false,
@@ -45,12 +47,13 @@ test("catalogue and search hide unavailable tools but keep conversions with a lo
     filterToolRegistryByQuery(result.current.regularTools, "").map(
       ({ item }) => item[0],
     ),
-  ).toEqual(["merge", "convert"]);
+  ).toEqual(["merge", "ocr", "convert"]);
+  expect(result.current.allTools.ocr.endpoints).toEqual([]);
   expect(
     filterToolRegistryByQuery(result.current.regularTools, "OCR").map(
       ({ item }) => item[0],
     ),
-  ).not.toContain("ocr");
+  ).toContain("ocr");
   state.localOnly = false;
   rerender();
   expect(

@@ -162,6 +162,38 @@ export default defineConfig(async ({ mode, command }) => {
             dest: "pdfjs/standard_fonts",
           },
           {
+            src: "node_modules/tesseract.js/dist/worker.min.js",
+            dest: "ocr",
+          },
+          {
+            src: "node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm.js",
+            dest: "ocr/core",
+          },
+          {
+            src: "node_modules/tesseract.js-core/tesseract-core-simd-lstm.wasm",
+            dest: "ocr/core",
+          },
+          {
+            src: "node_modules/tesseract.js-core/tesseract-core-lstm.wasm.js",
+            dest: "ocr/core",
+          },
+          {
+            src: "node_modules/tesseract.js-core/tesseract-core-lstm.wasm",
+            dest: "ocr/core",
+          },
+          {
+            src: "node_modules/@tesseract.js-data/eng/4.0.0_best_int/eng.traineddata.gz",
+            dest: "ocr/lang",
+          },
+          {
+            src: "node_modules/@tesseract.js-data/pol/4.0.0_best_int/pol.traineddata.gz",
+            dest: "ocr/lang",
+          },
+          {
+            src: "node_modules/@tesseract.js-data/rus/4.0.0_best_int/rus.traineddata.gz",
+            dest: "ocr/lang",
+          },
+          {
             src: "src/editor/core/assets/brand/promin/*",
             dest: "promin",
           },

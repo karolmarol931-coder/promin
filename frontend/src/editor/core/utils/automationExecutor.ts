@@ -184,7 +184,11 @@ export const executeToolOperationWithPrefix = async (
   try {
     // Check if tool uses custom processor (like Convert tool)
     if (config.customProcessor) {
-      const result = await config.customProcessor(mergedParameters, files);
+      const result = await config.customProcessor(
+        mergedParameters,
+        files,
+        () => {},
+      );
       return result.files;
     }
 

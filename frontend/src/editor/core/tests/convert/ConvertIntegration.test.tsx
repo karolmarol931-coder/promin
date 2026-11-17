@@ -207,6 +207,7 @@ describe("Convert Tool Integration Tests", () => {
     expect(customProcessor).toHaveBeenCalledExactlyOnceWith(
       contrastParameters,
       [pdf],
+      expect.any(Function),
     );
     expect(result.current.operation.errorMessage).toBe(null);
     expect(result.current.state.files.byId[locked.fileId].isLeaf).toBe(true);

@@ -498,6 +498,27 @@
       "moduleLicenseUrl": "https://opensource.org/licenses/MIT"
     },
     {
+      "moduleName": "Tesseract traineddata (eng, pol, rus)",
+      "moduleUrl": "https://github.com/naptha/tessdata",
+      "moduleVersion": "4.0.0_best_int",
+      "moduleLicense": "Apache-2.0",
+      "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+    },
+    {
+      "moduleName": "tesseract.js",
+      "moduleUrl": "https://github.com/naptha/tesseract.js",
+      "moduleVersion": "6.0.1",
+      "moduleLicense": "Apache-2.0",
+      "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+    },
+    {
+      "moduleName": "tesseract.js-core",
+      "moduleUrl": "https://github.com/naptha/tesseract.js-core",
+      "moduleVersion": "6.1.2",
+      "moduleLicense": "Apache-2.0",
+      "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+    },
+    {
       "moduleName": "use-sync-external-store",
       "moduleUrl": "https://github.com/react/react",
       "moduleVersion": "1.6.0",

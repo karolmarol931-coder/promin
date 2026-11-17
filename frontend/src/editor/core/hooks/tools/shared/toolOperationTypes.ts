@@ -239,6 +239,7 @@ export interface CustomToolOperationConfig<
   customProcessor: (
     params: TParams,
     files: File[],
+    reportProgress: (progress: ProcessingProgress | null) => void,
   ) => Promise<CustomProcessorResult>;
 }
 

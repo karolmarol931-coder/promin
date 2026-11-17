@@ -436,7 +436,11 @@ export const useToolOperation = <TParams>(
 
           case ToolType.custom: {
             actions.setStatus("Processing files...");
-            const result = await config.customProcessor(params, filesForAPI);
+            const result = await config.customProcessor(
+              params,
+              filesForAPI,
+              actions.setProgress,
+            );
 
             processedFiles = result.files;
             const consumedAllInputs = result.consumedAllInputs || false;
