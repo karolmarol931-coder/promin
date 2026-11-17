@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { relaunch } from "@tauri-apps/plugin-process";
-import { Alert, Group, Progress, Stack, Text } from "@mantine/core";
+import { Alert, Group, Stack, Text } from "@mantine/core";
 import { Button } from "@editor/ui/Button";
 import { useTranslation } from "react-i18next";
 import {
@@ -10,6 +10,7 @@ import {
   type DesktopUpdateProgress,
 } from "@editor/hooks/useDesktopUpdateCheck";
 import { SettingsCard } from "@editor/components/shared/config/SettingsCard";
+import classes from "./DesktopUpdateSettings.module.css";
 
 type UpdateStatus = "idle" | "checking" | "up-to-date" | "ready" | "failed";
 
@@ -165,11 +166,10 @@ export function DesktopUpdateSettings() {
             size="sm"
             loading={status === "checking"}
             disabled={status === "checking"}
+            aria-busy={status === "checking"}
             onClick={() => void checkForUpdates()}
           >
-            {status === "checking"
-              ? t("desktop.updates.checking", "Checking for updates…")
-              : t("desktop.updates.checkNow", "Check for updates")}
+            {t("desktop.updates.checkNow", "Check for updates")}
           </Button>
         </Group>
         {(statusMessage || status === "checking") && (
@@ -206,12 +206,29 @@ export function DesktopUpdateSettings() {
                   {progressPercent !== null &&
                     ` ${t("desktop.updates.downloadProgress", "{{percent}}%", { percent: progressPercent })}`}
                 </Text>
-                <Progress
-                  value={progressPercent ?? 35}
-                  striped={progressPercent === null}
-                  animated={progressPercent === null}
+                <div
+                  className={classes.progressTrack}
+                  role="progressbar"
                   aria-label={updatePhaseMessage}
-                />
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={progressPercent ?? undefined}
+                  aria-valuetext={
+                    progressPercent === null
+                      ? updatePhaseMessage
+                      : `${progressPercent}%`
+                  }
+                >
+                  <div
+                    className={classes.progressFill}
+                    data-indeterminate={progressPercent === null}
+                    style={
+                      progressPercent === null
+                        ? undefined
+                        : { width: `${progressPercent}%` }
+                    }
+                  />
+                </div>
               </Stack>
             )}
           </Alert>
