@@ -51,10 +51,7 @@ export function LibraryToolbar({
   const { t } = useTranslation();
   const localOnly = useLocalProcessingOnly();
   useEffect(() => {
-    if (
-      localOnly &&
-      (originFilter === "cloud" || originFilter === "shared-with-me")
-    ) {
+    if (localOnly && originFilter !== "all") {
       setOriginFilter("all");
     }
   }, [localOnly, originFilter, setOriginFilter]);
@@ -72,39 +69,36 @@ export function LibraryToolbar({
           />
         ) : (
           <>
-            <Select
-              comboboxProps={{ zIndex: dropdownZIndex }}
-              size="xs"
-              value={originFilter}
-              onChange={(value) =>
-                value && setOriginFilter(value as FilesPageOriginFilter)
-              }
-              data={[
-                {
-                  value: "all",
-                  label: t("filesPage.origin.all", "All sources"),
-                },
-                {
-                  value: "local",
-                  label: t("filesPage.origin.local", "Local"),
-                },
-                {
-                  value: "cloud",
-                  label: t("filesPage.origin.cloud", "Cloud"),
-                },
-                {
-                  value: "shared-with-me",
-                  label: t("filesPage.origin.shared", "Shared"),
-                },
-              ].filter(
-                (source) =>
-                  !localOnly ||
-                  source.value === "all" ||
-                  source.value === "local",
-              )}
-              style={{ width: 140 }}
-              aria-label={t("filesPage.originFilter", "Filter by source")}
-            />
+            {!localOnly && (
+              <Select
+                comboboxProps={{ zIndex: dropdownZIndex }}
+                size="xs"
+                value={originFilter}
+                onChange={(value) =>
+                  value && setOriginFilter(value as FilesPageOriginFilter)
+                }
+                data={[
+                  {
+                    value: "all",
+                    label: t("filesPage.origin.all", "All sources"),
+                  },
+                  {
+                    value: "local",
+                    label: t("filesPage.origin.local", "Local"),
+                  },
+                  {
+                    value: "cloud",
+                    label: t("filesPage.origin.cloud", "Cloud"),
+                  },
+                  {
+                    value: "shared-with-me",
+                    label: t("filesPage.origin.shared", "Shared"),
+                  },
+                ]}
+                style={{ width: 140 }}
+                aria-label={t("filesPage.originFilter", "Filter by source")}
+              />
+            )}
             {(availableTypes.length > 1 || typeFilter.length > 0) && (
               <MultiSelect
                 comboboxProps={{ zIndex: dropdownZIndex }}

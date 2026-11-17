@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Tooltip } from "@mantine/core";
 import { Icon } from "@editor/ui/Icon";
 import { FileOrigin } from "@editor/components/filesPage/fileOrigin";
+import { useLocalProcessingOnly } from "@editor/hooks/useLocalProcessingOnly";
 
 interface FileOriginBadgeProps {
   origin: FileOrigin;
@@ -47,6 +48,9 @@ export function FileOriginBadge({
   tooltip,
 }: FileOriginBadgeProps) {
   const { t } = useTranslation();
+  const localOnly = useLocalProcessingOnly();
+
+  if (localOnly) return null;
 
   const config = (() => {
     switch (origin) {

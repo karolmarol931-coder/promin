@@ -7,6 +7,7 @@ import { useAuth } from "@editor/auth/UseSession";
 import { isBrowserOnlyFile } from "@editor/components/filesPage/fileOrigin";
 import { FileId } from "@editor/types/file";
 import { StirlingFileStub } from "@editor/types/fileContext";
+import { useLocalProcessingOnly } from "@editor/hooks/useLocalProcessingOnly";
 
 export interface FileDetailsActionsProps {
   selectedFileIds: FileId[];
@@ -46,6 +47,7 @@ export function FileDetailsActions({
   onShare,
 }: FileDetailsActionsProps) {
   const { t } = useTranslation();
+  const localOnly = useLocalProcessingOnly();
   const { isAnonymous } = useAuth();
   // Guests are off because they have no server storage, not because sharing is off.
   const shareDisabledHint = isAnonymous
@@ -102,7 +104,7 @@ export function FileDetailsActions({
           </Menu.Target>
           <Menu.Dropdown>
             {/* Keep sharing discoverable when server settings disable it. */}
-            {single && (
+            {single && !localOnly && (
               <Tooltip
                 label={shareDisabledHint}
                 disabled={sharingEnabled}

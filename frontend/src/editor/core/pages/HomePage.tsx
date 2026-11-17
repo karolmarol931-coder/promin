@@ -69,6 +69,7 @@ import { useNewFolderFlow } from "@editor/hooks/useNewFolderFlow";
 import { NewFolderButton } from "@editor/components/filesPage/NewFolderButton";
 import { useLibraryRefresh } from "@editor/hooks/useLibraryRefresh";
 import { useAuth } from "@editor/auth/UseSession";
+import { useLocalProcessingOnly } from "@editor/hooks/useLocalProcessingOnly";
 import { canPickDirectory } from "@editor/services/directoryPicker";
 import { useLibraryUpload } from "@editor/components/filesPage/useLibraryUpload";
 import { useProcessingFolderCreation } from "@editor/hooks/useProcessingFolderCreation";
@@ -898,9 +899,11 @@ const MyFilesSidebarOverrides = forwardRef<HTMLDivElement, FileSidebarProps>(
     } = useNewFolderFlow();
     const { refreshing, refresh: refreshLibrary } = useLibraryRefresh();
     const { isAnonymous } = useAuth();
-    const signInRequired = isAnonymous
-      ? t("filesPage.signInRequired", "Sign in to use cloud storage.")
-      : null;
+    const localProcessingOnly = useLocalProcessingOnly();
+    const signInRequired =
+      localProcessingOnly || !isAnonymous
+        ? null
+        : t("filesPage.signInRequired", "Sign in to use cloud storage.");
 
     return (
       <>

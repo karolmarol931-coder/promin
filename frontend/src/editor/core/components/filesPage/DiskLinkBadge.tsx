@@ -1,6 +1,7 @@
+import { Tooltip } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@editor/ui/Icon";
-import { Tooltip } from "@mantine/core";
+import { useLocalProcessingOnly } from "@editor/hooks/useLocalProcessingOnly";
 
 import { StirlingFileStub } from "@editor/types/fileContext";
 import { diskLinkState } from "@editor/services/diskLinkState";
@@ -46,9 +47,10 @@ const badgeStyle = {
 
 export function DiskLinkBadge({ file, compact = false }: DiskLinkBadgeProps) {
   const { t } = useTranslation();
+  const localOnly = useLocalProcessingOnly();
   const state = diskLinkState(file);
 
-  if (state === "none" || state === "linked") return null;
+  if (localOnly || state === "none" || state === "linked") return null;
 
   const config =
     state === "unavailable"

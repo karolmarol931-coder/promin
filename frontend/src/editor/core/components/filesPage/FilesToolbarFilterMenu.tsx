@@ -73,29 +73,26 @@ export function FilesToolbarFilterMenu({
       </Popover.Target>
       <Popover.Dropdown>
         <Stack gap="xs">
-          <Select
-            size="xs"
-            value={originFilter}
-            onChange={(value) =>
-              value && onOriginChange(value as FilesPageOriginFilter)
-            }
-            data={[
-              { value: "all", label: t("filesPage.origin.all", "All sources") },
-              { value: "local", label: t("filesPage.origin.local", "Local") },
-              { value: "cloud", label: t("filesPage.origin.cloud", "Cloud") },
-              {
-                value: "shared-with-me",
-                label: t("filesPage.origin.shared", "Shared"),
-              },
-            ].filter(
-              (source) =>
-                !localOnly ||
-                source.value === "all" ||
-                source.value === "local",
-            )}
-            label={t("filesPage.originFilter", "Filter by source")}
-            comboboxProps={{ withinPortal: false }}
-          />
+          {!localOnly && (
+            <Select
+              size="xs"
+              value={originFilter}
+              onChange={(value) =>
+                value && onOriginChange(value as FilesPageOriginFilter)
+              }
+              data={[
+                { value: "all", label: t("filesPage.origin.all", "All sources") },
+                { value: "local", label: t("filesPage.origin.local", "Local") },
+                { value: "cloud", label: t("filesPage.origin.cloud", "Cloud") },
+                {
+                  value: "shared-with-me",
+                  label: t("filesPage.origin.shared", "Shared"),
+                },
+              ]}
+              label={t("filesPage.originFilter", "Filter by source")}
+              comboboxProps={{ withinPortal: false }}
+            />
+          )}
           {(availableTypes.length > 1 || typeFilter.length > 0) && (
             <MultiSelect
               size="xs"

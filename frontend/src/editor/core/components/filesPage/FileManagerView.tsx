@@ -124,31 +124,35 @@ export default function FileManagerView() {
   );
   const { addFiles } = useFileHandler();
   const { config: appConfig } = useAppConfig();
+  const localProcessingOnly = useLocalProcessingOnly();
   const isMobile = useIsMobile();
   // Guests cannot use server storage; explain the disabled control before a request fails.
   const { isAnonymous } = useAuth();
-  const signInRequiredReason = isAnonymous
-    ? t("filesPage.signInRequired", "Sign in to use cloud storage.")
-    : null;
+  const signInRequiredReason =
+    localProcessingOnly || !isAnonymous
+      ? null
+      : t("filesPage.signInRequired", "Sign in to use cloud storage.");
   const connectedServer = useConnectedServer();
-  const refreshDisabledReason =
-    signInRequiredReason ??
-    (connectedServer
-      ? null
-      : t(
-          "filesPage.refreshNeedsConnection",
-          "Sign in to refresh from the server.",
-        ));
+  const refreshDisabledReason = localProcessingOnly
+    ? null
+    : signInRequiredReason ??
+      (connectedServer
+        ? null
+        : t(
+            "filesPage.refreshNeedsConnection",
+            "Sign in to refresh from the server.",
+          ));
   const uploadEnabled = appConfig?.storageEnabled === true;
-  const localProcessingOnly = useLocalProcessingOnly();
   const saveToServerDisabledReason: string | null =
-    signInRequiredReason ??
-    (uploadEnabled
+    localProcessingOnly
       ? null
-      : t(
-          "filesPage.saveToServerDisabledHint",
-          "Saving to the server isn't enabled on this server. Ask your admin to enable it.",
-        ));
+      : signInRequiredReason ??
+        (uploadEnabled
+          ? null
+          : t(
+              "filesPage.saveToServerDisabledHint",
+              "Saving to the server isn't enabled on this server. Ask your admin to enable it.",
+            ));
   const { actions: navActions } = useNavigationActions();
   const { requestNavigation } = useNavigationGuard();
   const { setActiveFileId } = useViewer();
