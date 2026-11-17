@@ -36,5 +36,8 @@ test.describe("PDF Library cleanup", () => {
     await expect(
       page.getByRole("button", { name: "Recents", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.locator(".files-page-list-row").filter({ hasText: "sample.pdf" }),
+    ).toBeVisible();
   });
 });
