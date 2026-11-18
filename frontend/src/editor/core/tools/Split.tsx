@@ -1,4 +1,4 @@
-import { Stack } from "@mantine/core";
+import { Alert, Stack } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
 import { createToolFlow } from "@editor/components/tools/shared/createToolFlow";
@@ -49,6 +49,15 @@ const Split = (props: BaseToolProps) => {
     pageCounts.length > 0 &&
     pageCounts.every((count): count is number => count != null && count > 0);
   const pageCount = allPageCountsKnown ? Math.min(...pageCounts) : undefined;
+  const resultsNotice = base.hasResults ? (
+    <Alert color="blue" variant="light">
+      {t(
+        "split.results.sourceUnchanged",
+        "The original PDF stays unchanged. The {{count}} result files are shown below; save them to keep the split parts.",
+        { count: base.operation.files.length },
+      )}
+    </Alert>
+  ) : undefined;
 
   return createToolFlow({
     files: {
@@ -100,6 +109,7 @@ const Split = (props: BaseToolProps) => {
       isVisible: base.hasResults,
       operation: base.operation,
       title: t("split.resultsTitle", "Split Results"),
+      notice: resultsNotice,
       onFileClick: base.handleThumbnailClick,
       onUndo: base.handleUndo,
     },

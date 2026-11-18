@@ -20,7 +20,7 @@ import {
   SPLIT_METHODS,
   type SplitMethod,
 } from "@editor/constants/splitConstants";
-import { useToolResources } from "@editor/hooks/tools/shared/useToolResources";
+import { zipFileService } from "@editor/services/zipFileService";
 
 // Split routes to a different endpoint per method. This map is the single source
 // of truth: getSplitEndpoint returns from it, and the mapper types below are
@@ -174,6 +174,34 @@ export const getSplitEndpoint = (parameters: SplitParameters): SplitEndpoint =>
   // Default to BY_PAGES when no method is selected yet.
   SPLIT_ENDPOINTS[parameters.method ?? SPLIT_METHODS.BY_PAGES];
 
+export const extractSplitResultFiles = async (blob: Blob): Promise<File[]> => {
+  const archive =
+    blob instanceof File
+      ? blob
+      : new File([blob], "split-results.zip", { type: "application/zip" });
+  const extraction = await zipFileService.extractAllFiles(archive);
+
+  if (
+    !extraction.success ||
+    extraction.extractedFiles.length === 0 ||
+    extraction.errors.length > 0 ||
+    extraction.extractedCount !== extraction.totalFiles
+  ) {
+    throw new Error(
+      extraction.errors.join(" ") || "Split did not return all result files.",
+    );
+  }
+
+  const allResultsArePdfs = extraction.extractedFiles.every((file) =>
+    file.name.toLowerCase().endsWith(".pdf"),
+  );
+  if (!allResultsArePdfs) {
+    throw new Error("Split returned files that are not PDFs.");
+  }
+
+  return extraction.extractedFiles;
+};
+
 // Static configuration object
 export const splitOperationConfig = defineSingleFileTool({
   validateParams: validateSplitParameters,
@@ -189,16 +217,12 @@ export const splitOperationConfig = defineSingleFileTool({
 
 export const useSplitOperation = () => {
   const { t } = useTranslation();
-  const { extractZipFiles } = useToolResources();
 
-  // Custom response handler that extracts ZIP files
-  // Can't add to exported config because it requires access to the zip code so must be part of the hook
   const responseHandler = useCallback(
     async (blob: Blob, _originalFiles: File[]): Promise<File[]> => {
-      // Split operations return ZIP files with multiple PDF pages
-      return await extractZipFiles(blob);
+      return await extractSplitResultFiles(blob);
     },
-    [extractZipFiles],
+    [],
   );
 
   const splitConfig: ToolOperationConfig<SplitParameters> = {

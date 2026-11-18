@@ -1,10 +1,12 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import {
   buildSplitFormData,
+  extractSplitResultFiles,
   getSplitEndpoint,
   splitFromApiParams,
   splitToApiParams,
 } from "@editor/hooks/tools/split/useSplitOperation";
+import { zipFileService } from "@editor/services/zipFileService";
 import {
   SplitParameters,
   defaultParameters,
@@ -326,6 +328,74 @@ describe("getSplitEndpoint", () => {
     },
   ])("$method routes to $endpoint", ({ method, endpoint }) => {
     expect(getSplitEndpoint(params({ method }))).toBe(endpoint);
+  });
+});
+
+describe("extractSplitResultFiles", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  test("extracts split PDFs without depending on ZIP preferences", async () => {
+    const output = new File(["%PDF-1.7"], "input_1.pdf", {
+      type: "application/pdf",
+    });
+    const extractAllFiles = vi
+      .spyOn(zipFileService, "extractAllFiles")
+      .mockResolvedValue({
+        success: true,
+        extractedFiles: [output],
+        errors: [],
+        totalFiles: 1,
+        extractedCount: 1,
+      });
+
+    await expect(extractSplitResultFiles(new Blob(["zip"]))).resolves.toEqual([
+      output,
+    ]);
+    expect(extractAllFiles).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "split-results.zip" }),
+    );
+  });
+
+  test("rejects an archive with no extracted files", async () => {
+    vi.spyOn(zipFileService, "extractAllFiles").mockResolvedValue({
+      success: false,
+      extractedFiles: [],
+      errors: ["Archive could not be read"],
+      totalFiles: 0,
+      extractedCount: 0,
+    });
+
+    await expect(extractSplitResultFiles(new Blob(["zip"]))).rejects.toThrow(
+      "Archive could not be read",
+    );
+  });
+
+  test("rejects a partially extracted archive", async () => {
+    vi.spyOn(zipFileService, "extractAllFiles").mockResolvedValue({
+      success: true,
+      extractedFiles: [new File(["%PDF-1.7"], "input_1.pdf")],
+      errors: ['Failed to extract "input_2.pdf"'],
+      totalFiles: 2,
+      extractedCount: 1,
+    });
+
+    await expect(extractSplitResultFiles(new Blob(["zip"]))).rejects.toThrow(
+      'Failed to extract "input_2.pdf"',
+    );
+  });
+
+  test("rejects non-PDF files returned by the split archive", async () => {
+    vi.spyOn(zipFileService, "extractAllFiles").mockResolvedValue({
+      success: true,
+      extractedFiles: [new File(["not a pdf"], "notes.txt")],
+      errors: [],
+      totalFiles: 1,
+      extractedCount: 1,
+    });
+
+    await expect(extractSplitResultFiles(new Blob(["zip"]))).rejects.toThrow(
+      "Split returned files that are not PDFs.",
+    );
   });
 });
 

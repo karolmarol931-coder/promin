@@ -567,6 +567,7 @@ export const useToolOperation = <TParams>(
           // Everything else — format conversions (ext change), merges (N→1), splits (1→N) —
           // produces outputs that have no meaningful parent-child relationship with the inputs.
           const isVersionOp =
+            config.operationType !== "split" &&
             processedFiles.length > 0 &&
             successSourceIds.length === processedFiles.length &&
             successSourceIds.every((id, i) => {

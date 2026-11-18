@@ -1,6 +1,7 @@
 package stirling.software.SPDF.controller.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -194,8 +195,8 @@ class SplitPDFControllerTest {
     }
 
     @Test
-    @DisplayName("Should handle single page PDF")
-    void shouldHandleSinglePage() throws Exception {
+    @DisplayName("Should reject splitting a single-page PDF")
+    void shouldRejectSinglePagePdf() throws Exception {
         byte[] pdfBytes = createPdf(1);
         MockMultipartFile file =
                 new MockMultipartFile(
@@ -205,12 +206,8 @@ class SplitPDFControllerTest {
         request.setFileInput(file);
         request.setPageNumbers("1");
 
-        ResponseEntity<Resource> response = controller.splitPdf(request);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<byte[]> outputs = unzip(response.getBody());
-        assertThat(outputs).hasSize(1);
-        assertThat(pageCountsOf(outputs)).containsExactly(1);
+        assertThatThrownBy(() -> controller.splitPdf(request))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -256,8 +253,8 @@ class SplitPDFControllerTest {
     }
 
     @Test
-    @DisplayName("Should split 5-page PDF at last page boundary")
-    void shouldSplitAtLastPage() throws Exception {
+    @DisplayName("Should reject a split point after the last page")
+    void shouldRejectSplitAtLastPage() throws Exception {
         byte[] pdfBytes = createPdf(5);
         MockMultipartFile file =
                 new MockMultipartFile(
@@ -267,12 +264,40 @@ class SplitPDFControllerTest {
         request.setFileInput(file);
         request.setPageNumbers("5");
 
-        ResponseEntity<Resource> response = controller.splitPdf(request);
+        assertThatThrownBy(() -> controller.splitPdf(request))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<byte[]> outputs = unzip(response.getBody());
-        assertThat(outputs).hasSize(1);
-        assertThat(pageCountsOf(outputs)).containsExactly(5);
+    @Test
+    @DisplayName("Should reject out-of-range points instead of returning a copy")
+    void shouldRejectOutOfRangeSplitPoint() throws Exception {
+        byte[] pdfBytes = createPdf(3);
+        MockMultipartFile file =
+                new MockMultipartFile(
+                        "fileInput", "input.pdf", MediaType.APPLICATION_PDF_VALUE, pdfBytes);
+
+        SplitPagesRequest request = new SplitPagesRequest();
+        request.setFileInput(file);
+        request.setPageNumbers("999");
+
+        assertThatThrownBy(() -> controller.splitPdf(request))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    @DisplayName("Should reject malformed points even when another point is valid")
+    void shouldRejectMalformedSplitPoint() throws Exception {
+        byte[] pdfBytes = createPdf(5);
+        MockMultipartFile file =
+                new MockMultipartFile(
+                        "fileInput", "input.pdf", MediaType.APPLICATION_PDF_VALUE, pdfBytes);
+
+        SplitPagesRequest request = new SplitPagesRequest();
+        request.setFileInput(file);
+        request.setPageNumbers("2,not-a-page");
+
+        assertThatThrownBy(() -> controller.splitPdf(request))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

@@ -9836,6 +9836,9 @@ submit = "Split"
 tags = "divide,separate,break,split,extract pages,separate pages,divide document,break apart,separate files,unbind,split by page,divide by chapter"
 title = "Split PDF"
 
+[split.results]
+sourceUnchanged = "The original PDF stays unchanged. The {{count}} result files are shown below; save them to keep the split parts."
+
 [split.error]
 failed = "An error occurred while splitting the PDF."
 
