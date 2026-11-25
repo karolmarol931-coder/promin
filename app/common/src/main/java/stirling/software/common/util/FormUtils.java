@@ -712,7 +712,7 @@ public class FormUtils {
 
                 Object rawValue = entry.getValue();
                 String value = rawValue == null ? null : Objects.toString(rawValue, null);
-                applyValueToField(field, value, strict);
+                applyValueToField(document, field, value, strict);
                 valuesApplied = true;
             }
 
@@ -1116,29 +1116,15 @@ public class FormUtils {
         return filtered.isEmpty() ? null : filtered.getFirst();
     }
 
-    private void applyValueToField(PDField field, String value, boolean strict) throws IOException {
+    private void applyValueToField(PDDocument document, PDField field, String value, boolean strict)
+            throws IOException {
         try {
             switch (field) {
                 case PDTextField textField -> setTextValue(textField, value);
                 case PDCheckBox checkBox -> {
                     LinkedHashSet<String> candidateStates = collectCheckBoxStates(checkBox);
                     boolean shouldCheck = shouldCheckBoxBeChecked(value, candidateStates);
-                    try {
-                        if (shouldCheck) {
-                            checkBox.check();
-                        } else {
-                            checkBox.unCheck();
-                        }
-                    } catch (IOException checkProblem) {
-                        log.warn(
-                                "Failed to set checkbox state for '{}': {}",
-                                field.getFullyQualifiedName(),
-                                checkProblem.getMessage(),
-                                checkProblem);
-                        if (strict) {
-                            throw checkProblem;
-                        }
-                    }
+                    applyCheckBoxValue(document, checkBox, shouldCheck);
                 }
                 case PDRadioButton radioButton -> {
                     if (value != null && !value.isBlank()) {
@@ -1166,6 +1152,50 @@ public class FormUtils {
                         "Failed to set value for field '" + field.getFullyQualifiedName() + "'", e);
             }
         }
+    }
+
+    /**
+     * PDFBox's checkbox setter infers a single on-state from widget zero and rejects malformed
+     * export-value arrays. Writing the AcroForm value and widget appearance states directly keeps
+     * otherwise editable forms fillable, while missing button appearances receive a usable state.
+     */
+    private void applyCheckBoxValue(PDDocument document, PDCheckBox checkBox, boolean checked)
+            throws IOException {
+        List<PDAnnotationWidget> widgets = checkBox.getWidgets();
+        String onState = null;
+        for (PDAnnotationWidget widget : widgets) {
+            onState = normalAppearanceOnState(widget);
+            if (isSettableCheckBoxState(onState)) {
+                break;
+            }
+            onState = null;
+        }
+        if (onState == null) {
+            onState = nonOffValueName(checkBox);
+        }
+        if (onState == null) {
+            List<String> exportValues = checkBox.getExportValues();
+            if (exportValues != null && !exportValues.isEmpty()) {
+                String firstExport = exportValues.getFirst();
+                if (isSettableCheckBoxState(firstExport)) {
+                    onState = firstExport.trim();
+                }
+            }
+        }
+        if (onState == null) {
+            onState = DEFAULT_CHECKBOX_ON_STATE;
+        }
+
+        for (PDAnnotationWidget widget : widgets) {
+            String widgetOnState = normalAppearanceOnState(widget);
+            if (!isSettableCheckBoxState(widgetOnState)) {
+                applyToggleAppearance(document, widget, onState, false);
+                widgetOnState = onState;
+            }
+            widget.setAppearanceState(COSName.getPDFName(checked ? widgetOnState : OFF_STATE));
+        }
+        checkBox.getCOSObject()
+                .setItem(COSName.V, COSName.getPDFName(checked ? onState : OFF_STATE));
     }
 
     void setTextValue(PDTextField textField, String value) throws IOException {

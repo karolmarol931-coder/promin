@@ -9,12 +9,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.List;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
+import org.apache.pdfbox.pdmodel.interactive.form.PDCheckBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -109,6 +112,28 @@ class FormFillControllerTest {
 
     private MockMultipartFile pdfFile() throws IOException {
         return new MockMultipartFile("file", "test.pdf", "application/pdf", pdfBytes());
+    }
+
+    private FormUtils.NewFormFieldDefinition checkboxField(String name) {
+        return new FormUtils.NewFormFieldDefinition(
+                name,
+                null,
+                "checkbox",
+                0,
+                60f,
+                680f,
+                16f,
+                16f,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 
     // ── listFields ─────────────────────────────────────────────────────
@@ -264,6 +289,32 @@ class FormFillControllerTest {
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
             assertThat(response.getBody()).isNotNull();
+        }
+
+        @Test
+        @DisplayName("fills a checkbox that has no appearance stream")
+        void checkboxWithoutAppearance() throws Exception {
+            MockMultipartFile file = pdfFile();
+            PDDocument doc = createMinimalPdf();
+            FormUtils.addNewFields(doc, List.of(checkboxField("Check Box1")));
+            PDCheckBox checkBox =
+                    (PDCheckBox) doc.getDocumentCatalog().getAcroForm().getField("Check Box1");
+            checkBox.getWidgets().getFirst().getCOSObject().removeItem(COSName.AP);
+            when(pdfDocumentFactory.load(eq(file))).thenReturn(doc);
+
+            ResponseEntity<Resource> response =
+                    controller.fillForm(file, "{\"Check Box1\":true}".getBytes(), false);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            try (PDDocument saved = Loader.loadPDF(drainBody(response))) {
+                PDCheckBox savedCheckBox =
+                        (PDCheckBox)
+                                saved.getDocumentCatalog().getAcroForm().getField("Check Box1");
+                assertThat(savedCheckBox.getCOSObject().getNameAsString(COSName.V))
+                        .isEqualTo("Yes");
+                assertThat(savedCheckBox.getWidgets().getFirst().getAppearanceState().getName())
+                        .isEqualTo("Yes");
+            }
         }
 
         @Test

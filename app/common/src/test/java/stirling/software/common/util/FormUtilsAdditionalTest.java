@@ -9,11 +9,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.pdfbox.cos.COSDictionary;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceDictionary;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAppearanceStream;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDCheckBox;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
@@ -33,6 +37,28 @@ class FormUtilsAdditionalTest {
         document.getDocumentCatalog().setAcroForm(acroForm);
 
         return new SetupDocument(page, acroForm);
+    }
+
+    private static FormUtils.NewFormFieldDefinition checkboxField(String name) {
+        return new FormUtils.NewFormFieldDefinition(
+                name,
+                null,
+                "checkbox",
+                0,
+                60f,
+                680f,
+                16f,
+                16f,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
     }
 
     private static void attachWidget(
@@ -247,6 +273,51 @@ class FormUtilsAdditionalTest {
             // Should not throw in non-strict mode even if appearance is missing
             FormUtils.applyFieldValues(doc, Map.of("subscribed", true), false, false);
             FormUtils.applyFieldValues(doc, Map.of("subscribed", false), false, false);
+        }
+    }
+
+    @Test
+    void testApplyFieldValues_checksCheckboxWithoutAppearance_strict() throws IOException {
+        try (PDDocument doc = new PDDocument()) {
+            SetupDocument setup = createBasicDocument(doc);
+            FormUtils.addNewFields(doc, List.of(checkboxField("Check Box1")));
+            PDCheckBox checkBox = (PDCheckBox) setup.acroForm.getField("Check Box1");
+            checkBox.getWidgets().getFirst().getCOSObject().removeItem(COSName.AP);
+
+            FormUtils.applyFieldValues(doc, Map.of("Check Box1", true), false, true);
+
+            assertEquals("Yes", checkBox.getCOSObject().getNameAsString(COSName.V));
+            PDAnnotationWidget widget = checkBox.getWidgets().getFirst();
+            assertEquals("Yes", widget.getAppearanceState().getName());
+            assertTrue(widget.getAppearance().getNormalAppearance().isSubDictionary());
+        }
+    }
+
+    @Test
+    void testApplyFieldValues_checksCheckboxWithMismatchedExportValues_strict() throws IOException {
+        try (PDDocument doc = new PDDocument()) {
+            SetupDocument setup = createBasicDocument(doc);
+            FormUtils.addNewFields(doc, List.of(checkboxField("Check Box1")));
+            PDCheckBox checkBox = (PDCheckBox) setup.acroForm.getField("Check Box1");
+            checkBox.setExportValues(List.of("Accepted", "Rejected"));
+            PDAnnotationWidget widget = checkBox.getWidgets().getFirst();
+            PDAppearanceDictionary appearance = new PDAppearanceDictionary();
+            COSDictionary states = new COSDictionary();
+            PDAppearanceStream off = new PDAppearanceStream(doc);
+            PDAppearanceStream on = new PDAppearanceStream(doc);
+            off.setBBox(new PDRectangle(16, 16));
+            on.setBBox(new PDRectangle(16, 16));
+            off.setResources(new PDResources());
+            on.setResources(new PDResources());
+            states.setItem(COSName.Off, off.getCOSObject());
+            states.setItem(COSName.getPDFName("Yes"), on.getCOSObject());
+            appearance.getCOSObject().setItem(COSName.N, states);
+            widget.setAppearance(appearance);
+
+            FormUtils.applyFieldValues(doc, Map.of("Check Box1", true), false, true);
+
+            assertEquals("Yes", checkBox.getCOSObject().getNameAsString(COSName.V));
+            assertEquals("Yes", widget.getAppearanceState().getName());
         }
     }
 
