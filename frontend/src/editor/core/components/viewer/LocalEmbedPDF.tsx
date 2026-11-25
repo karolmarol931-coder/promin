@@ -1346,8 +1346,8 @@ export function LocalEmbedPDF({
       }),
       createPluginRegistration(ScrollPluginPackage),
       createPluginRegistration(RenderPluginPackage, {
-        withForms: !enableFormFill,
-        // The overlay owns appearances in every mode, so access changes never rebuild the registry.
+        // FormFillLayers owns form widgets in every mode.
+        withForms: false,
         withAnnotations: false,
       }),
 
