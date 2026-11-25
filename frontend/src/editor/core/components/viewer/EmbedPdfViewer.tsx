@@ -47,6 +47,7 @@ import type {
   SignatureOverlayAPI,
 } from "@editor/components/viewer/viewerTypes";
 import { createStirlingFilesAndStubs } from "@editor/services/fileStubHelpers";
+import { downloadFileWithPolicy } from "@editor/services/exportWithPolicy";
 import { rememberPlainPdfExport } from "@editor/services/pdfAccessService";
 import {
   isStirlingFile,
@@ -1260,6 +1261,20 @@ const EmbedPdfViewerContent = ({
             }),
           loaded,
         ]);
+
+        const savedStub = stubs[0];
+        const savedFile = stirlingFiles[0];
+        if (savedStub?.localFilePath && savedFile) {
+          const result = await downloadFileWithPolicy({
+            data: savedFile,
+            filename: savedStub.name,
+            localPath: savedStub.localFilePath,
+            fileId: savedStub.id,
+          });
+          if (result.savedPath) {
+            actions.updateStirlingFileStub(savedStub.id, { isDirty: false });
+          }
+        }
 
         console.log("[Viewer] Form fill changes applied successfully");
       } catch (error) {

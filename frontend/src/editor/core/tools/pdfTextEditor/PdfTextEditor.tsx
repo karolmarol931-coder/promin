@@ -7,6 +7,10 @@ import { Alert, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@editor/ui/Icon";
 import { downloadFile } from "@editor/services/downloadService";
+import { downloadFileWithPolicy } from "@editor/services/exportWithPolicy";
+import { enforceExportPolicies } from "@editor/services/policyExport";
+import { canPrintPdf } from "@editor/services/pdfPermissions";
+import { printPdfFile } from "@editor/services/printPdfFileService";
 import { assertPdfSessionEditable } from "@editor/services/pdfSessionUnlock";
 import {
   getPdfAccess,
@@ -100,7 +104,7 @@ export default function PdfTextEditor(_props: BaseToolProps) {
     sourceFileIdRef.current = id;
     setSourceFileId(id);
   }, []);
-  const { addFiles, consumeFiles, selectors } = useFileContext();
+  const { actions, addFiles, consumeFiles, selectors } = useFileContext();
   const { setSelectedFiles } = useFileSelection();
   const { handleToolSelect } = useToolWorkflowActions();
   // Saving replaces the workbench file, so for a moment the selection points at
@@ -267,6 +271,25 @@ export default function PdfTextEditor(_props: BaseToolProps) {
         assertFilesNotBlocked([sourceId ?? undefined]);
         const saved = await applyToWorkbench(blob, filename);
         if (!saved) return;
+        if (!download) {
+          const savedFileId = sourceFileIdRef.current;
+          if (savedFileId) {
+            const stub = selectors.getStirlingFileStub(savedFileId);
+            if (stub?.localFilePath) {
+              const result = await downloadFileWithPolicy({
+                data: saved,
+                filename: stub.name,
+                localPath: stub.localFilePath,
+                fileId: savedFileId,
+              });
+              if (result.savedPath) {
+                actions.updateStirlingFileStub(savedFileId, {
+                  isDirty: false,
+                });
+              }
+            }
+          }
+        }
         store.markSaved(exported);
         if (download) {
           assertFilesNotBlocked([sourceId ?? undefined]);
@@ -280,7 +303,7 @@ export default function PdfTextEditor(_props: BaseToolProps) {
         savingRef.current = false;
       }
     },
-    [store, openedFileName, applyToWorkbench],
+    [store, openedFileName, applyToWorkbench, selectors, actions],
   );
 
   // Which action the risk modal is currently gating.
@@ -309,6 +332,47 @@ export default function PdfTextEditor(_props: BaseToolProps) {
 
   const handleSave = useCallback(() => void runSave(false), [runSave]);
   const handleDownload = useCallback(() => void runSave(true), [runSave]);
+
+  const printingRef = useRef(false);
+  const handlePrint = useCallback(async () => {
+    const doc = store.document;
+    if (!doc || printingRef.current || store.getState().loading) return;
+    printingRef.current = true;
+    store.setError(null);
+    const sourceId = sourceFileIdRef.current;
+    try {
+      assertFilesNotBlocked([sourceId ?? undefined]);
+      if (!canPrintPdf(getPdfAccess(sourceId))) {
+        throw new Error(
+          t(
+            "encryptedPdfUnlock.printRestricted",
+            "Printing is restricted for this PDF.",
+          ),
+        );
+      }
+      const { blob, filename } = await exportToBlob(doc, openedFileName);
+      assertFilesNotBlocked([sourceId ?? undefined]);
+      const current = new File([blob], filename, { type: "application/pdf" });
+      const [enforced] = await enforceExportPolicies(
+        [current],
+        [sourceId ?? undefined],
+        "print",
+      );
+      if (enforced !== current) {
+        throw new Error(
+          t(
+            "policies.enforcement.printPolicyAppliedBody",
+            "This PDF was updated to meet a policy. Review the changes, then print again.",
+          ),
+        );
+      }
+      await printPdfFile(current, filename);
+    } catch (error) {
+      store.setError(error instanceof Error ? error.message : String(error));
+    } finally {
+      printingRef.current = false;
+    }
+  }, [store, openedFileName, t]);
 
   const handleConfirmSaveRisk = useCallback(() => {
     const doc = store.document;
@@ -681,6 +745,7 @@ export default function PdfTextEditor(_props: BaseToolProps) {
       fileId: sourceFileId,
       save: handleSave,
       download: handleDownload,
+      print: () => void handlePrint(),
       pickFile: onPickWorkbenchFile,
       pickImage: openImagePicker,
     });
@@ -690,6 +755,7 @@ export default function PdfTextEditor(_props: BaseToolProps) {
     sourceFileId,
     handleSave,
     handleDownload,
+    handlePrint,
     onPickWorkbenchFile,
     openImagePicker,
   ]);
@@ -808,6 +874,7 @@ export default function PdfTextEditor(_props: BaseToolProps) {
           onPickFile={onPickWorkbenchFile}
           onSave={handleSave}
           onDownload={handleDownload}
+          onPrint={() => void handlePrint()}
           onOpenFind={() => {
             if (store.getState().findOpen) {
               store.setFindOpen(false);

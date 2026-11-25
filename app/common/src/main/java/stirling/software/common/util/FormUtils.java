@@ -2,6 +2,7 @@ package stirling.software.common.util;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,6 +32,7 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
@@ -86,6 +88,12 @@ public class FormUtils {
 
     /** Below this, a rect change is a no-op and the existing /AP still maps exactly. */
     private static final float GEOMETRY_EPSILON_PT = 0.01f;
+
+    private static final String UNICODE_FORM_FONT_RESOURCE =
+            "/static/fonts/signature-summary/NotoSans-Regular.ttf";
+    private static final COSName UNICODE_FORM_FONT_NAME = COSName.getPDFName("StirlingNotoSans");
+    private static final Pattern FONT_SIZE_OPERATOR =
+            Pattern.compile("/[^\\s/]+\\s+([0-9]+(?:\\.[0-9]+)?)\\s+Tf\\b");
 
     private static final Pattern HEX_UUID_PATTERN =
             Pattern.compile("^[0-9a-fA-F]{8}[0-9a-fA-F]{24,}$");
@@ -980,7 +988,7 @@ public class FormUtils {
             } else {
                 acroForm.refreshAppearances();
             }
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             log.warn("Failed to refresh form appearances: {}", e.getMessage(), e);
             return; // Don't set NeedAppearances to false if refresh failed
         }
@@ -1120,7 +1128,7 @@ public class FormUtils {
             throws IOException {
         try {
             switch (field) {
-                case PDTextField textField -> setTextValue(textField, value);
+                case PDTextField textField -> setTextValue(document, textField, value);
                 case PDCheckBox checkBox -> {
                     LinkedHashSet<String> candidateStates = collectCheckBoxStates(checkBox);
                     boolean shouldCheck = shouldCheckBoxBeChecked(value, candidateStates);
@@ -1128,7 +1136,7 @@ public class FormUtils {
                 }
                 case PDRadioButton radioButton -> {
                     if (value != null && !value.isBlank()) {
-                        radioButton.setValue(value);
+                        radioButton.setValue(resolveRadioButtonValue(radioButton, value));
                     }
                 }
                 case PDChoice choiceField -> applyChoiceValue(choiceField, value);
@@ -1152,6 +1160,31 @@ public class FormUtils {
                         "Failed to set value for field '" + field.getFullyQualifiedName() + "'", e);
             }
         }
+    }
+
+    private String resolveRadioButtonValue(PDRadioButton radioButton, String value) {
+        List<String> exportValues = radioButton.getExportValues();
+        if (exportValues != null && exportValues.contains(value)) return value;
+        List<PDAnnotationWidget> widgets = radioButton.getWidgets();
+        for (PDAnnotationWidget widget : widgets) {
+            if (value.equals(normalAppearanceOnState(widget))) return value;
+        }
+        try {
+            int widgetIndex = Integer.parseInt(value.trim());
+            if (widgetIndex < 0 || !Integer.toString(widgetIndex).equals(value.trim())) {
+                return value;
+            }
+            if (exportValues != null && widgetIndex < exportValues.size()) {
+                return exportValues.get(widgetIndex);
+            }
+            if (widgetIndex < widgets.size()) {
+                String onState = normalAppearanceOnState(widgets.get(widgetIndex));
+                if (onState != null) return onState;
+            }
+        } catch (NumberFormatException ignored) {
+            return value;
+        }
+        return value;
     }
 
     /**
@@ -1199,14 +1232,55 @@ public class FormUtils {
     }
 
     void setTextValue(PDTextField textField, String value) throws IOException {
+        setTextValue(null, textField, value);
+    }
+
+    private void setTextValue(PDDocument document, PDTextField textField, String value)
+            throws IOException {
+        String normalized = value != null ? value : "";
         try {
-            textField.setValue(value != null ? value : "");
+            textField.setValue(normalized);
             return;
         } catch (IOException | RuntimeException initial) {
             log.debug(
                     "Primary fill failed for text field '{}': {}",
                     textField.getFullyQualifiedName(),
                     initial.getMessage());
+        }
+
+        if (document != null && !supportsHelvetica(normalized)) {
+            try {
+                PDAcroForm acroForm = textField.getAcroForm();
+                if (acroForm == null) {
+                    throw new IOException("Text field is not attached to an AcroForm");
+                }
+                PDResources resources = acroForm.getDefaultResources();
+                if (resources == null) {
+                    resources = new PDResources();
+                    acroForm.setDefaultResources(resources);
+                }
+                PDFont unicodeFont = resources.getFont(UNICODE_FORM_FONT_NAME);
+                if (unicodeFont == null) {
+                    try (InputStream fontData =
+                            FormUtils.class.getResourceAsStream(UNICODE_FORM_FONT_RESOURCE)) {
+                        if (fontData == null) {
+                            throw new IOException("Unicode form font resource is unavailable");
+                        }
+                        unicodeFont = PDType0Font.load(document, fontData, true);
+                    }
+                    resources.put(UNICODE_FORM_FONT_NAME, unicodeFont);
+                }
+                textField.setDefaultAppearance(
+                        replaceFontResource(
+                                textField.getDefaultAppearance(), UNICODE_FORM_FONT_NAME));
+                textField.setValue(normalized);
+                return;
+            } catch (IOException | RuntimeException unicodeFallback) {
+                log.debug(
+                        "Unable to prepare Unicode font for '{}': {}",
+                        textField.getFullyQualifiedName(),
+                        unicodeFallback.getMessage());
+            }
         }
 
         try {
@@ -1253,7 +1327,31 @@ public class FormUtils {
                     e.getMessage());
         }
 
-        textField.setValue(value != null ? value : "");
+        textField.setValue(normalized);
+    }
+
+    private boolean supportsHelvetica(String value) {
+        try {
+            new PDType1Font(Standard14Fonts.FontName.HELVETICA).encode(value);
+            return true;
+        } catch (IOException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private String replaceFontResource(String defaultAppearance, COSName resourceName) {
+        String appearance = Objects.requireNonNullElse(defaultAppearance, "");
+        var matcher = FONT_SIZE_OPERATOR.matcher(appearance);
+        if (!matcher.find()) {
+            return "/" + resourceName.getName() + " 12 Tf 0 g";
+        }
+        return appearance.substring(0, matcher.start())
+                + "/"
+                + resourceName.getName()
+                + " "
+                + matcher.group(1)
+                + " Tf"
+                + appearance.substring(matcher.end());
     }
 
     private void applyChoiceValue(PDChoice choiceField, String value) throws IOException {

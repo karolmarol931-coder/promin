@@ -6,6 +6,7 @@ export interface EditorSession {
   fileId: FileId | null;
   save: () => void;
   download: () => void;
+  print: () => void;
   pickFile: (file: File) => void;
   pickImage: () => void;
 }

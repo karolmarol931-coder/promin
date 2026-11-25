@@ -10,7 +10,7 @@ import {
   type DesktopUpdateProgress,
 } from "@editor/hooks/useDesktopUpdateCheck";
 import { SettingsCard } from "@editor/components/shared/config/SettingsCard";
-import classes from "./DesktopUpdateSettings.module.css";
+import classes from "@editor/components/shared/config/configSections/DesktopUpdateSettings.module.css";
 
 type UpdateStatus = "idle" | "checking" | "up-to-date" | "ready" | "failed";
 

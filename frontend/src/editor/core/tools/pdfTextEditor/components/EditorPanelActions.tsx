@@ -14,6 +14,7 @@ interface Props {
   onPickFile: (file: File) => void;
   onSave: () => void;
   onDownload: () => void;
+  onPrint: () => void;
   onOpenFind: () => void;
   onShowHelp: () => void;
 }
@@ -26,6 +27,7 @@ export function EditorPanelActions({
   onPickFile,
   onSave,
   onDownload,
+  onPrint,
   onOpenFind,
   onShowHelp,
 }: Props) {
@@ -84,6 +86,17 @@ export function EditorPanelActions({
             data-testid="pdf-editor-download"
             aria-label={t("pdfTextEditor.download", "Download")}
             leftSection={<Icon name="download" size={20} />}
+          />
+        </Tooltip>
+        <Tooltip label={t("workbenchBar.print", "Print PDF")}>
+          <Button
+            size="sm"
+            variant="secondary"
+            accent="neutral"
+            onClick={onPrint}
+            aria-label={t("workbenchBar.print", "Print PDF")}
+            data-testid="pdf-editor-print"
+            leftSection={<Icon name="printer" size={20} />}
           />
         </Tooltip>
         {compact && (

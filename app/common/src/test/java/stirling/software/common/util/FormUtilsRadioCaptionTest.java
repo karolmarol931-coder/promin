@@ -7,8 +7,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -89,6 +91,77 @@ class FormUtilsRadioCaptionTest {
             PDRadioButton radio = (PDRadioButton) acroForm.getField("size");
             assertEquals(3, radio.getWidgets().size(), "one widget per option");
             assertFalse(radio.getExportValues().isEmpty(), "export values must survive");
+        }
+    }
+
+    @Test
+    void fillingRadioByWidgetIndexUsesItsPdfExportValue() throws IOException {
+        try (PDDocument document = blankWithForm()) {
+            FormUtils.addNewFields(
+                    document,
+                    List.of(newField("radio", "license", 72, 600, 12, 12, List.of("EU", "WTaxi"))));
+            PDRadioButton radio =
+                    (PDRadioButton) document.getDocumentCatalog().getAcroForm().getField("license");
+
+            FormUtils.applyFieldValues(document, Map.of("license", "1"), false, true);
+
+            assertEquals("WTaxi", radio.getValueAsString());
+        }
+    }
+
+    @Test
+    void fillingRadioByWidgetIndexUsesAppearanceWhenExportValuesAreMissing() throws IOException {
+        try (PDDocument document = blankWithForm()) {
+            FormUtils.addNewFields(
+                    document,
+                    List.of(newField("radio", "license", 72, 600, 12, 12, List.of("WTaxi"))));
+            PDRadioButton radio =
+                    (PDRadioButton) document.getDocumentCatalog().getAcroForm().getField("license");
+            radio.getCOSObject().removeItem(COSName.OPT);
+            String appearanceState =
+                    radio
+                            .getWidgets()
+                            .getFirst()
+                            .getAppearance()
+                            .getNormalAppearance()
+                            .getSubDictionary()
+                            .keySet()
+                            .stream()
+                            .map(COSName::getName)
+                            .filter(name -> !"Off".equals(name))
+                            .findFirst()
+                            .orElseThrow();
+
+            FormUtils.applyFieldValues(document, Map.of("license", "0"), false, true);
+
+            assertEquals(appearanceState, radio.getValueAsString());
+        }
+    }
+
+    @Test
+    void fillingUnicodeTextEmbedsAFontThatCanRenderTheValue() throws IOException {
+        byte[] saved;
+        try (PDDocument document = blankWithForm()) {
+            FormUtils.addNewFields(
+                    document, List.of(newField("text", "name", 72, 600, 200, 20, List.of())));
+
+            FormUtils.applyFieldValues(document, Map.of("name", "Тест Łódź"), false, true);
+
+            assertEquals(
+                    "Тест Łódź",
+                    document.getDocumentCatalog()
+                            .getAcroForm()
+                            .getField("name")
+                            .getValueAsString());
+            saved = save(document);
+        }
+        try (PDDocument reopened = Loader.loadPDF(saved)) {
+            assertEquals(
+                    "Тест Łódź",
+                    reopened.getDocumentCatalog()
+                            .getAcroForm()
+                            .getField("name")
+                            .getValueAsString());
         }
     }
 

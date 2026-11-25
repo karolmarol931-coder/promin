@@ -75,6 +75,16 @@ export function MobileEditorTopBar({ controller, hasDocument, dirty }: Props) {
             leftSection={<Icon name="download" size={22} />}
           />
           <Button
+            variant="tertiary"
+            accent="neutral"
+            size="xl"
+            onClick={() => session?.print()}
+            disabled={!session}
+            aria-label={t("workbenchBar.print", "Print PDF")}
+            data-testid="pdf-editor-mobile-print"
+            leftSection={<Icon name="printer" size={22} />}
+          />
+          <Button
             size="lg"
             px="md"
             variant={dirty ? "primary" : "secondary"}

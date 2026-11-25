@@ -34,6 +34,9 @@ import { useFieldShortcuts } from "@editor/tools/formFill/useFieldShortcuts";
 import { serverMessage } from "@editor/tools/formFill/useFormCommit";
 import { useViewer } from "@editor/contexts/ViewerContext";
 import { usePdfAccess } from "@editor/hooks/usePdfAccess";
+import { canPrintPdf } from "@editor/services/pdfPermissions";
+import { enforceExportPolicies } from "@editor/services/policyExport";
+import { printPdfFile } from "@editor/services/printPdfFileService";
 import { useAllFiles, useFileState } from "@editor/contexts/FileContext";
 import { Skeleton } from "@mantine/core";
 import { isStirlingFile, getFormFillFileId } from "@editor/types/fileContext";
@@ -143,6 +146,7 @@ const FormFill = (_props: BaseToolProps) => {
 
   const [flatten, setFlatten] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [printing, setPrinting] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const flattenChanged = flatten;
@@ -216,6 +220,42 @@ const FormFill = (_props: BaseToolProps) => {
   }, [activeFiles, selectedFileIds, activeFileId]);
   const pdfAccess = usePdfAccess(viewedFile);
   const currentFile = pdfAccess?.encrypted === false ? viewedFile : null;
+
+  const handlePrint = useCallback(async () => {
+    if (printing || !currentFile || !isStirlingFile(currentFile)) return;
+    const fileId = currentFile.fileId;
+    setPrinting(true);
+    setSaveError(null);
+    try {
+      assertFilesNotBlocked([fileId]);
+      if (!canPrintPdf(pdfAccess)) {
+        throw new Error(
+          t(
+            "encryptedPdfUnlock.printRestricted",
+            "Printing is restricted for this PDF.",
+          ),
+        );
+      }
+      const blob = await submitForm(currentFile, flatten);
+      const file = new File([blob], currentFile.name, {
+        type: "application/pdf",
+      });
+      const [enforced] = await enforceExportPolicies([file], [fileId], "print");
+      if (enforced !== file) {
+        throw new Error(
+          t(
+            "policies.enforcement.printPolicyAppliedBody",
+            "This PDF was updated to meet a policy. Review the changes, then print again.",
+          ),
+        );
+      }
+      await printPdfFile(file, file.name);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setPrinting(false);
+    }
+  }, [printing, currentFile, pdfAccess, t, submitForm, flatten]);
 
   const handleExtractCsv = useCallback(async () => {
     if (!currentFile) return;
@@ -682,6 +722,17 @@ const FormFill = (_props: BaseToolProps) => {
                       }
                     >
                       {t("formFill.save", "Save")}
+                    </Button>
+
+                    <Button
+                      variant="secondary"
+                      leftSection={<Icon name="printer" size={14} />}
+                      size="sm"
+                      onClick={handlePrint}
+                      loading={printing}
+                      disabled={formState.loading || printing}
+                    >
+                      {t("workbenchBar.print", "Print PDF")}
                     </Button>
 
                     <Tooltip
