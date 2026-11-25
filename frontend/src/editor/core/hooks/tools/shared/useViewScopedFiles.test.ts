@@ -7,6 +7,10 @@ const mockFiles: { files: unknown[]; fileStubs: unknown[] } = {
   files: [],
   fileStubs: [],
 };
+const mockSelection: { selectedFiles: unknown[]; selectedFileIds: string[] } = {
+  selectedFiles: [],
+  selectedFileIds: [],
+};
 
 vi.mock("@editor/contexts/ViewerContext", () => ({
   useViewer: () => mockViewer,
@@ -18,6 +22,7 @@ vi.mock("@editor/contexts/NavigationContext", () => ({
 
 vi.mock("@editor/contexts/FileContext", () => ({
   useAllFiles: () => mockFiles,
+  useSelectedFiles: () => mockSelection,
 }));
 
 import {
@@ -37,11 +42,15 @@ function setState(opts: {
   activeFileIndex?: number;
   files?: unknown[];
   fileStubs?: unknown[];
+  selectedFiles?: unknown[];
+  selectedFileIds?: string[];
 }) {
   mockNavigation.workbench = opts.workbench ?? "viewer";
   mockViewer.activeFileIndex = opts.activeFileIndex ?? 0;
   mockFiles.files = opts.files ?? [];
   mockFiles.fileStubs = opts.fileStubs ?? [];
+  mockSelection.selectedFiles = opts.selectedFiles ?? [];
+  mockSelection.selectedFileIds = opts.selectedFileIds ?? [];
 }
 
 describe("useViewScopedFileStubs", () => {
@@ -103,6 +112,35 @@ describe("useViewScopedFileStubs", () => {
 
     expect(stubs.map((s) => s.id)).toEqual(["a", "b"]);
     expect(stubs).toHaveLength(files.length);
+  });
+
+  it("scopes file-editor tools to the selected files in selection order", () => {
+    const allFiles = [file("a"), file("b"), file("c"), file("d")];
+    setState({
+      workbench: "fileEditor",
+      files: allFiles,
+      fileStubs: allFiles.map(({ fileId }) => stub(fileId)),
+      selectedFiles: [allFiles[2], allFiles[0], allFiles[1]],
+      selectedFileIds: ["c", "a", "b"],
+    });
+
+    const { result } = renderHook(() => useViewScopedFiles());
+    const { result: stubResult } = renderHook(() => useViewScopedFileStubs());
+
+    expect(result.current.map(({ fileId }) => fileId)).toEqual(["c", "a", "b"]);
+    expect(stubResult.current.map(({ id }) => id)).toEqual(["c", "a", "b"]);
+  });
+
+  it("falls back to all loaded files when the file-editor selection is empty", () => {
+    setState({
+      workbench: "fileEditor",
+      files: [file("a"), file("b"), file("c")],
+      fileStubs: [stub("a"), stub("b"), stub("c")],
+    });
+
+    const { result } = renderHook(() => useViewScopedFiles());
+
+    expect(result.current.map(({ fileId }) => fileId)).toEqual(["a", "b", "c"]);
   });
 
   it("drops stubs with no loaded file instead of returning undefined holes", () => {

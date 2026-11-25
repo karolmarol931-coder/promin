@@ -41,6 +41,7 @@ import {
 const workspace = {
   files: [] as StirlingFile[],
   fileStubs: [] as StirlingFileStub[],
+  selectedFiles: [] as StirlingFile[],
 };
 const viewer = { activeFileIndex: 0 };
 const navigation = { workbench: "fileEditor" };
@@ -95,6 +96,13 @@ vi.mock("@editor/contexts/FileContext", () => ({
   useAllFiles: () => ({
     ...workspace,
     fileIds: workspace.files.map((file) => file.fileId),
+  }),
+  useSelectedFiles: () => ({
+    selectedFiles: workspace.selectedFiles,
+    selectedFileIds: workspace.selectedFiles.map((file) => file.fileId),
+    selectedFileStubs: workspace.fileStubs.filter((stub) =>
+      workspace.selectedFiles.some((file) => file.fileId === stub.id),
+    ),
   }),
   useFileContext: () => ({ selectors, actions: {} }),
   useFileSelectors: () => selectors,
@@ -210,6 +218,7 @@ beforeEach(() => {
   workspace.fileStubs = workspace.files.map((file) =>
     createNewStirlingFileStub(file, file.fileId),
   );
+  workspace.selectedFiles = [];
 });
 
 describe("tool file selection", () => {
@@ -339,6 +348,39 @@ describe("tool file selection", () => {
     expect(
       await screen.findByText(/2 files$/, { selector: "p" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Merge PDFs/ })).toBeEnabled();
+  });
+
+  test("Merge includes all selected existing files and excludes unselected files", async () => {
+    const unselected = createTestStirlingFile(
+      "not-selected.pdf",
+      "pdf",
+      "application/pdf",
+    );
+    workspace.files = [
+      unselected,
+      ...["first.pdf", "second.pdf", "third.pdf"].map((name) =>
+        createTestStirlingFile(name, "pdf", "application/pdf"),
+      ),
+    ];
+    workspace.fileStubs = workspace.files.map((file) =>
+      createNewStirlingFileStub(file, file.fileId),
+    );
+    workspace.selectedFiles = workspace.files.slice(1);
+
+    render(
+      <MantineProvider>
+        <Merge />
+      </MantineProvider>,
+    );
+
+    expect(
+      await screen.findByText(/3 files$/, { selector: "p" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("first.pdf")).toBeInTheDocument();
+    expect(screen.getByText("second.pdf")).toBeInTheDocument();
+    expect(screen.getByText("third.pdf")).toBeInTheDocument();
+    expect(screen.queryByText("not-selected.pdf")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Merge PDFs/ })).toBeEnabled();
   });
 

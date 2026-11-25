@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useAllFiles } from "@editor/contexts/FileContext";
+import { useAllFiles, useSelectedFiles } from "@editor/contexts/FileContext";
 import { useViewer } from "@editor/contexts/ViewerContext";
 import { useNavigationState } from "@editor/contexts/NavigationContext";
 import { StirlingFile, StirlingFileStub } from "@editor/types/fileContext";
@@ -7,6 +7,7 @@ import { StirlingFile, StirlingFileStub } from "@editor/types/fileContext";
 export function useViewScopedFiles(ignoreViewerScope = false): StirlingFile[] {
   const { activeFileIndex } = useViewer();
   const { files: allFiles } = useAllFiles();
+  const { selectedFiles, selectedFileIds } = useSelectedFiles();
   const { workbench } = useNavigationState();
 
   return useMemo(() => {
@@ -15,8 +16,19 @@ export function useViewScopedFiles(ignoreViewerScope = false): StirlingFile[] {
       return viewerFile ? [viewerFile] : allFiles;
     }
 
+    if (workbench === "fileEditor" && selectedFileIds.length > 0) {
+      return selectedFiles;
+    }
+
     return allFiles;
-  }, [workbench, allFiles, activeFileIndex, ignoreViewerScope]);
+  }, [
+    workbench,
+    allFiles,
+    activeFileIndex,
+    ignoreViewerScope,
+    selectedFiles,
+    selectedFileIds.length,
+  ]);
 }
 
 /**

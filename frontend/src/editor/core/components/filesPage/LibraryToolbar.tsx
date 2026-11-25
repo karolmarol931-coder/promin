@@ -51,7 +51,10 @@ export function LibraryToolbar({
   const { t } = useTranslation();
   const localOnly = useLocalProcessingOnly();
   useEffect(() => {
-    if (localOnly && originFilter !== "all") {
+    if (
+      localOnly &&
+      (originFilter === "cloud" || originFilter === "shared-with-me")
+    ) {
       setOriginFilter("all");
     }
   }, [localOnly, originFilter, setOriginFilter]);

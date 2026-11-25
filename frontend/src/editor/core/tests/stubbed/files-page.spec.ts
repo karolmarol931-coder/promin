@@ -1,7 +1,10 @@
 import { test, expect } from "@editor/tests/helpers/stub-test-base";
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import type { Locator, Page, Route } from "@playwright/test";
 import { DATABASE_CONFIGS } from "@editor/services/indexedDBManager";
+import { openRecents } from "@editor/tests/helpers/ui-helpers";
+import { installTauri } from "@editor/tests/helpers/tauriDiskStub";
 
 /** Stubbed coverage for the /files page UI invariants. */
 
@@ -9,6 +12,7 @@ interface SeedFile {
   id: string;
   name: string;
   remoteStorageId: number | null;
+  dataBase64?: string;
   folderId?: string;
   versionNumber?: number;
   toolHistory?: Array<{ toolId: string; timestamp: number }>;
@@ -110,8 +114,11 @@ async function seedFiles(
             size: 1024,
             lastModified: now,
             createdAt: now,
-            // Placeholder; opening would need real bytes.
-            data: new ArrayBuffer(8),
+            data: f.dataBase64
+              ? Uint8Array.from(atob(f.dataBase64), (char) =>
+                  char.charCodeAt(0),
+                ).buffer
+              : new ArrayBuffer(8),
             thumbnail: null,
             isLeaf: true,
             versionNumber: f.versionNumber ?? 1,
@@ -143,12 +150,21 @@ async function seedFiles(
 /** Stub the storage + config endpoints hit on mount. */
 async function stubStorageApis(
   page: Page,
-  opts: { storageEnabled?: boolean; sharingEnabled?: boolean } = {},
+  opts: {
+    storageEnabled?: boolean;
+    sharingEnabled?: boolean;
+    dependenciesReady?: boolean;
+  } = {},
 ): Promise<void> {
-  const { storageEnabled = true, sharingEnabled = false } = opts;
+  const {
+    storageEnabled = true,
+    sharingEnabled = false,
+    dependenciesReady = false,
+  } = opts;
   // No enableLogin; setting it would trigger the auth redirect.
   const configPayload = {
     appVersion: "test",
+    ...(dependenciesReady ? { dependenciesReady: true } : {}),
     storageEnabled,
     storageSharingEnabled: sharingEnabled,
     storageShareLinksEnabled: sharingEnabled,
@@ -252,6 +268,125 @@ test.describe("Files page", () => {
       await cards.nth(1).click({ modifiers: ["ControlOrMeta"] });
       await expect(page.locator(".files-page-card.is-selected")).toHaveCount(2);
       await expect(page.locator(".files-page-card-selector")).toHaveCount(0);
+    });
+
+    test("merges three selected library files, not the previously opened file", async ({
+      page,
+    }) => {
+      await installTauri(page);
+      const samplePdf = readFileSync(
+        path.join(import.meta.dirname, "../test-fixtures/sample.pdf"),
+      );
+      const dataBase64 = samplePdf.toString("base64");
+      await stubStorageApis(page, { dependenciesReady: true });
+      await page.route(
+        "**/api/v1/config/endpoints-availability*",
+        async (route: Route) => {
+          const url = new URL(route.request().url());
+          const endpoints = url.searchParams.get("endpoints")?.split(",") ?? [];
+          await route.fulfill({
+            json: Object.fromEntries(
+              endpoints.map((endpoint) => [endpoint, { enabled: true }]),
+            ),
+          });
+        },
+      );
+      await seedFiles(page, [
+        {
+          id: "already-open",
+          name: "already-open.pdf",
+          remoteStorageId: null,
+          dataBase64,
+        },
+        {
+          id: "merge-a",
+          name: "merge-a.pdf",
+          remoteStorageId: null,
+          dataBase64,
+        },
+        {
+          id: "merge-b",
+          name: "merge-b.pdf",
+          remoteStorageId: null,
+          dataBase64,
+        },
+        {
+          id: "merge-c",
+          name: "merge-c.pdf",
+          remoteStorageId: null,
+          dataBase64,
+        },
+      ]);
+      await page.addInitScript(() =>
+        localStorage.setItem("i18nextLng", "en-US"),
+      );
+      await page.goto("/editor", { waitUntil: "domcontentloaded" });
+      await page
+        .getByRole("dialog")
+        .getByRole("button", { name: /start|начать/i })
+        .click();
+      await gotoFilesPage(page);
+
+      const alreadyOpen = page
+        .locator(".files-page-card:not(.is-folder)")
+        .filter({ hasText: "already-open.pdf" });
+      await alreadyOpen.click();
+      await page
+        .getByRole("button", { name: /Add to workspace/i })
+        .first()
+        .click();
+      await expect(page).toHaveURL(/\/$/);
+
+      await openRecents(page);
+      const card = (name: string) =>
+        page
+          .locator(".files-page-card:not(.is-folder)")
+          .filter({ hasText: name });
+      await card("merge-a.pdf").click();
+      await card("merge-b.pdf").click({ modifiers: ["ControlOrMeta"] });
+      await card("merge-c.pdf").click({ modifiers: ["ControlOrMeta"] });
+      await expect(page.locator(".files-page-card.is-selected")).toHaveCount(3);
+
+      const addSelected = await openMenuItem(
+        page,
+        page.locator(
+          ".files-page-selection-actions .files-page-toolbar-bulk-trigger",
+        ),
+        /Add 3 to workspace/i,
+      );
+      await addSelected.click();
+      await expect(page).toHaveURL(/\/$/);
+
+      await page.locator('[data-tour="tool-button-merge"]').click();
+      await expect(page.getByTestId("tool-file-list")).toContainText("3 files");
+      await expect(page.getByTestId("tool-file-list")).not.toContainText(
+        "already-open.pdf",
+      );
+
+      let requestBody = "";
+      await page.route("**/api/v1/general/merge-pdfs", async (route: Route) => {
+        requestBody =
+          route.request().postDataBuffer()?.toString("latin1") ?? "";
+        await route.fulfill({
+          status: 200,
+          contentType: "application/pdf",
+          headers: {
+            "Content-Disposition": 'attachment; filename="merged_unsigned.pdf"',
+          },
+          body: samplePdf,
+        });
+      });
+
+      await page.locator('[data-tour="run-button"]').click();
+      await expect.poll(() => requestBody).not.toBe("");
+      expect(requestBody.match(/name="fileInput"; filename=/g)).toHaveLength(3);
+      expect(requestBody).toContain("merge-a.pdf");
+      expect(requestBody).toContain("merge-b.pdf");
+      expect(requestBody).toContain("merge-c.pdf");
+      expect(requestBody).not.toContain("already-open.pdf");
+      await expect(page.locator('[data-sidebar="file-sidebar"]')).toContainText(
+        /merged_/,
+      );
     });
   });
 

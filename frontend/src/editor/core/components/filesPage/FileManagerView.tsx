@@ -135,24 +135,23 @@ export default function FileManagerView() {
   const connectedServer = useConnectedServer();
   const refreshDisabledReason = localProcessingOnly
     ? null
-    : signInRequiredReason ??
+    : (signInRequiredReason ??
       (connectedServer
         ? null
         : t(
             "filesPage.refreshNeedsConnection",
             "Sign in to refresh from the server.",
-          ));
+          )));
   const uploadEnabled = appConfig?.storageEnabled === true;
-  const saveToServerDisabledReason: string | null =
-    localProcessingOnly
-      ? null
-      : signInRequiredReason ??
-        (uploadEnabled
-          ? null
-          : t(
-              "filesPage.saveToServerDisabledHint",
-              "Saving to the server isn't enabled on this server. Ask your admin to enable it.",
-            ));
+  const saveToServerDisabledReason: string | null = localProcessingOnly
+    ? null
+    : (signInRequiredReason ??
+      (uploadEnabled
+        ? null
+        : t(
+            "filesPage.saveToServerDisabledHint",
+            "Saving to the server isn't enabled on this server. Ask your admin to enable it.",
+          )));
   const { actions: navActions } = useNavigationActions();
   const { requestNavigation } = useNavigationGuard();
   const { setActiveFileId } = useViewer();
@@ -678,7 +677,18 @@ export default function FileManagerView() {
           });
         }
 
-        const opened = [...alreadyOpen, ...materialized];
+        const openFilesByRequestedId = new Map<FileId, StirlingFileStub>();
+        alreadyOpen.forEach((stub) =>
+          openFilesByRequestedId.set(stub.id, stub),
+        );
+        toOpen.forEach((stub, index) => {
+          const openedStub = materialized[index];
+          if (openedStub) openFilesByRequestedId.set(stub.id, openedStub);
+        });
+        const opened = stubs
+          .map((stub) => openFilesByRequestedId.get(stub.id))
+          .filter((stub): stub is StirlingFileStub => Boolean(stub));
+        fileActions.setSelectedFiles(opened.map((stub) => stub.id));
         if (opened.length === 1) {
           setActiveFileId(opened[0].id);
           navActions.setWorkbench("viewer");

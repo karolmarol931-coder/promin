@@ -18,7 +18,10 @@ vi.mock("@editor/contexts/ViewerContext", () => ({ useViewer: () => viewer }));
 vi.mock("@editor/contexts/NavigationContext", () => ({
   useNavigationState: () => ({ workbench: "viewer" }),
 }));
-vi.mock("@editor/contexts/FileContext", () => ({ useAllFiles: () => files }));
+vi.mock("@editor/contexts/FileContext", () => ({
+  useAllFiles: () => files,
+  useSelectedFiles: () => ({ selectedFiles: [], selectedFileIds: [] }),
+}));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (_key: string, fallback?: string, values?: Record<string, unknown>) =>
