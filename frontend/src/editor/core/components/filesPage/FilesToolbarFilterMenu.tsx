@@ -81,7 +81,10 @@ export function FilesToolbarFilterMenu({
                 value && onOriginChange(value as FilesPageOriginFilter)
               }
               data={[
-                { value: "all", label: t("filesPage.origin.all", "All sources") },
+                {
+                  value: "all",
+                  label: t("filesPage.origin.all", "All sources"),
+                },
                 { value: "local", label: t("filesPage.origin.local", "Local") },
                 { value: "cloud", label: t("filesPage.origin.cloud", "Cloud") },
                 {

@@ -13,6 +13,10 @@ export interface WidgetCoordinates {
   exportValue?: string;
   /** Font size in PDF points */
   fontSize?: number;
+  /** The PDF page already prints this radio option's caption beside the widget. */
+  hasStaticOptionLabel?: boolean;
+  /** The PDF page has text inside this editable text or choice widget. */
+  hasStaticTextUnderlay?: boolean;
   /** CropBox height in PDF points; lets the editor reverse the backend's Y-flip when sending coordinates back. */
   cropBoxHeight?: number;
 }

@@ -10,6 +10,7 @@
  */
 import type { FormField } from "@editor/tools/formFill/types";
 import type { IFormDataProvider } from "@editor/tools/formFill/providers/types";
+import { markStaticFormText } from "@editor/tools/formFill/staticFormTextService";
 import {
   fetchFormFieldsWithCoordinates,
   fillFormFields,
@@ -19,7 +20,8 @@ export class PdfBoxFormProvider implements IFormDataProvider {
   readonly name = "pdfbox";
 
   async fetchFields(file: File | Blob): Promise<FormField[]> {
-    return fetchFormFieldsWithCoordinates(file);
+    const fields = await fetchFormFieldsWithCoordinates(file);
+    return markStaticFormText(file, fields);
   }
 
   async fillForm(

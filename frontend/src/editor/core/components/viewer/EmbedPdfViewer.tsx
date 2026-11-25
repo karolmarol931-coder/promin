@@ -64,6 +64,7 @@ import {
 } from "@editor/components/viewer/RulerOverlay";
 import { useWheelZoom } from "@editor/hooks/useWheelZoom";
 import { useFormFill } from "@editor/tools/formFill/FormFillContext";
+import { printFilledForm } from "@editor/tools/formFill/printFilledForm";
 import { FormSaveBar } from "@editor/tools/formFill/FormSaveBar";
 import { useDocumentLoadWaiter } from "@editor/components/viewer/useDocumentLoadWaiter";
 import {
@@ -170,6 +171,7 @@ const EmbedPdfViewerContent = ({
     printActions,
     selectionActions,
     setApplyChanges,
+    setPrintInterceptor,
     applyChanges: viewerApplyChanges,
     pdfRenderMode,
     cyclePdfRenderMode,
@@ -550,7 +552,13 @@ const EmbedPdfViewerContent = ({
   }, [selectedTool, setRedactionMode, deactivateRedact]);
 
   // Form fill context
-  const { fetchFields: fetchFormFields, setProviderMode } = useFormFill();
+  const {
+    fetchFields: fetchFormFields,
+    setProviderMode,
+    state: formFillState,
+    submitForm,
+    forFileId: formFillForFileId,
+  } = useFormFill();
 
   const isInAnnotationTool =
     selectedTool === "sign" ||
@@ -732,6 +740,68 @@ const EmbedPdfViewerContent = ({
   const isCurrentFileLocked = isCurrentFileEncrypted && !pdfAccess;
   const canPrint = !isCurrentFileLocked && canPrintPdf(pdfAccess);
 
+  const formPrintInFlightRef = useRef(false);
+  const interceptFilledFormPrint = useCallback(async () => {
+    if (
+      previewFile ||
+      !currentFile ||
+      !isStirlingFile(currentFile) ||
+      !formFillState.isDirty ||
+      formFillForFileId !== currentFileId
+    ) {
+      return false;
+    }
+    if (formPrintInFlightRef.current) return true;
+
+    formPrintInFlightRef.current = true;
+    try {
+      if (!canPrintPdf(pdfAccess)) {
+        throw new Error(
+          t(
+            "encryptedPdfUnlock.printRestricted",
+            "Printing is restricted for this PDF.",
+          ),
+        );
+      }
+
+      const result = await printFilledForm(
+        currentFile,
+        currentFile.fileId,
+        submitForm,
+      );
+      if (result === "policy-applied") {
+        alert({
+          alertType: "warning",
+          title: t("policies.enforcement.printPolicyAppliedTitle"),
+          body: t("policies.enforcement.printPolicyAppliedBody"),
+        });
+      }
+    } catch (error) {
+      alert({
+        alertType: "error",
+        title: t("workbenchBar.print", "Print PDF"),
+        body: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      formPrintInFlightRef.current = false;
+    }
+    return true;
+  }, [
+    previewFile,
+    currentFile,
+    formFillState.isDirty,
+    formFillForFileId,
+    currentFileId,
+    pdfAccess,
+    submitForm,
+    t,
+  ]);
+
+  useEffect(() => {
+    setPrintInterceptor(interceptFilledFormPrint);
+    return () => setPrintInterceptor(null);
+  }, [interceptFilledFormPrint, setPrintInterceptor]);
+
   const bookmarkCacheKey = React.useMemo(() => {
     if (currentFile && isStirlingFile(currentFile)) {
       return documentCacheKey(currentFile);
@@ -802,18 +872,19 @@ const EmbedPdfViewerContent = ({
       // Without this, the browser falls through to its native "print HTML page"
       // or "reload page" behaviour.
 
+      if (mod && event.key.toLowerCase() === "p") {
+        event.preventDefault();
+        if (!policyEnforcingRef.current && canPrint) {
+          printActions.print();
+        }
+        return;
+      }
+
       if (mod) {
         if (!isInTextInput) {
           const wasOverridden = viewerKeyCommand(event);
           if (!wasOverridden) {
             switch (event.key) {
-              case "p":
-              case "P":
-                event.preventDefault();
-                if (!policyEnforcingRef.current && canPrint) {
-                  printActions.print();
-                }
-                return;
               case "a":
               case "A":
                 // Intercept unconditionally so the browser can't blanket-select the surrounding UI chrome.

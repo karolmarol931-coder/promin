@@ -287,7 +287,11 @@ function WidgetInputInner({
     height: "100%",
     border: "none",
     outline: "none",
-    background: "transparent",
+    background: widget.hasStaticTextUnderlay
+      ? isActive
+        ? bgColor
+        : "#fff"
+      : "transparent",
     padding: 0,
     paddingLeft: `${Math.max(2, 4 * scaleX)}px`,
     paddingRight: `${Math.max(2, 4 * scaleX)}px`,
@@ -472,7 +476,10 @@ function WidgetInputInner({
       const widgetIndexStr = String(widgetIndex);
       const isSelected = value === widgetIndexStr;
       const optionLabel =
-        field.options?.[widgetIndex] ?? widget.exportValue ?? "";
+        field.displayOptions?.[widgetIndex] ??
+        field.options?.[widgetIndex] ??
+        widget.exportValue ??
+        "";
       return (
         <div
           {...commonProps}
@@ -518,24 +525,25 @@ function WidgetInputInner({
               flex: "0 0 auto",
             }}
           />
-          {optionLabel && (
-            // A PDF radio widget carries no caption of its own, so without this the options are
-            // indistinguishable circles. Drawn outside the rect so the hit area stays the widget.
-            <span
-              style={{
-                position: "absolute",
-                left: "100%",
-                marginLeft: 4,
-                whiteSpace: "nowrap",
-                fontSize: Math.max(9, Math.min(12, height * 0.9)),
-                lineHeight: `${height}px`,
-                color: "#333",
-                pointerEvents: "none",
-              }}
-            >
-              {optionLabel}
-            </span>
-          )}
+          {optionLabel &&
+            !widget.hasStaticOptionLabel && (
+              // A PDF radio widget carries no caption of its own, so without this the options are
+              // indistinguishable circles. Drawn outside the rect so the hit area stays the widget.
+              <span
+                style={{
+                  position: "absolute",
+                  left: "100%",
+                  marginLeft: 4,
+                  whiteSpace: "nowrap",
+                  fontSize: Math.max(9, Math.min(12, height * 0.9)),
+                  lineHeight: `${height}px`,
+                  color: "#333",
+                  pointerEvents: "none",
+                }}
+              >
+                {optionLabel}
+              </span>
+            )}
         </div>
       );
     }

@@ -17,10 +17,7 @@ import {
 } from "@editor/contexts/ToolWorkflowContext";
 import { useToolRegistry } from "@editor/contexts/ToolRegistryContext";
 import { ToolId } from "@editor/types/toolId";
-import {
-  getSubcategoryLabel,
-  SubcategoryId,
-} from "@editor/data/toolsTaxonomy";
+import { getSubcategoryLabel, SubcategoryId } from "@editor/data/toolsTaxonomy";
 import { ToolPickerFooterExtensions } from "@editor/components/tools/toolPicker/ToolPickerFooterExtensions";
 
 interface ToolPickerProps {
@@ -137,10 +134,7 @@ const ToolPicker = ({
   const { searchGroups } = useToolSections(effectiveFilteredForSearch);
 
   return (
-    <Box
-      h="100%"
-      style={{ ...CONTAINER_STYLE, flex: 1, minHeight: 0 }}
-    >
+    <Box h="100%" style={{ ...CONTAINER_STYLE, flex: 1, minHeight: 0 }}>
       <Box
         ref={scrollerRef}
         style={SCROLLABLE_STYLE}

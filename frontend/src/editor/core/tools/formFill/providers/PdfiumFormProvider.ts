@@ -25,6 +25,7 @@ import type {
   ButtonAction,
 } from "@editor/tools/formFill/types";
 import type { IFormDataProvider } from "@editor/tools/formFill/providers/types";
+import { markStaticFormText } from "@editor/tools/formFill/staticFormTextService";
 import type { PDFDict } from "@cantoo/pdf-lib";
 
 interface PDFAcroField {
@@ -165,7 +166,7 @@ export class PdfiumFormProvider implements IFormDataProvider {
         pdfiumFields,
       );
 
-      return pdfiumFields
+      const formFields = pdfiumFields
         .filter((f) => f.widgets.length > 0)
         .map((f) =>
           toFormField(
@@ -174,6 +175,7 @@ export class PdfiumFormProvider implements IFormDataProvider {
             buttonInfoMap.get(f.name) ?? null,
           ),
         );
+      return markStaticFormText(file, formFields, arrayBuffer);
     } catch (err) {
       console.warn("[PdfiumFormProvider] Failed to extract form fields:", err);
       return [];

@@ -20,6 +20,7 @@ vi.mock("@editor/services/pdfiumService", () => ({
   closeDocAndFreeBuffer: vi.fn(),
   getPdfiumModule: vi.fn(async () => ({
     FPDF_CloseDocument: vi.fn(),
+    FPDF_LoadPage: vi.fn(() => 0),
     PDFiumExt_OpenFormFillInfo: vi.fn(() => 1),
     PDFiumExt_InitFormFillEnvironment: vi.fn(() => 0),
   })),

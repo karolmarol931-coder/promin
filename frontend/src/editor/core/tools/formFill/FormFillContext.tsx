@@ -49,6 +49,10 @@ import { PdfiumFormProvider } from "@editor/tools/formFill/providers/PdfiumFormP
 import { fetchSignatureFieldsWithAppearances } from "@editor/services/pdfiumService";
 import { applyFieldEdits } from "@editor/tools/formFill/formApi";
 import { mergeSignatureAppearances } from "@editor/tools/formFill/formFieldMerge";
+import {
+  markStaticFormText,
+  maskStaticFormTextUnderlays,
+} from "@editor/tools/formFill/staticFormTextService";
 
 /** Marks a skip report as belonging to whichever document the commit just produced. */
 const PENDING_SKIP_REPORT = "__pending__";
@@ -578,7 +582,7 @@ export function FormFillProvider({
           bundled.size === file.size &&
           providerModeRef.current === "pdfbox";
         let fields = usable
-          ? bundled.fields
+          ? await markStaticFormText(file, bundled.fields)
           : await providerRef.current.fetchFields(file);
         // If another fetch or reset happened while we were waiting, discard this result
         if (fetchVersionRef.current !== version) {
@@ -687,8 +691,12 @@ export function FormFillProvider({
 
   const submitForm = useCallback(
     async (file: File | Blob, flatten = false) => {
-      const blob = await providerRef.current.fillForm(
+      const preparedFile = await maskStaticFormTextUnderlays(
         file,
+        fieldsRef.current,
+      );
+      const blob = await providerRef.current.fillForm(
+        preparedFile,
         valuesStore.values,
         flatten,
       );

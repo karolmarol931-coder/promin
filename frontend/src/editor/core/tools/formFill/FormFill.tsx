@@ -35,8 +35,7 @@ import { serverMessage } from "@editor/tools/formFill/useFormCommit";
 import { useViewer } from "@editor/contexts/ViewerContext";
 import { usePdfAccess } from "@editor/hooks/usePdfAccess";
 import { canPrintPdf } from "@editor/services/pdfPermissions";
-import { enforceExportPolicies } from "@editor/services/policyExport";
-import { printPdfFile } from "@editor/services/printPdfFileService";
+import { printFilledForm } from "@editor/tools/formFill/printFilledForm";
 import { useAllFiles, useFileState } from "@editor/contexts/FileContext";
 import { Skeleton } from "@mantine/core";
 import { isStirlingFile, getFormFillFileId } from "@editor/types/fileContext";
@@ -227,7 +226,6 @@ const FormFill = (_props: BaseToolProps) => {
     setPrinting(true);
     setSaveError(null);
     try {
-      assertFilesNotBlocked([fileId]);
       if (!canPrintPdf(pdfAccess)) {
         throw new Error(
           t(
@@ -236,12 +234,8 @@ const FormFill = (_props: BaseToolProps) => {
           ),
         );
       }
-      const blob = await submitForm(currentFile, flatten);
-      const file = new File([blob], currentFile.name, {
-        type: "application/pdf",
-      });
-      const [enforced] = await enforceExportPolicies([file], [fileId], "print");
-      if (enforced !== file) {
+      const result = await printFilledForm(currentFile, fileId, submitForm);
+      if (result === "policy-applied") {
         throw new Error(
           t(
             "policies.enforcement.printPolicyAppliedBody",
@@ -249,13 +243,12 @@ const FormFill = (_props: BaseToolProps) => {
           ),
         );
       }
-      await printPdfFile(file, file.name);
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : String(error));
     } finally {
       setPrinting(false);
     }
-  }, [printing, currentFile, pdfAccess, t, submitForm, flatten]);
+  }, [printing, currentFile, pdfAccess, t, submitForm]);
 
   const handleExtractCsv = useCallback(async () => {
     if (!currentFile) return;

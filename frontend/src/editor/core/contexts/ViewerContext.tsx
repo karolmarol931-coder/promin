@@ -161,6 +161,7 @@ export const ViewerProvider: React.FC<ViewerProviderProps> = ({ children }) => {
 
   // Apply changes function - registered by EmbedPdfViewer
   const applyChangesRef = useRef<(() => Promise<void>) | null>(null);
+  const printInterceptorRef = useRef<(() => Promise<boolean>) | null>(null);
 
   const setApplyChanges = useCallback((fn: (() => Promise<void>) | null) => {
     applyChangesRef.current = fn;
@@ -171,6 +172,13 @@ export const ViewerProvider: React.FC<ViewerProviderProps> = ({ children }) => {
       await applyChangesRef.current();
     }
   }, []);
+
+  const setPrintInterceptor = useCallback(
+    (fn: (() => Promise<boolean>) | null) => {
+      printInterceptorRef.current = fn;
+    },
+    [],
+  );
 
   const {
     register: registerImmediateZoomUpdate,
@@ -434,6 +442,7 @@ export const ViewerProvider: React.FC<ViewerProviderProps> = ({ children }) => {
   // they haven't seen. With no active export policy this is a no-op and print
   // runs straight away.
   const printWithPolicy = useCallback(async () => {
+    if (await printInterceptorRef.current?.()) return;
     // Through a ref: switching the active file must not rebuild this callback,
     // or the memoised actions bundle and every effect depending on it churn.
     const currentActiveFileId = activeFileIdRef.current;
@@ -560,6 +569,7 @@ export const ViewerProvider: React.FC<ViewerProviderProps> = ({ children }) => {
       // Apply changes
       applyChanges,
       setApplyChanges,
+      setPrintInterceptor,
 
       // PDF page rendering mode
       pdfRenderMode,
@@ -622,6 +632,7 @@ export const ViewerProvider: React.FC<ViewerProviderProps> = ({ children }) => {
       registerBridge,
       applyChanges,
       setApplyChanges,
+      setPrintInterceptor,
       pdfRenderMode,
       cyclePdfRenderMode,
     ],

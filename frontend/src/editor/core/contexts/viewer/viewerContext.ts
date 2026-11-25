@@ -160,6 +160,7 @@ export interface ViewerContextType {
   // Save changes function - registered by EmbedPdfViewer
   applyChanges: (() => Promise<void>) | null;
   setApplyChanges: (fn: (() => Promise<void>) | null) => void;
+  setPrintInterceptor: (fn: (() => Promise<boolean>) | null) => void;
 
   // PDF page color rendering mode (viewer-only, never modifies the PDF)
   pdfRenderMode: PdfRenderMode;
