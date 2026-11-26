@@ -72,18 +72,20 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     return () => media.removeEventListener("change", update);
   }, [themeMode]);
 
-  // The mode resolved to a concrete light/dark base.
+  // Seasonal styling remains independent of the resolved light/dark base.
   const colorScheme = resolveColorScheme(themeMode, systemScheme);
 
-  // Mirror the scheme to <html>. The accent is fixed to the default (neutral
-  // surfaces + blue buttons): data-accent="default" and no --user-* overrides,
-  // so colors.css resolves --c-primary to its static blue fallback.
   useIsomorphicEffect(() => {
     const root = document.documentElement;
     root.setAttribute("data-theme", colorScheme);
     root.setAttribute("data-app-theme", "custom");
     root.setAttribute("data-accent", "default");
-  }, [colorScheme]);
+    if (preferences.newYearThemeEnabled) {
+      root.setAttribute("data-new-year-theme", "on");
+    } else {
+      root.removeAttribute("data-new-year-theme");
+    }
+  }, [colorScheme, preferences.newYearThemeEnabled]);
 
   const value = useMemo<ThemeContextType>(
     () => ({ themeMode, setTheme }),
@@ -101,6 +103,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         <div style={{ minHeight: "100vh" }}>
           <ToastProvider>
             <ToastPortalBinder />
+            <div className="new-year-snowfall" aria-hidden="true" />
             {children}
             <ToastRenderer />
           </ToastProvider>

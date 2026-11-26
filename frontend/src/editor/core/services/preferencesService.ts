@@ -26,6 +26,7 @@ export interface UserPreferences {
   defaultStartupView: StartupView;
   defaultViewerZoom: ViewerZoomSetting;
   theme: ThemeMode;
+  newYearThemeEnabled: boolean;
   toolPanelModePromptSeen: boolean;
   hasSelectedToolPanelMode: boolean;
   showLegacyToolDescriptions: boolean;
@@ -45,6 +46,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   defaultStartupView: "tools",
   defaultViewerZoom: "auto",
   theme: "system",
+  newYearThemeEnabled: false,
   toolPanelModePromptSeen: false,
   hasSelectedToolPanelMode: false,
   showLegacyToolDescriptions: false,

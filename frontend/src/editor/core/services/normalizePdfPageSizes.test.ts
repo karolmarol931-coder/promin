@@ -21,9 +21,11 @@ describe("normalizePdfPageSizes", () => {
     const result = await normalizePdfPageSizes(source, {
       portraitWidth: 595,
       portraitHeight: 842,
+      totalPageCount: 8,
+      referencePageCount: 6,
       pages: [
-        { fileIndex: 0, pageIndex: 5 },
-        { fileIndex: 0, pageIndex: 7 },
+        { fileIndex: 0, pageIndex: 5, width: 2432, height: 3440 },
+        { fileIndex: 0, pageIndex: 7, width: 2432, height: 3440 },
       ],
       outlierScale: 4.1,
     });

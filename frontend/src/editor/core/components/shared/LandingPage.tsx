@@ -37,10 +37,32 @@ const LandingPage = ({ readerEmpty = false }: { readerEmpty?: boolean }) => {
       size="70rem"
       p={0}
       h="100%"
-      className="flex min-h-0 flex-col"
+      className="landing-page flex min-h-0 flex-col"
       style={{ position: "relative" }}
     >
-      <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center overflow-visible px-4 py-8">
+      {!readerEmpty && (
+        <div className="landing-page__winter-scene" aria-hidden="true">
+          <div className="winter-tree winter-tree--back">
+            <span className="winter-tree__trunk" />
+            <span className="winter-tree__layer winter-tree__layer--lower" />
+            <span className="winter-tree__layer winter-tree__layer--middle" />
+            <span className="winter-tree__layer winter-tree__layer--upper" />
+          </div>
+          <div className="winter-tree winter-tree--front">
+            <span className="winter-tree__trunk" />
+            <span className="winter-tree__layer winter-tree__layer--lower" />
+            <span className="winter-tree__layer winter-tree__layer--middle" />
+            <span className="winter-tree__layer winter-tree__layer--upper" />
+          </div>
+          <div className="winter-snowman">
+            <span className="winter-snowman__base" />
+            <span className="winter-snowman__body" />
+            <span className="winter-snowman__head" />
+            <span className="winter-snowman__scarf" />
+          </div>
+        </div>
+      )}
+      <div className="landing-page__content">
         {readerEmpty ? (
           <h1 className="landing-reader-empty-title">
             {t("reader.emptyTitle", "Open a PDF to start reading")}

@@ -19,7 +19,12 @@ import type { FileId } from "@editor/types/file";
 import {
   analyzeMergePageSizes,
   type MergePageSizeNormalizationPlan,
+  type MergePageSizeSample,
 } from "@editor/tools/merge/pageSizeAnalysis";
+import {
+  PageSizeReviewDetails,
+  pageSizeSampleKey,
+} from "@editor/components/layout/PageSizeReviewDetails";
 import {
   moveMergeFile,
   orderMergeFiles,
@@ -37,6 +42,8 @@ const Merge = (props: BaseToolProps) => {
   const [fileOrder, setFileOrder] = useState<FileId[]>([]);
   const [normalizationReview, setNormalizationReview] =
     useState<MergePageSizeNormalizationPlan | null>(null);
+  const [selectedNormalizationPages, setSelectedNormalizationPages] =
+    useState<Set<string>>(new Set());
   const [checkingPageSizes, setCheckingPageSizes] = useState(false);
   const orderFiles = useCallback(
     (files: Parameters<typeof orderMergeFiles>[0]) =>
@@ -84,6 +91,7 @@ const Merge = (props: BaseToolProps) => {
     if (previousSelectedFileKey.current !== selectedFileKey) {
       previousSelectedFileKey.current = selectedFileKey;
       setNormalizationReview(null);
+      setSelectedNormalizationPages(new Set<string>());
     }
   }, [selectedFileKey]);
 
@@ -101,6 +109,7 @@ const Merge = (props: BaseToolProps) => {
     if (selectedFileKeyRef.current !== analysisFileKey) return;
     if (plan) {
       setNormalizationReview(plan);
+      setSelectedNormalizationPages(new Set(plan.pages.map(pageSizeSampleKey)));
       return;
     }
     await base.handleExecute({ normalizationPlan: null });
@@ -112,12 +121,42 @@ const Merge = (props: BaseToolProps) => {
   ]);
 
   const mergeWithPageSizeChoice = useCallback(
-    (plan: MergePageSizeNormalizationPlan | null) => {
+    (normalize: boolean) => {
+      const pages = normalizationReview?.pages.filter((page) =>
+        selectedNormalizationPages.has(pageSizeSampleKey(page)),
+      );
+      if (normalize && (!normalizationReview || !pages || pages.length === 0)) {
+        return;
+      }
       setNormalizationReview(null);
-      void base.handleExecute({ normalizationPlan: plan });
+      setSelectedNormalizationPages(new Set<string>());
+      void base.handleExecute({
+        normalizationPlan:
+          normalize && normalizationReview && pages
+            ? { ...normalizationReview, pages }
+            : null,
+      });
     },
-    [base.handleExecute],
+    [base.handleExecute, normalizationReview, selectedNormalizationPages],
   );
+
+  const toggleNormalizationPage = useCallback(
+    (page: MergePageSizeSample, checked: boolean) => {
+      setSelectedNormalizationPages((current) => {
+        const next = new Set(current);
+        if (checked) next.add(pageSizeSampleKey(page));
+        else next.delete(pageSizeSampleKey(page));
+        return next;
+      });
+    },
+    [],
+  );
+
+  const selectedNormalizationPageCount = normalizationReview
+    ? normalizationReview.pages.filter((page) =>
+        selectedNormalizationPages.has(pageSizeSampleKey(page)),
+      ).length
+    : 0;
 
   useEffect(() => {
     if (isViewerMode && !hasAutoSwitchedRef.current) {
@@ -245,25 +284,28 @@ const Merge = (props: BaseToolProps) => {
       {flow}
       <Modal
         open={normalizationReview !== null}
-        onClose={() => setNormalizationReview(null)}
+        onClose={() => {
+          setNormalizationReview(null);
+          setSelectedNormalizationPages(new Set<string>());
+        }}
         title={t("merge.normalize.title", "Unusually sized pages found")}
         subtitle={t(
           "merge.normalize.subtitle",
           "Some pages are much larger or smaller than the main page size.",
         )}
-        width="md"
+        width="lg"
         footer={
           <Stack gap="sm">
             <Button
-              onClick={() => mergeWithPageSizeChoice(normalizationReview)}
-              disabled={!normalizationReview}
+              onClick={() => mergeWithPageSizeChoice(true)}
+              disabled={!normalizationReview || selectedNormalizationPageCount === 0}
               fullWidth
             >
               {t("merge.normalize.confirm", "Normalize pages and merge")}
             </Button>
             <Button
               variant="secondary"
-              onClick={() => mergeWithPageSizeChoice(null)}
+              onClick={() => mergeWithPageSizeChoice(false)}
               fullWidth
             >
               {t("merge.normalize.keepSizes", "Keep page sizes and merge")}
@@ -272,45 +314,13 @@ const Merge = (props: BaseToolProps) => {
         }
       >
         {normalizationReview && (
-          <Stack gap="sm">
-            <Text>
-              {t(
-                "merge.normalize.description",
-                "You can scale only the unusual pages to the size used by most pages. Content keeps its proportions and is centered without cropping. Original files are not changed.",
-              )}
-            </Text>
-            <Text fw={600}>
-              {t("merge.normalize.targetSize", "Main page size")}:{" "}
-              {normalizationReview.portraitWidth.toFixed(0)} ×{" "}
-              {normalizationReview.portraitHeight.toFixed(0)} pt
-            </Text>
-            <Text fw={600}>
-              {t("merge.normalize.pages", "Pages to normalize")}
-            </Text>
-            <ul>
-              {normalizationReview.pages.slice(0, 8).map((page) => (
-                <li key={`${page.fileIndex}:${page.pageIndex}`}>
-                  {base.selectedFiles[page.fileIndex]?.name ??
-                    t("merge.normalize.unknownFile", "PDF")}
-                  {" — "}
-                  {t("merge.normalize.pageNumber", "page")} {page.pageIndex + 1}
-                </li>
-              ))}
-            </ul>
-            {normalizationReview.pages.length > 8 && (
-              <Text size="sm" c="dimmed">
-                {t("merge.normalize.morePages", "and {{count}} more pages", {
-                  count: normalizationReview.pages.length - 8,
-                })}
-              </Text>
-            )}
-            <Text size="sm" c="dimmed">
-              {t("merge.normalize.scale", "Approximate size difference")}:{" "}
-              {normalizationReview.outlierScale >= 1
-                ? `${normalizationReview.outlierScale.toFixed(1)}×`
-                : `${(1 / normalizationReview.outlierScale).toFixed(1)}×`}
-            </Text>
-          </Stack>
+          <PageSizeReviewDetails
+            plan={normalizationReview}
+            selectedPages={selectedNormalizationPages}
+            onTogglePage={toggleNormalizationPage}
+            fileNames={base.selectedFiles.map((file) => file.name)}
+            showPageTotal={false}
+          />
         )}
       </Modal>
     </>

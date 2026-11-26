@@ -29,8 +29,17 @@ const pageSizeReviewKeys = [
   "addFailed",
   "file",
   "keep",
+  "millimeters",
+  "mergeDescription",
+  "mergeTotalPages",
   "normalize",
+  "originalSize",
+  "page",
+  "pageNumber",
   "pages",
+  "referencePages",
+  "selectedPages",
+  "totalPages",
   "target",
   "working",
 ];
@@ -91,7 +100,9 @@ describe("app language choices", () => {
       );
       if (code !== "en-US") {
         for (const key of pageSizeReviewKeys) {
-          expect(review[key]).not.toBe(english[key]);
+          if (key !== "millimeters") {
+            expect(review[key]).not.toBe(english[key]);
+          }
         }
       }
     },

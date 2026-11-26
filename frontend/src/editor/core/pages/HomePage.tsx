@@ -158,6 +158,16 @@ export default function HomePage() {
   }, [navigate]);
 
   const { activeFiles } = useFileContext();
+  useEffect(() => {
+    const root = document.documentElement;
+    if (activeFiles.length > 0) {
+      root.setAttribute("data-document-open", "true");
+    } else {
+      root.removeAttribute("data-document-open");
+    }
+    return () => root.removeAttribute("data-document-open");
+  }, [activeFiles.length]);
+
   const navigationState = useNavigationState();
   const { requestNavigation } = useNavigationGuard();
   const quickNavHost = useQuickNavHost();

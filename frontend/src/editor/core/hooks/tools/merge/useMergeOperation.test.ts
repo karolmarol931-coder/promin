@@ -163,8 +163,10 @@ describe("useMergeOperation", () => {
         normalizationPlan: {
           portraitWidth: 595.28,
           portraitHeight: 841.89,
+          totalPageCount: 12,
+          referencePageCount: 10,
           outlierScale: 4.09,
-          pages: [{ fileIndex: 1, pageIndex: 5 }],
+          pages: [{ fileIndex: 1, pageIndex: 5, width: 2432, height: 3440 }],
         },
       },
       [
