@@ -9,6 +9,7 @@ import { create } from "@editor/services/tauriHttpClient";
 import { handleHttpError } from "@editor/services/httpErrorHandler";
 import { setupApiInterceptors } from "@editor/services/apiClientSetup";
 import { getApiBaseUrl } from "@editor/services/apiClientConfig";
+import { recordDiagnosticException } from "@editor/services/diagnosticLog";
 
 // Create Tauri HTTP client with default config
 const apiClient = create({
@@ -25,10 +26,19 @@ setupApiInterceptors(apiClient as unknown as AxiosInstance);
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
+    recordDiagnosticException("api", "request-failed", error, {
+      endpoint: apiErrorEndpoint(error),
+    });
     await handleHttpError(error); // Handle error (shows toast unless suppressed)
     return Promise.reject(error);
   },
 );
+
+function apiErrorEndpoint(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  const config = (error as { config?: { url?: unknown } }).config;
+  return typeof config?.url === "string" ? config.url : undefined;
+}
 
 // ---------- Exports ----------
 export default apiClient;

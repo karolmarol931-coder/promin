@@ -28,7 +28,7 @@ interface FormFieldSidebarProps {
 
 export function FormFieldSidebar({ visible, onToggle }: FormFieldSidebarProps) {
   const { t } = useTranslation();
-  const { state, setValue, setActiveField } = useFormFill();
+  const { state, setValue, setActiveField, saving } = useFormFill();
   const { fields, activeFieldName, loading } = state;
   const activeFieldRef = useRef<HTMLDivElement>(null);
 
@@ -198,6 +198,7 @@ export function FormFieldSidebar({ visible, onToggle }: FormFieldSidebarProps) {
                             <FieldInput
                               field={field}
                               onValueChange={handleValueChange}
+                              disabled={saving}
                             />
                           </div>
                         )}

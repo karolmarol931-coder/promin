@@ -3,6 +3,7 @@ import PreferencesSection, {
 } from "@editor-core/components/shared/config/configSections/preferences/PreferencesSection";
 import { DefaultAppSettings } from "@editor/components/shared/config/configSections/DefaultAppSettings";
 import { DefaultSaveLocationSettings } from "@editor/components/shared/config/configSections/DefaultSaveLocationSettings";
+import { DiagnosticsCard } from "@editor/components/shared/config/configSections/DiagnosticsCard";
 
 const GeneralSection = ({
   editorDefaultsSlot,
@@ -17,6 +18,7 @@ const GeneralSection = ({
       </>
     }
     downloadsSlot={<DefaultSaveLocationSettings />}
+    diagnosticsSlot={<DiagnosticsCard />}
     hideAdminBanner
   />
 );

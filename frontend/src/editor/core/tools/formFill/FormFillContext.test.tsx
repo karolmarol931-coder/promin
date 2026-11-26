@@ -14,6 +14,8 @@ import type { FieldEditResult } from "@editor/tools/formFill/types";
 
 const applyFieldEdits = vi.fn();
 const fetchFields = vi.fn();
+const fillForm = vi.fn();
+const maskStaticFormTextUnderlays = vi.fn();
 
 vi.mock("@editor/tools/formFill/formApi", () => ({
   applyFieldEdits: (...args: unknown[]) => applyFieldEdits(...args),
@@ -24,8 +26,8 @@ vi.mock("@editor/tools/formFill/providers/PdfBoxFormProvider", () => ({
     fetchFields(...args: unknown[]) {
       return fetchFields(...args);
     }
-    fillForm() {
-      return Promise.resolve(new Blob());
+    fillForm(...args: unknown[]) {
+      return fillForm(...args);
     }
   },
 }));
@@ -34,13 +36,18 @@ vi.mock("@editor/tools/formFill/providers/PdfiumFormProvider", () => ({
     fetchFields(...args: unknown[]) {
       return fetchFields(...args);
     }
-    fillForm() {
-      return Promise.resolve(new Blob());
+    fillForm(...args: unknown[]) {
+      return fillForm(...args);
     }
   },
 }));
 vi.mock("@editor/services/pdfiumService", () => ({
   fetchSignatureFieldsWithAppearances: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@editor/tools/formFill/staticFormTextService", () => ({
+  markStaticFormText: async (_file: Blob, fields: unknown[]) => fields,
+  maskStaticFormTextUnderlays: (...args: unknown[]) =>
+    maskStaticFormTextUnderlays(...args),
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -300,6 +307,13 @@ describe("FormFillContext shared design draft", () => {
 });
 
 describe("FormFillContext value retention", () => {
+  beforeEach(() => {
+    fillForm.mockReset().mockResolvedValue(blob());
+    maskStaticFormTextUnderlays
+      .mockReset()
+      .mockImplementation(async (file: Blob) => file);
+  });
+
   it("does not mark filled values clean before the PDF is persisted", async () => {
     const { result: hook } = renderHook(() => useFormFill(), { wrapper });
     await act(async () => {
@@ -392,5 +406,40 @@ describe("FormFillContext value retention", () => {
     });
 
     expect(hook.current.state.isDirty).toBe(true);
+  });
+
+  it("submits the value snapshot from when save or print started", async () => {
+    const { result: hook } = renderHook(() => useFormFill(), { wrapper });
+    await act(async () => {
+      await hook.current.fetchFields(blob(), "file-A");
+    });
+    act(() => hook.current.setValue("who", "Ada"));
+
+    let resolveMask: ((file: Blob) => void) | undefined;
+    maskStaticFormTextUnderlays.mockImplementationOnce(
+      () =>
+        new Promise<Blob>((resolve) => {
+          resolveMask = resolve;
+        }),
+    );
+
+    let submission = Promise.resolve(blob());
+    act(() => {
+      submission = hook.current.submitForm(blob());
+    });
+    await waitFor(() => expect(maskStaticFormTextUnderlays).toHaveBeenCalled());
+    act(() => hook.current.setValue("who", "Grace"));
+
+    await act(async () => {
+      resolveMask?.(blob());
+      await submission;
+    });
+
+    expect(fillForm).toHaveBeenCalledWith(
+      expect.any(Blob),
+      { who: "Ada" },
+      false,
+    );
+    expect(hook.current.getValue("who")).toBe("Grace");
   });
 });

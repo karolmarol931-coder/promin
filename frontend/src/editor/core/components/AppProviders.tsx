@@ -37,6 +37,7 @@ import { FormFillProvider } from "@editor/tools/formFill/FormFillContext";
 import { FolderProvider } from "@editor/contexts/FolderContext";
 import { WorkbenchSessionPersistence } from "@editor/components/session/WorkbenchSessionPersistence";
 import { retireLegacyFolderWorker } from "@editor/services/retireLegacyFolderWorker";
+import { installDiagnosticHandlers } from "@editor/services/diagnosticLog";
 import type { UserPreferences } from "@editor/services/preferencesService";
 
 // Component to run app-level initialization (must be inside AppProviders for context access)
@@ -131,6 +132,7 @@ export function AppProviders({
   appConfigProviderProps,
 }: AppProvidersProps) {
   const [queryClient] = useState(createAppQueryClient);
+  useEffect(() => installDiagnosticHandlers(), []);
   return (
     <QueryClientProvider client={queryClient}>
       <PreferencesProvider>

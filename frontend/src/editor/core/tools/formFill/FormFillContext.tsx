@@ -50,6 +50,10 @@ import { fetchSignatureFieldsWithAppearances } from "@editor/services/pdfiumServ
 import { applyFieldEdits } from "@editor/tools/formFill/formApi";
 import { mergeSignatureAppearances } from "@editor/tools/formFill/formFieldMerge";
 import {
+  recordDiagnosticEvent,
+  recordDiagnosticException,
+} from "@editor/services/diagnosticLog";
+import {
   markStaticFormText,
   maskStaticFormTextUnderlays,
 } from "@editor/tools/formFill/staticFormTextService";
@@ -573,6 +577,10 @@ export function FormFillProvider({
       // Deliberately keeps create/modify state: the viewer re-fetches on provider
       // switch and file load, which must not wipe in-progress edits.
       dispatch({ type: "FETCH_START" });
+      recordDiagnosticEvent("info", "forms", "field-fetch-started", {
+        provider: providerModeRef.current,
+        fileSizeBytes: file.size,
+      });
       try {
         // Only pdfbox mode can use them: the bundle is PDFBox's own view of the document.
         const bundled = bundledFieldsRef.current;
@@ -630,6 +638,11 @@ export function FormFillProvider({
         if (edited) {
           dispatch({ type: "MARK_DIRTY" });
         }
+        recordDiagnosticEvent("info", "forms", "field-fetch-succeeded", {
+          provider: providerModeRef.current,
+          fileSizeBytes: file.size,
+          fieldCount: fields.length,
+        });
       } catch (err) {
         if (fetchVersionRef.current !== version) return; // stale
         const msg =
@@ -638,6 +651,10 @@ export function FormFillProvider({
             : undefined) ||
           (err instanceof Error ? err.message : undefined) ||
           "Failed to fetch form fields";
+        recordDiagnosticException("forms", "field-fetch-failed", err, {
+          provider: providerModeRef.current,
+          fileSizeBytes: file.size,
+        });
         dispatch({ type: "FETCH_ERROR", error: msg });
       }
     },
@@ -691,16 +708,37 @@ export function FormFillProvider({
 
   const submitForm = useCallback(
     async (file: File | Blob, flatten = false) => {
-      const preparedFile = await maskStaticFormTextUnderlays(
-        file,
-        fieldsRef.current,
-      );
-      const blob = await providerRef.current.fillForm(
-        preparedFile,
-        valuesStore.values,
-        flatten,
-      );
-      return blob;
+      const values = { ...valuesStore.values };
+      const provider = providerRef.current.name;
+      recordDiagnosticEvent("info", "forms", "fill-pdf-started", {
+        provider,
+        fileSizeBytes: file.size,
+        fieldCount: fieldsRef.current.length,
+      });
+      try {
+        const preparedFile = await maskStaticFormTextUnderlays(
+          file,
+          fieldsRef.current,
+        );
+        const blob = await providerRef.current.fillForm(
+          preparedFile,
+          values,
+          flatten,
+        );
+        recordDiagnosticEvent("info", "forms", "fill-pdf-succeeded", {
+          provider,
+          fileSizeBytes: blob.size,
+          fieldCount: fieldsRef.current.length,
+        });
+        return blob;
+      } catch (error) {
+        recordDiagnosticException("forms", "fill-pdf-failed", error, {
+          provider,
+          fileSizeBytes: file.size,
+          fieldCount: fieldsRef.current.length,
+        });
+        throw error;
+      }
     },
     [valuesStore],
   );

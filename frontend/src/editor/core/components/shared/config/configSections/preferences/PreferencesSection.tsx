@@ -21,6 +21,8 @@ export interface PreferencesSectionProps {
   editorDefaultsSlot?: ReactNode;
   /** Extra controls in the Downloads card for platform-specific save preferences. */
   downloadsSlot?: ReactNode;
+  /** Platform-provided local diagnostic tools. */
+  diagnosticsSlot?: ReactNode;
 }
 
 /** True when the URL deep-links at the shortcuts card, which starts collapsed. */
@@ -44,6 +46,7 @@ export default function PreferencesSection({
   accountSlot,
   editorDefaultsSlot,
   downloadsSlot,
+  diagnosticsSlot,
 }: PreferencesSectionProps) {
   const { t } = useTranslation();
   const startHotkeysOpen = focusIsHotkeys();
@@ -91,6 +94,15 @@ export default function PreferencesSection({
         >
           <HotkeysCard />
         </SettingsCard>
+
+        {diagnosticsSlot && (
+          <SettingsCard
+            id="diagnostics"
+            title={t("settings.diagnostics.title", "Diagnostics")}
+          >
+            {diagnosticsSlot}
+          </SettingsCard>
+        )}
       </div>
     </div>
   );

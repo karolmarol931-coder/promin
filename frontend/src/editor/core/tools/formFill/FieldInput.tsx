@@ -23,10 +23,12 @@ function FieldInputInner({
   field,
   value,
   onValueChange,
+  disabled,
 }: {
   field: FormField;
   value: string;
   onValueChange: (fieldName: string, value: string) => void;
+  disabled: boolean;
 }) {
   const onChange = useCallback(
     (v: string) => onValueChange(field.name, v),
@@ -45,7 +47,7 @@ function FieldInputInner({
               field.tooltip ||
               `${t("formFill.placeholderEnter", "Enter")} ${field.label}`
             }
-            disabled={field.readOnly}
+            disabled={field.readOnly || disabled}
             autosize
             minRows={2}
             maxRows={5}
@@ -62,7 +64,7 @@ function FieldInputInner({
             field.tooltip ||
             `${t("formFill.placeholderEnter", "Enter")} ${field.label}`
           }
-          disabled={field.readOnly}
+          disabled={field.readOnly || disabled}
           styles={{ input: { fontSize: "0.8125rem" } }}
         />
       );
@@ -79,7 +81,7 @@ function FieldInputInner({
           checked={isChecked}
           onChange={(e) => onChange(e.currentTarget.checked ? onValue : "Off")}
           label={field.label}
-          disabled={field.readOnly}
+          disabled={field.readOnly || disabled}
         />
       );
     }
@@ -98,7 +100,7 @@ function FieldInputInner({
           placeholder={`${t("formFill.placeholderSelect", "Select")} ${field.label}`}
           clearable
           searchable
-          disabled={field.readOnly}
+          disabled={field.readOnly || disabled}
           aria-label={field.label || field.name}
           aria-required={field.required}
           styles={{ input: { fontSize: "0.8125rem" } }}
@@ -121,7 +123,7 @@ function FieldInputInner({
             onChange={(vals) => onChange(vals.join(","))}
             placeholder={`${t("formFill.placeholderSelect", "Select")} ${field.label}`}
             searchable
-            disabled={field.readOnly}
+            disabled={field.readOnly || disabled}
             aria-label={field.label || field.name}
             aria-required={field.required}
             styles={{ input: { fontSize: "0.8125rem" } }}
@@ -137,7 +139,7 @@ function FieldInputInner({
           placeholder={`${t("formFill.placeholderSelect", "Select")} ${field.label}`}
           clearable
           searchable
-          disabled={field.readOnly}
+          disabled={field.readOnly || disabled}
           aria-label={field.label || field.name}
           aria-required={field.required}
           styles={{ input: { fontSize: "0.8125rem" } }}
@@ -170,7 +172,7 @@ function FieldInputInner({
                 size="xs"
                 value={opt.value}
                 label={opt.label}
-                disabled={field.readOnly}
+                disabled={field.readOnly || disabled}
               />
             ))}
           </Stack>
@@ -184,7 +186,7 @@ function FieldInputInner({
           size="xs"
           value={value}
           onChange={(e) => onChange(e.currentTarget.value)}
-          disabled={field.readOnly}
+          disabled={field.readOnly || disabled}
           aria-label={field.label || field.name}
           aria-required={field.required}
           styles={{ input: { fontSize: "0.8125rem" } }}
@@ -202,13 +204,20 @@ const FieldInputBase = memo(FieldInputInner);
 export function FieldInput({
   field,
   onValueChange,
+  disabled = false,
 }: {
   field: FormField;
   onValueChange: (fieldName: string, value: string) => void;
+  disabled?: boolean;
 }) {
   const value = useFieldValue(field.name);
   return (
-    <FieldInputBase field={field} value={value} onValueChange={onValueChange} />
+    <FieldInputBase
+      field={field}
+      value={value}
+      onValueChange={onValueChange}
+      disabled={disabled}
+    />
   );
 }
 

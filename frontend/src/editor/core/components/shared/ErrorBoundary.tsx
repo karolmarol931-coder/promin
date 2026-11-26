@@ -2,6 +2,7 @@ import React from "react";
 import { Text, Stack } from "@mantine/core";
 import { Button } from "@editor/ui/Button";
 import i18n from "i18next";
+import { recordDiagnosticException } from "@editor/services/diagnosticLog";
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -27,44 +28,9 @@ export default class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Enhanced logging for diagnosis
-    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.error("🔴 ErrorBoundary caught an error");
-    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-    console.error("Error:", error);
-    console.error("Error name:", error.name);
-    console.error("Error message:", error.message);
-    console.error("Error stack:", error.stack);
-    console.error("Component stack:", errorInfo.componentStack);
-    console.error("Current URL:", window.location.href);
-    console.error("Current pathname:", window.location.pathname);
-    console.error("Current hash:", window.location.hash);
-    console.error("Current search:", window.location.search);
-    console.error("Timestamp:", new Date().toISOString());
-    console.error("User agent:", navigator.userAgent);
-    // Check for React error codes
-    if (error.message.includes("Minified React error")) {
-      const errorCodeMatch = error.message.match(/#(\d+)/);
-      if (errorCodeMatch) {
-        const errorCode = errorCodeMatch[1];
-        console.error(
-          `React Error #${errorCode}: https://react.dev/errors/${errorCode}`,
-        );
-      }
-    }
-
-    // Check localStorage for auth state
-    try {
-      const jwt = localStorage.getItem("stirling_jwt");
-      console.error("Auth state:", {
-        hasJWT: !!jwt,
-        jwtLength: jwt?.length || 0,
-      });
-    } catch (e) {
-      console.error("Could not check localStorage:", e);
-    }
-
-    console.error("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    recordDiagnosticException("react", "render-error", error, {
+      phase: errorInfo.componentStack ? "component-render" : "unknown",
+    });
   }
 
   retry = () => {

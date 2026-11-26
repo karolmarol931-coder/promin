@@ -71,6 +71,10 @@ import {
   FORM_APPLY_EVENT,
   type FormApplyDetail,
 } from "@editor/tools/formFill/formFillEvents";
+import {
+  recordDiagnosticEvent,
+  recordDiagnosticException,
+} from "@editor/services/diagnosticLog";
 import { useViewerKeyCommand } from "@editor/hooks/useViewerKeyCommand";
 import { useMeasurementManager } from "@editor/hooks/useMeasurementManager";
 import { ScaleCalibrationDialog } from "@editor/components/viewer/ScaleCalibrationDialog";
@@ -1286,6 +1290,10 @@ const EmbedPdfViewerContent = ({
 
       formApplyInProgressRef.current = true;
       let savedFileKey: string | null = null;
+      const startedAt = Date.now();
+      recordDiagnosticEvent("info", "forms", "apply-started", {
+        fileSizeBytes: filledBlob.size,
+      });
       try {
         console.log(
           "[Viewer] Applying form fill changes - reloading filled PDF",
@@ -1316,6 +1324,9 @@ const EmbedPdfViewerContent = ({
         savedFileKey = getFormFillFileId(stirlingFiles[0]);
         if (!newFileId || !savedFileKey)
           throw new Error("Saved file ID not found");
+        recordDiagnosticEvent("info", "forms", "version-created", {
+          fileSizeBytes: file.size,
+        });
         const loaded = waitForDocument(savedFileKey);
 
         // Replace the current file in context
@@ -1332,6 +1343,9 @@ const EmbedPdfViewerContent = ({
             }),
           loaded,
         ]);
+        recordDiagnosticEvent("info", "forms", "replacement-loaded", {
+          durationMs: Date.now() - startedAt,
+        });
 
         const savedStub = stubs[0];
         const savedFile = stirlingFiles[0];
@@ -1344,12 +1358,18 @@ const EmbedPdfViewerContent = ({
           });
           if (result.savedPath) {
             actions.updateStirlingFileStub(savedStub.id, { isDirty: false });
+            recordDiagnosticEvent("info", "forms", "disk-copy-updated", {
+              durationMs: Date.now() - startedAt,
+            });
           }
         }
 
         console.log("[Viewer] Form fill changes applied successfully");
       } catch (error) {
         if (savedFileKey) documentFailed(savedFileKey, error);
+        recordDiagnosticException("forms", "apply-failed", error, {
+          durationMs: Date.now() - startedAt,
+        });
         console.error("[Viewer] Apply form changes failed:", error);
         throw error;
       } finally {

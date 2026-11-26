@@ -57,6 +57,11 @@ import { FormFieldModifyPanel } from "@editor/tools/formFill/FormFieldModifyPane
 import { assertFilesNotBlocked } from "@editor/services/policyFileGuard";
 import { dispatchFormApply } from "@editor/tools/formFill/formFillEvents";
 import { useFormAutoMode } from "@editor/tools/formFill/useFormAutoMode";
+import {
+  createDiagnosticOperationId,
+  recordDiagnosticEvent,
+  recordDiagnosticException,
+} from "@editor/services/diagnosticLog";
 import styles from "@editor/tools/formFill/FormFill.module.css";
 
 // ---------------------------------------------------------------------------
@@ -92,6 +97,7 @@ const FormFill = (_props: BaseToolProps) => {
 
   const {
     state: formState,
+    activeProviderName,
     fetchFields,
     submitForm,
     setValue,
@@ -151,6 +157,7 @@ const FormFill = (_props: BaseToolProps) => {
   const flattenChanged = flatten;
 
   const savingRef = useRef(false);
+  const operationRef = useRef<"save" | "print" | null>(null);
 
   const handleExtractJson = useCallback(() => {
     setExtracting(true);
@@ -221,10 +228,26 @@ const FormFill = (_props: BaseToolProps) => {
   const currentFile = pdfAccess?.encrypted === false ? viewedFile : null;
 
   const handlePrint = useCallback(async () => {
-    if (printing || !currentFile || !isStirlingFile(currentFile)) return;
+    if (
+      operationRef.current ||
+      printing ||
+      savingRef.current ||
+      !currentFile ||
+      !isStirlingFile(currentFile)
+    )
+      return;
     const fileId = currentFile.fileId;
+    const operationId = createDiagnosticOperationId();
+    const startedAt = Date.now();
+    operationRef.current = "print";
     setPrinting(true);
     setSaveError(null);
+    recordDiagnosticEvent("info", "forms", "print-started", {
+      operationId,
+      provider: activeProviderName,
+      fileSizeBytes: currentFile.size,
+      fieldCount: formState.fields.length,
+    });
     try {
       if (!canPrintPdf(pdfAccess)) {
         throw new Error(
@@ -243,12 +266,29 @@ const FormFill = (_props: BaseToolProps) => {
           ),
         );
       }
+      recordDiagnosticEvent("info", "forms", "print-succeeded", {
+        operationId,
+        durationMs: Date.now() - startedAt,
+      });
     } catch (error) {
+      recordDiagnosticException("forms", "print-failed", error, {
+        operationId,
+        durationMs: Date.now() - startedAt,
+      });
       setSaveError(error instanceof Error ? error.message : String(error));
     } finally {
+      operationRef.current = null;
       setPrinting(false);
     }
-  }, [printing, currentFile, pdfAccess, t, submitForm]);
+  }, [
+    printing,
+    currentFile,
+    pdfAccess,
+    t,
+    submitForm,
+    activeProviderName,
+    formState.fields.length,
+  ]);
 
   const handleExtractCsv = useCallback(async () => {
     if (!currentFile) return;
@@ -311,7 +351,9 @@ const FormFill = (_props: BaseToolProps) => {
 
   const handleSave = useCallback(async (): Promise<boolean> => {
     if (
+      operationRef.current ||
       savingRef.current ||
+      printing ||
       formState.loading ||
       !currentFile ||
       !isStirlingFile(currentFile)
@@ -324,8 +366,18 @@ const FormFill = (_props: BaseToolProps) => {
       return false;
     }
     savingRef.current = true;
+    operationRef.current = "save";
+    const operationId = createDiagnosticOperationId();
+    const startedAt = Date.now();
     setSaving(true);
     setSaveError(null);
+    recordDiagnosticEvent("info", "forms", "save-started", {
+      operationId,
+      phase: mode,
+      provider: activeProviderName,
+      fileSizeBytes: currentFile.size,
+      fieldCount: formState.fields.length,
+    });
     try {
       assertFilesNotBlocked();
       if (mode === "fill") {
@@ -334,8 +386,19 @@ const FormFill = (_props: BaseToolProps) => {
       } else {
         await commitDesign(currentFile, applyFormChanges);
       }
+      recordDiagnosticEvent("info", "forms", "save-succeeded", {
+        operationId,
+        phase: mode,
+        durationMs: Date.now() - startedAt,
+      });
       return true;
     } catch (err) {
+      recordDiagnosticException("forms", "save-failed", err, {
+        operationId,
+        phase: mode,
+        durationMs: Date.now() - startedAt,
+        fieldCount: formState.fields.length,
+      });
       const status = isAxiosError(err) ? err.response?.status : undefined;
       setSaveError(
         (await serverMessage(err)) ||
@@ -347,13 +410,17 @@ const FormFill = (_props: BaseToolProps) => {
       );
       return false;
     } finally {
+      operationRef.current = null;
       savingRef.current = false;
       setSaving(false);
     }
   }, [
     formState.loading,
+    formState.fields.length,
     currentFile,
+    printing,
     mode,
+    activeProviderName,
     validateForm,
     t,
     setSaving,
@@ -695,6 +762,7 @@ const FormFill = (_props: BaseToolProps) => {
                   )}
                   checked={flatten}
                   onChange={(e) => setFlatten(e.currentTarget.checked)}
+                  disabled={saving || printing}
                   size="xs"
                   styles={{
                     label: { fontSize: "0.75rem", cursor: "pointer" },
@@ -711,6 +779,7 @@ const FormFill = (_props: BaseToolProps) => {
                       loading={saving}
                       disabled={
                         formState.loading ||
+                        printing ||
                         (!formState.isDirty && !flattenChanged)
                       }
                     >
@@ -723,7 +792,7 @@ const FormFill = (_props: BaseToolProps) => {
                       size="sm"
                       onClick={handlePrint}
                       loading={printing}
-                      disabled={formState.loading || printing}
+                      disabled={formState.loading || printing || saving}
                     >
                       {t("workbenchBar.print", "Print PDF")}
                     </Button>
@@ -737,6 +806,7 @@ const FormFill = (_props: BaseToolProps) => {
                         variant="secondary"
                         size="md"
                         onClick={handleRefresh}
+                        disabled={saving || printing || formState.loading}
                         aria-label={t(
                           "formFill.rescanFormFields",
                           "Re-scan form fields",
@@ -867,6 +937,7 @@ const FormFill = (_props: BaseToolProps) => {
                                 <FieldInput
                                   field={field}
                                   onValueChange={handleValueChange}
+                                  disabled={saving || printing}
                                 />
                               </div>
                             )}

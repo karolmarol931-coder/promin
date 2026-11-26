@@ -9,9 +9,11 @@ vi.mock(
   () => ({
     default: ({
       editorDefaultsSlot,
+      diagnosticsSlot,
       hideAdminBanner,
     }: {
       editorDefaultsSlot?: ReactNode;
+      diagnosticsSlot?: ReactNode;
       hideAdminBanner?: boolean;
     }) => (
       <section
@@ -19,6 +21,7 @@ vi.mock(
         data-admin-banner-hidden={String(hideAdminBanner)}
       >
         {editorDefaultsSlot}
+        {diagnosticsSlot}
       </section>
     ),
   }),
@@ -28,6 +31,10 @@ vi.mock(
   () => ({
     DefaultAppSettings: () => <div>Local PDF defaults</div>,
   }),
+);
+vi.mock(
+  "@editor/components/shared/config/configSections/DiagnosticsCard",
+  () => ({ DiagnosticsCard: () => <div>Local diagnostics</div> }),
 );
 it("keeps local PDF preferences", () => {
   render(
@@ -41,4 +48,5 @@ it("keeps local PDF preferences", () => {
     "data-admin-banner-hidden",
     "true",
   );
+  expect(screen.getByText("Local diagnostics")).toBeInTheDocument();
 });

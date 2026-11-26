@@ -9148,6 +9148,13 @@ auto = "Auto"
 fitPage = "Fit page"
 fitWidth = "Fit width"
 
+[settings.diagnostics]
+description = "Promin keeps a small error history on this computer. The report contains app events and technical error details, not PDF files or form values. Nothing is sent automatically."
+eventCount = "Saved events"
+export = "Export diagnostic report"
+exported = "Report downloaded. Attach it when you send a bug report."
+title = "Diagnostics"
+
 [settings.help]
 description = "Guided walkthroughs of the editor and the admin area."
 label = "Tours"
