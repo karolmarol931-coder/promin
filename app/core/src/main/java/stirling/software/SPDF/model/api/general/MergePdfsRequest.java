@@ -45,4 +45,23 @@ public class MergePdfsRequest extends MultiplePDFFiles {
                     "JSON array of client-provided IDs for each uploaded file (same order as fileInput)",
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String clientFileIds;
+
+    @Schema(
+            description =
+                    "Whether to normalize the page sizes listed in normalizationPageRefs before"
+                            + " merging.",
+            defaultValue = "false")
+    private boolean normalizeOutlierPages = false;
+
+    @Schema(description = "Common portrait page width in PDF points.")
+    private Float normalizationPortraitWidth;
+
+    @Schema(description = "Common portrait page height in PDF points.")
+    private Float normalizationPortraitHeight;
+
+    @Schema(
+            description =
+                    "Comma-separated zero-based fileIndex:pageIndex references selected for"
+                            + " normalization.")
+    private String normalizationPageRefs;
 }

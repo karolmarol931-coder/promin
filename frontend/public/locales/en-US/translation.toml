@@ -5745,6 +5745,8 @@ tags = "markup,web-content,transformation,convert,md"
 title = "Markdown To PDF"
 
 [merge]
+checkingPageSizes = "Checking page sizes…"
+checkingPageSizesHint = "Checking selected PDF pages before merging."
 goToFileEditor = "Go to file editor"
 submit = "Merge"
 tags = "merge,Page operations,Back end,server side"
@@ -5761,6 +5763,19 @@ label = "Create a table of contents"
 [merge.generateTableOfContents.tooltip]
 description = "Automatically creates a clickable table of contents in the merged PDF based on the original file names and page numbers."
 title = "Generate Table of Contents"
+
+[merge.normalize]
+confirm = "Normalize pages and merge"
+description = "You can scale only the unusual pages to the size used by most pages. Content keeps its proportions and is centered without cropping. Original files are not changed."
+keepSizes = "Keep page sizes and merge"
+morePages = "and {{count}} more pages"
+pageNumber = "page"
+pages = "Pages to normalize"
+scale = "Approximate size difference"
+subtitle = "Some pages are much larger or smaller than the main page size."
+targetSize = "Main page size"
+title = "Unusually sized pages found"
+unknownFile = "PDF"
 
 [merge.removeDigitalSignature]
 description = "Merging invalidates digital signatures. Turn this on to remove them from the result."

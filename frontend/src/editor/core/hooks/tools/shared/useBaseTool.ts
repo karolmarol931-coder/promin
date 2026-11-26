@@ -22,7 +22,7 @@ interface BaseToolReturn<
   endpointLoading: boolean;
 
   // Standard handlers
-  handleExecute: () => Promise<void>;
+  handleExecute: (parameterOverrides?: Partial<TParams>) => Promise<void>;
   handleThumbnailClick: (file: File) => void;
   handleSettingsReset: () => void;
   handleUndo: () => Promise<void>;
@@ -151,31 +151,39 @@ export function useBaseTool<
   }, [effectiveFiles.length, skipResetParamsOnFirstFiles]);
 
   // Standard handlers
-  const handleExecute = useCallback(async () => {
-    if (!hasFiles) return;
-    try {
-      await operation.executeOperation(params.parameters, effectiveFiles);
-      if (operation.files && onComplete) {
-        onComplete(operation.files);
+  const handleExecute = useCallback(
+    async (parameterOverrides?: Partial<TParams>) => {
+      if (!hasFiles) return;
+      try {
+        await operation.executeOperation(
+          parameterOverrides
+            ? { ...params.parameters, ...parameterOverrides }
+            : params.parameters,
+          effectiveFiles,
+        );
+        if (operation.files && onComplete) {
+          onComplete(operation.files);
+        }
+      } catch (error) {
+        if (onError) {
+          const message =
+            error instanceof Error
+              ? error.message
+              : `${toolName} operation failed`;
+          onError(message);
+        }
       }
-    } catch (error) {
-      if (onError) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : `${toolName} operation failed`;
-        onError(message);
-      }
-    }
-  }, [
-    operation,
-    params.parameters,
-    effectiveFiles,
-    hasFiles,
-    onComplete,
-    onError,
-    toolName,
-  ]);
+    },
+    [
+      operation,
+      params.parameters,
+      effectiveFiles,
+      hasFiles,
+      onComplete,
+      onError,
+      toolName,
+    ],
+  );
 
   const handleThumbnailClick = useCallback(
     (file: File) => {

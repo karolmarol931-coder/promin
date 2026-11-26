@@ -731,6 +731,22 @@ export interface MergePdfsRequest {
    */
   generateToc?: boolean;
   /**
+   * Comma-separated zero-based fileIndex:pageIndex references selected for normalization.
+   */
+  normalizationPageRefs?: string;
+  /**
+   * Common portrait page height in PDF points.
+   */
+  normalizationPortraitHeight?: number;
+  /**
+   * Common portrait page width in PDF points.
+   */
+  normalizationPortraitWidth?: number;
+  /**
+   * Whether to normalize the page sizes listed in normalizationPageRefs before merging.
+   */
+  normalizeOutlierPages?: boolean;
+  /**
    * Flag indicating whether to remove certification signatures from the merged PDF. If true, all certification signatures will be removed from the final merged document.
    */
   removeCertSign?: boolean;

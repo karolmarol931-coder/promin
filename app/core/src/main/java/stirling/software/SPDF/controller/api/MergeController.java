@@ -7,8 +7,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
@@ -297,6 +301,28 @@ public class MergeController {
                 }
             }
 
+            if (request.isNormalizeOutlierPages()) {
+                if (request.getNormalizationPortraitWidth() == null
+                        || request.getNormalizationPortraitHeight() == null) {
+                    throw new IOException("Merge normalization requires a target page size.");
+                }
+                Map<Integer, Set<Integer>> selectedPages =
+                        parseNormalizationPageRefs(
+                                request.getNormalizationPageRefs(), files.length);
+                for (Map.Entry<Integer, Set<Integer>> entry : selectedPages.entrySet()) {
+                    int fileIndex = entry.getKey();
+                    File normalizedFile = tempFileManager.createTempFile(".pdf");
+                    filesToDelete.add(normalizedFile);
+                    MergePageNormalizer.normalize(
+                            inputPaths.get(fileIndex).toFile(),
+                            normalizedFile,
+                            entry.getValue(),
+                            request.getNormalizationPortraitWidth(),
+                            request.getNormalizationPortraitHeight());
+                    inputPaths.set(fileIndex, normalizedFile.toPath());
+                }
+            }
+
             int[] pageCounts;
             try {
                 pageCounts =
@@ -383,6 +409,34 @@ public class MergeController {
                 GeneralUtils.generateFilename(firstFilename, "_merged_unsigned.pdf");
 
         return WebResponseUtils.pdfFileToWebResponse(outputTempFile, mergedFileName);
+    }
+
+    private static Map<Integer, Set<Integer>> parseNormalizationPageRefs(
+            String pageRefs, int fileCount) throws IOException {
+        if (pageRefs == null || pageRefs.isBlank() || pageRefs.length() > 100_000) {
+            throw new IOException("Merge normalization page references are missing or invalid.");
+        }
+
+        Map<Integer, Set<Integer>> selectedPages = new LinkedHashMap<>();
+        for (String reference : pageRefs.split(",")) {
+            String[] indexes = reference.trim().split(":", -1);
+            if (indexes.length != 2) {
+                throw new IOException("Merge normalization page reference is invalid.");
+            }
+            try {
+                int fileIndex = Integer.parseInt(indexes[0]);
+                int pageIndex = Integer.parseInt(indexes[1]);
+                if (fileIndex < 0 || fileIndex >= fileCount || pageIndex < 0) {
+                    throw new IOException("Merge normalization page reference is out of range.");
+                }
+                selectedPages
+                        .computeIfAbsent(fileIndex, ignored -> new LinkedHashSet<>())
+                        .add(pageIndex);
+            } catch (NumberFormatException e) {
+                throw new IOException("Merge normalization page reference is invalid.", e);
+            }
+        }
+        return selectedPages;
     }
 
     private boolean isImageFile(MultipartFile file) {

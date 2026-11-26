@@ -151,6 +151,33 @@ describe("useMergeOperation", () => {
     );
     expect(formData.getAll("fileInput")).toEqual(mockFiles);
   });
+
+  test("sends the confirmed page normalization plan with the merge", () => {
+    renderHook(() => useMergeOperation());
+
+    const config = getToolConfig();
+    const formData = config.buildFormData(
+      {
+        removeDigitalSignature: false,
+        generateTableOfContents: false,
+        normalizationPlan: {
+          portraitWidth: 595.28,
+          portraitHeight: 841.89,
+          outlierScale: 4.09,
+          pages: [{ fileIndex: 1, pageIndex: 5 }],
+        },
+      },
+      [
+        new File(["one"], "one.pdf", { type: "application/pdf" }),
+        new File(["two"], "two.pdf", { type: "application/pdf" }),
+      ],
+    );
+
+    expect(formData.get("normalizeOutlierPages")).toBe("true");
+    expect(formData.get("normalizationPortraitWidth")).toBe("595.28");
+    expect(formData.get("normalizationPortraitHeight")).toBe("841.89");
+    expect(formData.get("normalizationPageRefs")).toBe("1:5");
+  });
 });
 
 describe("merge mappers", () => {

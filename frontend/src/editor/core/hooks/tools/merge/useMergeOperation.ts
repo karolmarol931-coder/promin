@@ -42,9 +42,25 @@ const buildFormData = (
   parameters: MergeParameters,
   files: File[],
 ): FormData => {
-  const formData = objectToFormData(mergeToApiParams(parameters), {
-    fileInput: files,
-  });
+  const normalizationPlan = parameters.normalizationPlan;
+  const formData = objectToFormData(
+    {
+      ...mergeToApiParams(parameters),
+      ...(normalizationPlan
+        ? {
+            normalizeOutlierPages: true,
+            normalizationPortraitWidth: normalizationPlan.portraitWidth,
+            normalizationPortraitHeight: normalizationPlan.portraitHeight,
+            normalizationPageRefs: normalizationPlan.pages
+              .map(({ fileIndex, pageIndex }) => `${fileIndex}:${pageIndex}`)
+              .join(","),
+          }
+        : {}),
+    },
+    {
+      fileInput: files,
+    },
+  );
   // Stable client file IDs, aligned with the fileInput order. Derived from the
   // files themselves, so it belongs to the file-appending step.
   const clientIds: string[] = files.map((f) =>

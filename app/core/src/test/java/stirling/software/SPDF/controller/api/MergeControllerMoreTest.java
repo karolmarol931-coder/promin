@@ -1,6 +1,7 @@
 package stirling.software.SPDF.controller.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.mock;
 
 import java.awt.Color;
@@ -107,6 +108,17 @@ class MergeControllerMoreTest {
                 buildPdf(pages, title, modMillis));
     }
 
+    private static MockMultipartFile pdf(String name, PDRectangle pageSize) throws IOException {
+        byte[] bytes;
+        try (PDDocument document = new PDDocument();
+                ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            document.addPage(new PDPage(pageSize));
+            document.save(output);
+            bytes = output.toByteArray();
+        }
+        return new MockMultipartFile("fileInput", name, MediaType.APPLICATION_PDF_VALUE, bytes);
+    }
+
     private static MockMultipartFile png(String name) throws IOException {
         BufferedImage image = new BufferedImage(120, 80, BufferedImage.TYPE_INT_RGB);
         Graphics2D graphics = image.createGraphics();
@@ -164,6 +176,37 @@ class MergeControllerMoreTest {
             try (PDDocument result = readResponse(response)) {
                 assertThat(result.getNumberOfPages()).isEqualTo(4);
             }
+        }
+
+        @Test
+        @DisplayName("normalizes selected outlier pages when requested")
+        void normalizesSelectedOutlierPages() throws Exception {
+            MockMultipartFile standard = pdf("standard.pdf", 1);
+            MockMultipartFile oversized = pdf("oversized.pdf", new PDRectangle(2432, 3440));
+            byte[] originalOversizedBytes = oversized.getBytes();
+            MergePdfsRequest req =
+                    request(
+                            new MockMultipartFile[] {standard, oversized},
+                            "orderProvided",
+                            false,
+                            false);
+            req.setNormalizeOutlierPages(true);
+            req.setNormalizationPortraitWidth(PDRectangle.A4.getWidth());
+            req.setNormalizationPortraitHeight(PDRectangle.A4.getHeight());
+            req.setNormalizationPageRefs("1:0");
+
+            ResponseEntity<Resource> response = mergeController.mergePdfs(req, null);
+
+            try (PDDocument result = readResponse(response)) {
+                assertThat(result.getNumberOfPages()).isEqualTo(2);
+                for (PDPage page : result.getPages()) {
+                    assertThat(page.getMediaBox().getWidth())
+                            .isCloseTo(PDRectangle.A4.getWidth(), within(0.5f));
+                    assertThat(page.getMediaBox().getHeight())
+                            .isCloseTo(PDRectangle.A4.getHeight(), within(0.5f));
+                }
+            }
+            assertThat(oversized.getBytes()).isEqualTo(originalOversizedBytes);
         }
 
         @Test
