@@ -2,7 +2,10 @@ import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vite";
 import type { PluginOption, Rollup } from "vite";
 import type { PreRenderedAsset } from "rollup";
+import { existsSync, readdirSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
 import tsconfigPaths from "vite-tsconfig-paths";
+import { supportedLanguages } from "./src/editor/core/i18n/languages";
 // oxlint-disable-next-line no-restricted-imports -- config runs in node, before the aliases exist
 import { iconSvgr } from "./scripts/icons/svgrOptions.mts";
 // oxlint-disable-next-line no-restricted-imports -- config runs in node, before the aliases exist
@@ -17,6 +20,31 @@ const mjsToJsAssetFileNames = (assetInfo: PreRenderedAsset) =>
 type ManualChunkMeta = Parameters<Rollup.GetManualChunk>[1];
 
 const startupModulesByOutput = new WeakMap<ManualChunkMeta, Set<string>>();
+
+function pruneUnsupportedLocaleAssets(): PluginOption {
+  let localeOutputDir: string | undefined;
+  return {
+    name: "promin-supported-locale-assets",
+    apply: "build",
+    configResolved(config) {
+      localeOutputDir = resolve(config.root, config.build.outDir, "locales");
+    },
+    closeBundle() {
+      if (!localeOutputDir || !existsSync(localeOutputDir)) return;
+      for (const entry of readdirSync(localeOutputDir, { withFileTypes: true })) {
+        if (
+          entry.isDirectory() &&
+          !Object.prototype.hasOwnProperty.call(supportedLanguages, entry.name)
+        ) {
+          rmSync(resolve(localeOutputDir, entry.name), {
+            force: true,
+            recursive: true,
+          });
+        }
+      }
+    },
+  };
+}
 
 /**
  * The modules the entry imports statically: these load before first render, so
@@ -128,6 +156,7 @@ export default defineConfig(async ({ mode, command }) => {
       tsconfigPaths({
         projects: [tsconfigProject],
       }),
+      pruneUnsupportedLocaleAssets(),
       // ANALYZE=true emits dist/stats.json; the visualizer is ESM-only, hence
       // the dynamic import.
       ...(process.env.ANALYZE === "true"

@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse } from "smol-toml";
 import { describe, expect, it } from "vitest";
 import {
   normalizeLanguageCode,
@@ -19,6 +20,40 @@ const localeFolders = fs
   .readdirSync(LOCALES_DIR, { withFileTypes: true })
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name);
+
+const pageSizeReviewKeys = [
+  "title",
+  "subtitle",
+  "description",
+  "failed",
+  "addFailed",
+  "file",
+  "keep",
+  "normalize",
+  "pages",
+  "target",
+  "working",
+];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.getPrototypeOf(value) === Object.prototype
+  );
+}
+
+function readPageSizeReview(locale: string): Record<string, unknown> {
+  const source = parse(
+    fs.readFileSync(path.join(LOCALES_DIR, locale, "translation.toml"), "utf8"),
+  );
+  const workbench = source.workbench;
+  if (!isRecord(workbench) || !isRecord(workbench.pageSizeReview)) {
+    throw new Error(`Missing page-size review translations for ${locale}`);
+  }
+  return workbench.pageSizeReview;
+}
 
 describe("locale folders", () => {
   it.each(localeFolders)("%s is a canonical BCP 47 tag", (folder) => {
@@ -43,6 +78,24 @@ describe("app language choices", () => {
       "uk-UA": "Українська",
     });
   });
+
+  it.each(Object.keys(supportedLanguages))(
+    "%s has localized mixed-page-size review copy",
+    (code) => {
+      const review = readPageSizeReview(code);
+      const english = readPageSizeReview("en-US");
+      expect(review).toEqual(
+        expect.objectContaining(
+          Object.fromEntries(pageSizeReviewKeys.map((key) => [key, expect.any(String)])),
+        ),
+      );
+      if (code !== "en-US") {
+        for (const key of pageSizeReviewKeys) {
+          expect(review[key]).not.toBe(english[key]);
+        }
+      }
+    },
+  );
 });
 
 describe("initial language", () => {

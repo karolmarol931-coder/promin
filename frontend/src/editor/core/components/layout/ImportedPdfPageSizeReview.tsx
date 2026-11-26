@@ -83,7 +83,7 @@ export default function ImportedPdfPageSizeReview() {
       const normalized = await normalizePdfPageSizes(review.file, review.plan);
       const added = await addFiles([normalized], { selectFiles: true });
       if (added.length === 0) {
-        throw new Error(t("workbench.pageSizeReview.addFailed", "The normalized copy could not be added to the workbench."));
+        throw new Error(t("workbench.pageSizeReview.addFailed", "The adjusted copy could not be added to the workbench."));
       }
       reviewRef.current = null;
       setReview(null);
@@ -93,7 +93,7 @@ export default function ImportedPdfPageSizeReview() {
       setError(
         cause instanceof Error
           ? cause.message
-          : t("workbench.pageSizeReview.failed", "Could not create the normalized copy. The original file is unchanged."),
+          : t("workbench.pageSizeReview.failed", "Could not create the adjusted copy. The original file is unchanged."),
       );
     } finally {
       setNormalizing(false);
@@ -104,11 +104,8 @@ export default function ImportedPdfPageSizeReview() {
     <Modal
       open={review !== null}
       onClose={dismissReview}
-      title={t("workbench.pageSizeReview.title", "Different page sizes found")}
-      subtitle={t(
-        "workbench.pageSizeReview.subtitle",
-        "This PDF has pages that are much larger or smaller than the main page size.",
-      )}
+      title={t("workbench.pageSizeReview.title", "Different page sizes in this PDF")}
+      subtitle={t("workbench.pageSizeReview.subtitle", "Some pages are much larger or smaller than the rest.")}
       width="md"
       disableBackdropClose={normalizing}
       disableEscapeClose={normalizing}
@@ -117,10 +114,10 @@ export default function ImportedPdfPageSizeReview() {
           <Button onClick={() => void handleNormalize()} disabled={normalizing} fullWidth>
             {normalizing
               ? t("workbench.pageSizeReview.working", "Creating copy…")
-              : t("workbench.pageSizeReview.normalize", "Create normalized copy and open it")}
+              : t("workbench.pageSizeReview.normalize", "Resize pages and open a copy")}
           </Button>
           <Button variant="secondary" onClick={dismissReview} disabled={normalizing} fullWidth>
-            {t("workbench.pageSizeReview.keep", "Keep original page sizes")}
+            {t("workbench.pageSizeReview.keep", "Keep the original sizes")}
           </Button>
         </Stack>
       }
@@ -129,7 +126,7 @@ export default function ImportedPdfPageSizeReview() {
         <Text>
           {t(
             "workbench.pageSizeReview.description",
-            "Create a separate copy with the unusual pages scaled proportionally and centered on the common page size. The original file will stay unchanged.",
+            "Create a separate copy with the unusual pages resized proportionally to match the most common page size. The original file will not change.",
           )}
         </Text>
         {review && (
@@ -138,11 +135,11 @@ export default function ImportedPdfPageSizeReview() {
               {t("workbench.pageSizeReview.file", "File")}: {review.file.name}
             </Text>
             <Text fw={600}>
-              {t("workbench.pageSizeReview.pages", "Pages to normalize")}:{" "}
+              {t("workbench.pageSizeReview.pages", "Pages to resize")}:{" "}
               {review.plan.pages.map((page) => page.pageIndex + 1).join(", ")}
             </Text>
             <Text size="sm" c="dimmed">
-              {t("workbench.pageSizeReview.target", "Common page size")}: {review.plan.portraitWidth.toFixed(0)} ×{" "}
+              {t("workbench.pageSizeReview.target", "Most common page size")}: {review.plan.portraitWidth.toFixed(0)} ×{" "}
               {review.plan.portraitHeight.toFixed(0)} pt
             </Text>
           </>

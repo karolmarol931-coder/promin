@@ -14089,6 +14089,19 @@ dropFailedSingle = "Nie udało się dodać pliku"
 dropFailedSome = "Nie udało się dodać {{failed}} Twoich plików"
 dropOverlay = "Upuść pliki, aby dodać je do obszaru roboczego"
 
+[workbench.pageSizeReview]
+addFailed = "Nie udało się dodać dopasowanej kopii do obszaru roboczego."
+description = "Utwórz osobną kopię, w której nietypowe strony zostaną proporcjonalnie dopasowane do najczęściej występującego rozmiaru i wyśrodkowane. Oryginalny plik pozostanie bez zmian."
+failed = "Nie udało się utworzyć dopasowanej kopii. Oryginalny plik nie został zmieniony."
+file = "Plik"
+keep = "Zachowaj oryginalne rozmiary stron"
+normalize = "Dopasuj strony i otwórz kopię"
+pages = "Strony do dopasowania"
+subtitle = "Niektóre strony są znacznie większe lub mniejsze od pozostałych."
+target = "Najczęstszy rozmiar strony"
+title = "Różne rozmiary stron w tym pliku PDF"
+working = "Tworzenie kopii…"
+
 [workbench.sessionRestore]
 none = "Twoje poprzednie pliki nie są już przechowywane na tym urządzeniu."
 partial = "Przywrócono {{restored}} z {{total}} plików. Pozostałe nie są już przechowywane na tym urządzeniu."

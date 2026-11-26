@@ -5788,19 +5788,6 @@ title = "Remove Digital Signature"
 [merge.settings]
 moreOptions = "More options"
 
-[workbench.pageSizeReview]
-addFailed = "The normalized copy could not be added to the workbench."
-description = "Create a separate copy with the unusual pages scaled proportionally and centered on the common page size. The original file will stay unchanged."
-failed = "Could not create the normalized copy. The original file is unchanged."
-file = "File"
-keep = "Keep original page sizes"
-normalize = "Create normalized copy and open it"
-pages = "Pages to normalize"
-subtitle = "This PDF has pages that are much larger or smaller than the main page size."
-target = "Common page size"
-title = "Different page sizes found"
-working = "Creating copy…"
-
 [merge.sortBy]
 advancedOptions = "More sorting options"
 ascending = "Ascending"
@@ -10891,6 +10878,19 @@ text = "Text"
 dropFailedSingle = "Your file couldn't be added"
 dropFailedSome = "{{failed}} of your files couldn't be added"
 dropOverlay = "Drop files to add them to the workbench"
+
+[workbench.pageSizeReview]
+addFailed = "The adjusted copy could not be added to the workbench."
+description = "Create a separate copy with the unusual pages resized proportionally to match the most common page size. The original file will not change."
+failed = "Could not create the adjusted copy. The original file is unchanged."
+file = "File"
+keep = "Keep the original sizes"
+normalize = "Resize pages and open a copy"
+pages = "Pages to resize"
+subtitle = "Some pages are much larger or smaller than the rest."
+target = "Most common page size"
+title = "Different page sizes in this PDF"
+working = "Creating copy…"
 
 [workbench.sessionRestore]
 none = "Your previous files are no longer stored on this device."
