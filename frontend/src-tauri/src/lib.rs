@@ -28,7 +28,7 @@ use commands::{
     build_main_window,
     MAIN_WINDOW_LABEL,
 };
-use utils::{add_log, get_tauri_logs};
+use utils::{add_log, get_tauri_logs, install_panic_handler};
 
 // Extract existing file paths from CLI args (skips the executable name).
 fn parse_launch_files(args: &[String]) -> Vec<String> {
@@ -71,6 +71,14 @@ pub fn run() {
     .plugin(
       tauri_plugin_log::Builder::new()
         .level(log::LevelFilter::Info)
+        .max_file_size(10 * 1024 * 1024)
+        .rotation_strategy(tauri_plugin_log::RotationStrategy::KeepSome(4))
+        .targets([
+          tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Stdout),
+          tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::LogDir {
+            file_name: Some("promin-runtime".to_string()),
+          }),
+        ])
         .build()
     )
     .plugin(tauri_plugin_shell::init())
@@ -105,6 +113,10 @@ pub fn run() {
       }
     }))
     .setup(|app| {
+      match app.path().app_log_dir() {
+        Ok(log_dir) => install_panic_handler(log_dir),
+        Err(err) => add_log(format!("⚠️ Could not install panic log: {err}")),
+      }
       add_log("🚀 Tauri app setup started".to_string());
 
       // The main window is built here, not in tauri.conf.json, so its chrome

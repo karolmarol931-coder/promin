@@ -3,6 +3,8 @@ export interface DownloadRequest {
   data: Blob | File;
   filename: string;
   localPath?: string;
+  operationId?: string;
+  action?: string;
   /** Workspace fileId of the file being exported, when known. Lets export-time
    *  policy enforcement version the in-editor file (not just the download). */
   fileId?: string;
@@ -13,9 +15,7 @@ export interface DownloadResult {
   cancelled?: boolean;
 }
 
-export async function downloadFile(
-  request: DownloadRequest,
-): Promise<DownloadResult> {
+export async function downloadFile(request: DownloadRequest): Promise<DownloadResult> {
   assertFilesNotBlocked([request.fileId]);
   const url = URL.createObjectURL(request.data);
 
@@ -31,11 +31,7 @@ export async function downloadFile(
   return { savedPath: request.localPath };
 }
 
-export async function downloadFromUrl(
-  url: string,
-  filename: string,
-  localPath?: string,
-): Promise<DownloadResult> {
+export async function downloadFromUrl(url: string, filename: string, localPath?: string): Promise<DownloadResult> {
   assertFilesNotBlocked();
   const link = document.createElement("a");
   link.href = url;

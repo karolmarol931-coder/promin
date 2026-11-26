@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createDiagnosticReport,
   getDiagnosticEvents,
+  installDiagnosticHandlers,
   recordDiagnosticEvent,
   recordDiagnosticException,
 } from "@editor/services/diagnosticLog";
@@ -48,6 +49,48 @@ describe("local diagnostic log", () => {
     expect(JSON.stringify(event)).not.toContain("private form contents");
   });
 
+  it("keeps only a known-safe operating system error summary", () => {
+    recordDiagnosticException(
+      "forms",
+      "print-failed",
+      new Error("The object can not be found here."),
+    );
+
+    const [event] = getDiagnosticEvents();
+    expect(event.errorSummary).toBe("The object can not be found here.");
+
+    recordDiagnosticException(
+      "forms",
+      "save-failed",
+      new Error("private form contents"),
+    );
+    expect(JSON.stringify(getDiagnosticEvents())).not.toContain(
+      "private form contents",
+    );
+  });
+
+  it("captures caught errors sent to the application error log", () => {
+    const output = vi.spyOn(console, "error").mockImplementation(() => {});
+    const uninstall = installDiagnosticHandlers();
+
+    console.error(
+      "[FormFill] Save failed",
+      new Error("private customer value"),
+    );
+
+    const [event] = getDiagnosticEvents();
+    expect(event).toMatchObject({
+      source: "console",
+      event: "logged-error",
+      level: "error",
+      details: { errorType: "Error", errorCode: "FormFill" },
+    });
+    expect(JSON.stringify(event)).not.toContain("private customer value");
+
+    uninstall();
+    output.mockRestore();
+  });
+
   it("keeps only the API route and drops query data from request errors", () => {
     const error = Object.assign(new Error("secret"), {
       config: {
@@ -72,10 +115,24 @@ describe("local diagnostic log", () => {
     }
 
     expect(getDiagnosticEvents()).toHaveLength(300);
-    expect(createDiagnosticReport("3.2.27")).toMatchObject({
+    expect(
+      createDiagnosticReport("3.2.27", [
+        '[ERROR] Could not read "private.pdf" value=secret /Users/alice/private.pdf',
+      ]),
+    ).toMatchObject({
       application: "Promin Desktop",
       version: "3.2.27",
       events: expect.any(Array),
+      nativeLogs: expect.any(Array),
     });
+
+    const report = JSON.stringify(
+      createDiagnosticReport("3.2.27", [
+        '[ERROR] Could not read "private.pdf" value=secret /Users/alice/private.pdf',
+      ]),
+    );
+    expect(report).not.toContain("private.pdf");
+    expect(report).not.toContain("secret");
+    expect(report).not.toContain("/Users/alice");
   });
 });

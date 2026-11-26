@@ -1,23 +1,8 @@
 /**
  * Form Editor tool panel: fill values, create new fields, or modify existing ones.
  */
-import React, {
-  useEffect,
-  useCallback,
-  useState,
-  useRef,
-  useMemo,
-} from "react";
-import {
-  Text,
-  Alert,
-  Switch,
-  Loader,
-  ScrollArea,
-  Progress,
-  Tooltip,
-  Stack,
-} from "@mantine/core";
+import React, { useEffect, useCallback, useState, useRef, useMemo } from "react";
+import { Text, Alert, Switch, Loader, ScrollArea, Progress, Tooltip, Stack } from "@mantine/core";
 import { createToolSteps } from "@editor/components/tools/shared/ToolStep";
 import { UnsavedChangesDialog } from "@editor/components/shared/UnsavedChangesDialog";
 import { SegmentedControl } from "@editor/ui/SegmentedControl";
@@ -25,10 +10,7 @@ import { Button } from "@editor/ui/Button";
 import { ActionIcon } from "@editor/ui/ActionIcon";
 import { useTranslation } from "react-i18next";
 import { isAxiosError } from "axios";
-import {
-  useFormFill,
-  useAllFormValues,
-} from "@editor/tools/formFill/FormFillContext";
+import { useFormFill, useAllFormValues } from "@editor/tools/formFill/FormFillContext";
 import { useNavigation } from "@editor/contexts/NavigationContext";
 import { useFieldShortcuts } from "@editor/tools/formFill/useFieldShortcuts";
 import { serverMessage } from "@editor/tools/formFill/useFormCommit";
@@ -42,26 +24,16 @@ import { isStirlingFile, getFormFillFileId } from "@editor/types/fileContext";
 import type { BaseToolProps } from "@editor/types/tool";
 import type { FormField } from "@editor/tools/formFill/types";
 import { FieldInput } from "@editor/tools/formFill/FieldInput";
-import {
-  FIELD_TYPE_ICON,
-  FIELD_TYPE_COLOR,
-} from "@editor/tools/formFill/fieldMeta";
+import { FIELD_TYPE_ICON, FIELD_TYPE_COLOR } from "@editor/tools/formFill/fieldMeta";
 import { Icon } from "@editor/ui/Icon";
-import {
-  extractFormFieldsCsv,
-  extractFormFieldsXlsx,
-} from "@editor/tools/formFill/formApi";
+import { extractFormFieldsCsv, extractFormFieldsXlsx } from "@editor/tools/formFill/formApi";
 import type { FormMode } from "@editor/tools/formFill/types";
 import { FormFieldCreatePanel } from "@editor/tools/formFill/FormFieldCreatePanel";
 import { FormFieldModifyPanel } from "@editor/tools/formFill/FormFieldModifyPanel";
 import { assertFilesNotBlocked } from "@editor/services/policyFileGuard";
 import { dispatchFormApply } from "@editor/tools/formFill/formFillEvents";
 import { useFormAutoMode } from "@editor/tools/formFill/useFormAutoMode";
-import {
-  createDiagnosticOperationId,
-  recordDiagnosticEvent,
-  recordDiagnosticException,
-} from "@editor/services/diagnosticLog";
+import { createDiagnosticOperationId, recordDiagnosticEvent, recordDiagnosticException } from "@editor/services/diagnosticLog";
 import styles from "@editor/tools/formFill/FormFill.module.css";
 
 // ---------------------------------------------------------------------------
@@ -78,9 +50,9 @@ interface ModeTabDef {
 // Main FormFill component
 // ---------------------------------------------------------------------------
 
-async function applyFormChanges(blob: Blob): Promise<void> {
+async function applyFormChanges(blob: Blob, operationId?: string): Promise<void> {
   assertFilesNotBlocked();
-  await dispatchFormApply(blob);
+  await dispatchFormApply(blob, { operationId });
 }
 
 const FormFill = (_props: BaseToolProps) => {
@@ -124,16 +96,12 @@ const FormFill = (_props: BaseToolProps) => {
       {
         id: "fill",
         label: t("formFill.mode.fill", "Fill"),
-        icon: (
-          <Icon name="file-pen" size="1rem" className={styles.modeTabIcon} />
-        ),
+        icon: <Icon name="file-pen" size="1rem" className={styles.modeTabIcon} />,
       },
       {
         id: "create",
         label: t("formFill.mode.create", "Create"),
-        icon: (
-          <Icon name="file-plus" size="1rem" className={styles.modeTabIcon} />
-        ),
+        icon: <Icon name="file-plus" size="1rem" className={styles.modeTabIcon} />,
       },
       {
         id: "modify",
@@ -186,25 +154,14 @@ const FormFill = (_props: BaseToolProps) => {
   const hasUncommittedRef = useRef(false);
   hasUncommittedRef.current = hasUncommittedChanges;
   useEffect(() => {
-    registerUnsavedChangesChecker(
-      () =>
-        hasUncommittedRef.current || isDirtyRef.current || savingRef.current,
-    );
+    registerUnsavedChangesChecker(() => hasUncommittedRef.current || isDirtyRef.current || savingRef.current);
     return () => unregisterUnsavedChangesChecker();
   }, [registerUnsavedChangesChecker, unregisterUnsavedChangesChecker]);
 
   // requestNavigation gates on this flag rather than on the checker above.
   useEffect(() => {
-    setHasUnsavedChanges(
-      hasUncommittedChanges || formState.isDirty || flatten || saving,
-    );
-  }, [
-    hasUncommittedChanges,
-    formState.isDirty,
-    flatten,
-    saving,
-    setHasUnsavedChanges,
-  ]);
+    setHasUnsavedChanges(hasUncommittedChanges || formState.isDirty || flatten || saving);
+  }, [hasUncommittedChanges, formState.isDirty, flatten, saving, setHasUnsavedChanges]);
 
   // Subscribing read: getFiles() during render doesn't re-run when the workbench
   // changes, so the panel kept showing the pre-hydration (or pre-version) file.
@@ -212,14 +169,10 @@ const FormFill = (_props: BaseToolProps) => {
   const selectedFileIds = fileState.ui.selectedFileIds;
   const viewedFile = useMemo(() => {
     if (activeFiles.length === 0) return null;
-    const viewed = activeFiles.find(
-      (file) => isStirlingFile(file) && file.fileId === activeFileId,
-    );
+    const viewed = activeFiles.find((file) => isStirlingFile(file) && file.fileId === activeFileId);
     if (viewed) return viewed;
     if (selectedFileIds.length > 0) {
-      const sel = activeFiles.find(
-        (f) => isStirlingFile(f) && selectedFileIds.includes(f.fileId),
-      );
+      const sel = activeFiles.find((f) => isStirlingFile(f) && selectedFileIds.includes(f.fileId));
       if (sel) return sel;
     }
     return activeFiles[0];
@@ -228,14 +181,7 @@ const FormFill = (_props: BaseToolProps) => {
   const currentFile = pdfAccess?.encrypted === false ? viewedFile : null;
 
   const handlePrint = useCallback(async () => {
-    if (
-      operationRef.current ||
-      printing ||
-      savingRef.current ||
-      !currentFile ||
-      !isStirlingFile(currentFile)
-    )
-      return;
+    if (operationRef.current || printing || savingRef.current || !currentFile || !isStirlingFile(currentFile)) return;
     const fileId = currentFile.fileId;
     const operationId = createDiagnosticOperationId();
     const startedAt = Date.now();
@@ -250,14 +196,9 @@ const FormFill = (_props: BaseToolProps) => {
     });
     try {
       if (!canPrintPdf(pdfAccess)) {
-        throw new Error(
-          t(
-            "encryptedPdfUnlock.printRestricted",
-            "Printing is restricted for this PDF.",
-          ),
-        );
+        throw new Error(t("encryptedPdfUnlock.printRestricted", "Printing is restricted for this PDF."));
       }
-      const result = await printFilledForm(currentFile, fileId, submitForm);
+      const result = await printFilledForm(currentFile, fileId, submitForm, operationId);
       if (result === "policy-applied") {
         throw new Error(
           t(
@@ -280,15 +221,7 @@ const FormFill = (_props: BaseToolProps) => {
       operationRef.current = null;
       setPrinting(false);
     }
-  }, [
-    printing,
-    currentFile,
-    pdfAccess,
-    t,
-    submitForm,
-    activeProviderName,
-    formState.fields.length,
-  ]);
+  }, [printing, currentFile, pdfAccess, t, submitForm, activeProviderName, formState.fields.length]);
 
   const handleExtractCsv = useCallback(async () => {
     if (!currentFile) return;
@@ -360,9 +293,7 @@ const FormFill = (_props: BaseToolProps) => {
     )
       return false;
     if (mode === "fill" && !validateForm()) {
-      setSaveError(
-        t("formFill.requiredFieldsError", "Please fill in all required fields"),
-      );
+      setSaveError(t("formFill.requiredFieldsError", "Please fill in all required fields"));
       return false;
     }
     savingRef.current = true;
@@ -381,7 +312,7 @@ const FormFill = (_props: BaseToolProps) => {
     try {
       assertFilesNotBlocked();
       if (mode === "fill") {
-        await applyFormChanges(await submitForm(currentFile, flatten));
+        await applyFormChanges(await submitForm(currentFile, flatten, operationId), operationId);
         setFlatten(false);
       } else {
         await commitDesign(currentFile, applyFormChanges);
@@ -402,9 +333,7 @@ const FormFill = (_props: BaseToolProps) => {
       const status = isAxiosError(err) ? err.response?.status : undefined;
       setSaveError(
         (await serverMessage(err)) ||
-          (status === 413
-            ? "File too large. Try reducing the PDF size first."
-            : undefined) ||
+          (status === 413 ? "File too large. Try reducing the PDF size first." : undefined) ||
           (err instanceof Error ? err.message : undefined) ||
           t("formFill.applyFailed", "Could not apply the changes"),
       );
@@ -443,46 +372,28 @@ const FormFill = (_props: BaseToolProps) => {
     if (!isActive) return;
     registerNavigationWarningHandlers({
       onApplyAndContinue: async () => {
-        if (!(await handleSave()))
-          throw new Error("Form changes could not be saved.");
+        if (!(await handleSave())) throw new Error("Form changes could not be saved.");
       },
       onDiscardAndContinue: async () => {
         discardCurrentDraft();
       },
     });
     return () => unregisterNavigationWarningHandlers();
-  }, [
-    isActive,
-    handleSave,
-    discardCurrentDraft,
-    registerNavigationWarningHandlers,
-    unregisterNavigationWarningHandlers,
-  ]);
+  }, [isActive, handleSave, discardCurrentDraft, registerNavigationWarningHandlers, unregisterNavigationWarningHandlers]);
 
   const [pendingMode, setPendingMode] = useState<FormMode | null>(null);
   const requestMode = useCallback(
     (next: FormMode) => {
       if (next === mode || saving || formState.loading) return;
       const crossesSurface = (mode === "fill") !== (next === "fill");
-      if (
-        crossesSurface &&
-        (formState.isDirty || flatten || hasUncommittedChanges)
-      ) {
+      if (crossesSurface && (formState.isDirty || flatten || hasUncommittedChanges)) {
         setPendingMode(next);
         return;
       }
       setSaveError(null);
       setMode(next);
     },
-    [
-      mode,
-      saving,
-      formState.loading,
-      formState.isDirty,
-      flatten,
-      hasUncommittedChanges,
-      setMode,
-    ],
+    [mode, saving, formState.loading, formState.isDirty, flatten, hasUncommittedChanges, setMode],
   );
 
   const discardAndSwitch = useCallback(() => {
@@ -506,12 +417,7 @@ const FormFill = (_props: BaseToolProps) => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
-        if (
-          isDirtyRef.current ||
-          flattenChangedRef.current ||
-          hasUncommittedRef.current
-        )
-          void handleSave();
+        if (isDirtyRef.current || flattenChangedRef.current || hasUncommittedRef.current) void handleSave();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -555,19 +461,14 @@ const FormFill = (_props: BaseToolProps) => {
 
   // Progress tracking
   const fillableFields = useMemo(() => {
-    return formState.fields.filter(
-      (f) => f.type !== "button" && f.type !== "signature",
-    );
+    return formState.fields.filter((f) => f.type !== "button" && f.type !== "signature");
   }, [formState.fields]);
 
   // Memoize fillable fields grouped by page (signatures/buttons excluded)
   const { sortedPages, fieldsByPage } = useMemo(() => {
     const byPage = new Map<number, FormField[]>();
     for (const field of fillableFields) {
-      const pageIndex =
-        field.widgets && field.widgets.length > 0
-          ? field.widgets[0].pageIndex
-          : 0;
+      const pageIndex = field.widgets && field.widgets.length > 0 ? field.widgets[0].pageIndex : 0;
       if (!byPage.has(pageIndex)) {
         byPage.set(pageIndex, []);
       }
@@ -620,9 +521,7 @@ const FormFill = (_props: BaseToolProps) => {
   const changeCount =
     pendingFields.length +
     deletedFieldNames.length +
-    Object.keys(modifiedFields).filter(
-      (name) => !deletedFieldNames.includes(name),
-    ).length;
+    Object.keys(modifiedFields).filter((name) => !deletedFieldNames.includes(name)).length;
   const designProps = { currentFile, onSave: handleSave, saving, changeCount };
 
   return (
@@ -664,13 +563,9 @@ const FormFill = (_props: BaseToolProps) => {
         </Alert>
       )}
       {mode !== "fill" && formState.loading && (
-        <Text size="xs">
-          {t("formFill.analyzingFields", "Analysing form fields...")}
-        </Text>
+        <Text size="xs">{t("formFill.analyzingFields", "Analysing form fields...")}</Text>
       )}
-      {mode !== "fill" && formState.error && (
-        <Alert color="red">{formState.error}</Alert>
-      )}
+      {mode !== "fill" && formState.error && <Alert color="red">{formState.error}</Alert>}
 
       {/* ---- Create mode ---- */}
       {mode === "create" && <FormFieldCreatePanel {...designProps} />}
@@ -705,13 +600,7 @@ const FormFill = (_props: BaseToolProps) => {
 
             {/* Error state */}
             {formState.error && (
-              <Alert
-                icon={<Icon name="triangle-alert" size={16} />}
-                color="red"
-                variant="light"
-                p="xs"
-                radius="sm"
-              >
+              <Alert icon={<Icon name="triangle-alert" size={16} />} color="red" variant="light" p="xs" radius="sm">
                 <Text size="xs">{formState.error}</Text>
               </Alert>
             )}
@@ -723,43 +612,29 @@ const FormFill = (_props: BaseToolProps) => {
                 <div>
                   <div className={styles.progressRow}>
                     <span className={styles.progressLabel}>
-                      {filledCount} / {fillableCount}{" "}
-                      {t("formFill.filled", "filled")}
+                      {filledCount} / {fillableCount} {t("formFill.filled", "filled")}
                       {requiredCount > 0 && (
                         <span style={{ marginLeft: "0.5rem", opacity: 0.7 }}>
-                          ({filledRequiredCount}/{requiredCount}{" "}
-                          {t("formFill.requiredAbbreviation", "req")}.)
+                          ({filledRequiredCount}/{requiredCount} {t("formFill.requiredAbbreviation", "req")}.)
                         </span>
                       )}
                     </span>
                     <span className={styles.progressLabel}>
-                      {fillableCount > 0
-                        ? Math.round((filledCount / fillableCount) * 100)
-                        : 0}
-                      %
+                      {fillableCount > 0 ? Math.round((filledCount / fillableCount) * 100) : 0}%
                     </span>
                   </div>
                   <Progress
-                    value={
-                      fillableCount > 0
-                        ? (filledCount / fillableCount) * 100
-                        : 0
-                    }
+                    value={fillableCount > 0 ? (filledCount / fillableCount) * 100 : 0}
                     size={6}
                     radius="xl"
-                    color={
-                      filledRequiredCount === requiredCount ? "teal" : "blue"
-                    }
+                    color={filledRequiredCount === requiredCount ? "teal" : "blue"}
                     mt={4}
                   />
                 </div>
 
                 {/* Flatten toggle */}
                 <Switch
-                  label={t(
-                    "formFill.flattenAfterFilling",
-                    "Flatten after filling",
-                  )}
+                  label={t("formFill.flattenAfterFilling", "Flatten after filling")}
                   checked={flatten}
                   onChange={(e) => setFlatten(e.currentTarget.checked)}
                   disabled={saving || printing}
@@ -777,11 +652,7 @@ const FormFill = (_props: BaseToolProps) => {
                       size="sm"
                       onClick={handleSave}
                       loading={saving}
-                      disabled={
-                        formState.loading ||
-                        printing ||
-                        (!formState.isDirty && !flattenChanged)
-                      }
+                      disabled={formState.loading || printing || (!formState.isDirty && !flattenChanged)}
                     >
                       {t("formFill.save", "Save")}
                     </Button>
@@ -797,20 +668,13 @@ const FormFill = (_props: BaseToolProps) => {
                       {t("workbenchBar.print", "Print PDF")}
                     </Button>
 
-                    <Tooltip
-                      label={t("formFill.rescanFields", "Re-scan fields")}
-                      withArrow
-                      position="bottom"
-                    >
+                    <Tooltip label={t("formFill.rescanFields", "Re-scan fields")} withArrow position="bottom">
                       <ActionIcon
                         variant="secondary"
                         size="md"
                         onClick={handleRefresh}
                         disabled={saving || printing || formState.loading}
-                        aria-label={t(
-                          "formFill.rescanFormFields",
-                          "Re-scan form fields",
-                        )}
+                        aria-label={t("formFill.rescanFormFields", "Re-scan form fields")}
                       >
                         <Icon name="refresh-cw" size={16} />
                       </ActionIcon>
@@ -855,23 +719,14 @@ const FormFill = (_props: BaseToolProps) => {
             )}
 
             {/* Empty state */}
-            {!formState.loading &&
-              formState.fields.length === 0 &&
-              !formState.error && (
-                <div className={styles.emptyState}>
-                  <Icon
-                    name="file-text"
-                    size="2.5rem"
-                    className={styles.emptyStateIcon}
-                  />
-                  <span className={styles.emptyStateText}>
-                    {t(
-                      "formFill.noFields",
-                      "No fillable form fields found in this PDF.",
-                    )}
-                  </span>
-                </div>
-              )}
+            {!formState.loading && formState.fields.length === 0 && !formState.error && (
+              <div className={styles.emptyState}>
+                <Icon name="file-text" size="2.5rem" className={styles.emptyStateIcon} />
+                <span className={styles.emptyStateText}>
+                  {t("formFill.noFields", "No fillable form fields found in this PDF.")}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* ---- Scrollable field list ---- */}
@@ -880,23 +735,16 @@ const FormFill = (_props: BaseToolProps) => {
               <div className={styles.fieldListInner}>
                 {sortedPages.map((pageIdx, i) => (
                   <React.Fragment key={pageIdx}>
-                    <div
-                      className={styles.pageDivider}
-                      style={i === 0 ? { marginTop: 0 } : undefined}
-                    >
+                    <div className={styles.pageDivider} style={i === 0 ? { marginTop: 0 } : undefined}>
                       <Text className={styles.pageDividerLabel}>
                         {t("page", "Page")} {pageIdx + 1}
                       </Text>
                     </div>
 
                     {fieldsByPage.get(pageIdx)!.map((field) => {
-                      const isFieldActive =
-                        formState.activeFieldName === field.name;
+                      const isFieldActive = formState.activeFieldName === field.name;
                       const hasError = !!validationErrors[field.name];
-                      const pageIndex =
-                        field.widgets && field.widgets.length > 0
-                          ? field.widgets[0].pageIndex
-                          : undefined;
+                      const pageIndex = field.widgets && field.widgets.length > 0 ? field.widgets[0].pageIndex : undefined;
 
                       return (
                         <div
@@ -905,9 +753,7 @@ const FormFill = (_props: BaseToolProps) => {
                           className={`${styles.fieldCard} ${
                             isFieldActive ? styles.fieldCardActive : ""
                           } ${hasError ? styles.fieldCardError : ""}`}
-                          onClick={() =>
-                            handleFieldClick(field.name, pageIndex)
-                          }
+                          onClick={() => handleFieldClick(field.name, pageIndex)}
                         >
                           <div className={styles.fieldHeader}>
                             <span
@@ -916,43 +762,23 @@ const FormFill = (_props: BaseToolProps) => {
                                 color: `var(--mantine-color-${FIELD_TYPE_COLOR[field.type]}-6)`,
                               }}
                             >
-                              <Icon
-                                name={FIELD_TYPE_ICON[field.type]}
-                                size={14}
-                              />
+                              <Icon name={FIELD_TYPE_ICON[field.type]} size={14} />
                             </span>
-                            <span className={styles.fieldName}>
-                              {field.label || field.name}
-                            </span>
+                            <span className={styles.fieldName}>{field.label || field.name}</span>
                             {field.required && (
-                              <span className={styles.fieldRequired}>
-                                {t("formFill.requiredAbbreviation", "req")}
-                              </span>
+                              <span className={styles.fieldRequired}>{t("formFill.requiredAbbreviation", "req")}</span>
                             )}
                           </div>
 
-                          {field.type !== "button" &&
-                            field.type !== "signature" && (
-                              <div className={styles.fieldInputWrap}>
-                                <FieldInput
-                                  field={field}
-                                  onValueChange={handleValueChange}
-                                  disabled={saving || printing}
-                                />
-                              </div>
-                            )}
-
-                          {hasError && (
-                            <div className={styles.fieldError}>
-                              {validationErrors[field.name]}
+                          {field.type !== "button" && field.type !== "signature" && (
+                            <div className={styles.fieldInputWrap}>
+                              <FieldInput field={field} onValueChange={handleValueChange} disabled={saving || printing} />
                             </div>
                           )}
 
-                          {field.tooltip && (
-                            <div className={styles.fieldHint}>
-                              {field.tooltip}
-                            </div>
-                          )}
+                          {hasError && <div className={styles.fieldError}>{validationErrors[field.name]}</div>}
+
+                          {field.tooltip && <div className={styles.fieldHint}>{field.tooltip}</div>}
                         </div>
                       );
                     })}
@@ -966,9 +792,7 @@ const FormFill = (_props: BaseToolProps) => {
           {!formState.loading && formState.fields.length > 0 && (
             <div className={styles.statusBar}>
               <span>
-                {(formState.isDirty || flattenChanged) && (
-                  <span className={styles.unsavedDot} />
-                )}
+                {(formState.isDirty || flattenChanged) && <span className={styles.unsavedDot} />}
                 {saving
                   ? t("formFill.saving", "Saving...")
                   : formState.isDirty || flattenChanged

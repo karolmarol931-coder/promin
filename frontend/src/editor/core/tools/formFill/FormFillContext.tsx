@@ -49,14 +49,8 @@ import { PdfiumFormProvider } from "@editor/tools/formFill/providers/PdfiumFormP
 import { fetchSignatureFieldsWithAppearances } from "@editor/services/pdfiumService";
 import { applyFieldEdits } from "@editor/tools/formFill/formApi";
 import { mergeSignatureAppearances } from "@editor/tools/formFill/formFieldMerge";
-import {
-  recordDiagnosticEvent,
-  recordDiagnosticException,
-} from "@editor/services/diagnosticLog";
-import {
-  markStaticFormText,
-  maskStaticFormTextUnderlays,
-} from "@editor/tools/formFill/staticFormTextService";
+import { recordDiagnosticEvent, recordDiagnosticException } from "@editor/services/diagnosticLog";
+import { markStaticFormText, maskStaticFormTextUnderlays } from "@editor/tools/formFill/staticFormTextService";
 
 /** Marks a skip report as belonging to whichever document the commit just produced. */
 const PENDING_SKIP_REPORT = "__pending__";
@@ -195,10 +189,7 @@ function reducer(state: FormFillState, action: Action): FormFillState {
       const prev = state.validationErrors;
       const next = action.errors;
       const keys = Object.keys(next);
-      if (
-        keys.length === Object.keys(prev).length &&
-        keys.every((k) => prev[k] === next[k])
-      ) {
+      if (keys.length === Object.keys(prev).length && keys.every((k) => prev[k] === next[k])) {
         return state;
       }
       return { ...state, validationErrors: next };
@@ -226,7 +217,7 @@ export interface FormFillContextValue {
   /** Set the currently focused field */
   setActiveField: (fieldName: string | null) => void;
   /** Submit filled form and return the filled PDF blob */
-  submitForm: (file: File | Blob, flatten?: boolean) => Promise<Blob>;
+  submitForm: (file: File | Blob, flatten?: boolean, operationId?: string) => Promise<Blob>;
   /** Get field by name */
   getField: (fieldName: string) => FormField | undefined;
   /** Get fields for a specific page index */
@@ -272,17 +263,12 @@ export interface FormFillContextValue {
   /** Fields drawn but not yet committed to the PDF. */
   pendingFields: PendingField[];
   /** Queue a new field (id + default name auto-assigned). Returns the new id. */
-  addPendingField: (
-    field: Omit<NewFieldDefinition, "name"> & { name?: string },
-  ) => string;
+  addPendingField: (field: Omit<NewFieldDefinition, "name"> & { name?: string }) => string;
   updatePendingField: (id: string, patch: Partial<NewFieldDefinition>) => void;
   removePendingField: (id: string) => void;
   clearPendingFields: () => void;
   /** Applies the shared design draft and clears it only after persistence succeeds. */
-  commitDesign: (
-    file: File | Blob,
-    apply: (blob: Blob) => Promise<void>,
-  ) => Promise<void>;
+  commitDesign: (file: File | Blob, apply: (blob: Blob) => Promise<void>) => Promise<void>;
   discardDesign: () => void;
   discardValues: () => void;
   saving: boolean;
@@ -295,10 +281,7 @@ export interface FormFillContextValue {
   /** Staged (uncommitted) property/geometry changes, keyed by original field name. */
   modifiedFields: Record<string, ModifyFieldDefinition>;
   /** Merge a partial change for a field into the staged set. */
-  stageModification: (
-    targetName: string,
-    patch: Partial<ModifyFieldDefinition>,
-  ) => void;
+  stageModification: (targetName: string, patch: Partial<ModifyFieldDefinition>) => void;
   /** Discard staged changes for a single field. */
   clearModification: (targetName: string) => void;
   /** Field names marked for deletion. */
@@ -349,14 +332,8 @@ export function useFieldValue(fieldName: string): string {
     throw new Error("useFieldValue must be used within a FormFillProvider");
   }
 
-  const subscribe = useCallback(
-    (cb: () => void) => store.subscribeField(fieldName, cb),
-    [store, fieldName],
-  );
-  const getSnapshot = useCallback(
-    () => store.getValue(fieldName),
-    [store, fieldName],
-  );
+  const subscribe = useCallback((cb: () => void) => store.subscribeField(fieldName, cb), [store, fieldName]);
+  const getSnapshot = useCallback(() => store.getValue(fieldName), [store, fieldName]);
 
   return useSyncExternalStore(subscribe, getSnapshot);
 }
@@ -371,10 +348,7 @@ export function useAllFormValues(): Record<string, string> {
     throw new Error("useAllFormValues must be used within a FormFillProvider");
   }
 
-  const subscribe = useCallback(
-    (cb: () => void) => store.subscribeGlobal(cb),
-    [store],
-  );
+  const subscribe = useCallback((cb: () => void) => store.subscribeGlobal(cb), [store]);
   const getSnapshot = useCallback(() => store.values, [store]);
 
   return useSyncExternalStore(subscribe, getSnapshot);
@@ -393,14 +367,10 @@ export function FormFillProvider({
   provider?: IFormDataProvider;
 }) {
   const initialMode = providerProp?.name === "pdfbox" ? "pdfbox" : "pdflib";
-  const [providerMode, setProviderModeState] = useState<"pdflib" | "pdfbox">(
-    initialMode,
-  );
+  const [providerMode, setProviderModeState] = useState<"pdflib" | "pdfbox">(initialMode);
   const providerModeRef = useRef(initialMode);
   providerModeRef.current = providerMode;
-  const provider =
-    providerProp ??
-    (providerMode === "pdfbox" ? pdfBoxProvider : pdfiumProvider);
+  const provider = providerProp ?? (providerMode === "pdfbox" ? pdfBoxProvider : pdfiumProvider);
   const providerRef = useRef(provider);
   providerRef.current = provider;
 
@@ -422,9 +392,7 @@ export function FormFillProvider({
 
   // --- Structural editing state (create / modify modes) ---
   const [mode, setModeState] = useState<FormMode>("fill");
-  const [creationType, setCreationType] = useState<CreatableFieldType | null>(
-    null,
-  );
+  const [creationType, setCreationType] = useState<CreatableFieldType | null>(null);
   const [pendingFields, setPendingFields] = useState<PendingField[]>([]);
   const [previewing, setPreviewing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -468,9 +436,7 @@ export function FormFillProvider({
     return true;
   }, []);
   const [selectedFieldName, setSelectedField] = useState<string | null>(null);
-  const [modifiedFields, setModifiedFields] = useState<
-    Record<string, ModifyFieldDefinition>
-  >({});
+  const [modifiedFields, setModifiedFields] = useState<Record<string, ModifyFieldDefinition>>({});
   const [deletedFieldNames, setDeletedFieldNames] = useState<string[]>([]);
 
   liveEditsRef.current = {
@@ -499,9 +465,7 @@ export function FormFillProvider({
 
   // Fields the last commit's response carried, adopted by the next fetch instead of uploading
   // the document again to ask. Size-checked so a different document cannot pick them up.
-  const bundledFieldsRef = useRef<{ fields: FormField[]; size: number } | null>(
-    null,
-  );
+  const bundledFieldsRef = useRef<{ fields: FormField[]; size: number } | null>(null);
 
   // What the user typed, carried across the re-fetch that opening the form tool triggers.
   const retainedValuesRef = useRef<{
@@ -536,21 +500,14 @@ export function FormFillProvider({
       // Staged edits reference the previous document's fields; committing them against a
       // different file would edit the wrong PDF. Checked here, before any await, because
       // forFileIdRef is null for the whole fetch and the success path may never run.
-      if (
-        !committingDesignRef.current &&
-        editedFileIdRef.current != null &&
-        (fileId ?? null) !== editedFileIdRef.current
-      ) {
+      if (!committingDesignRef.current && editedFileIdRef.current != null && (fileId ?? null) !== editedFileIdRef.current) {
         clearEditingState();
       }
       // A commit produces a new file id, so the first fetch after one adopts the report;
       // any later switch to a different document clears it.
       if (skipReportFileIdRef.current === PENDING_SKIP_REPORT) {
         skipReportFileIdRef.current = fileId ?? null;
-      } else if (
-        skipReportFileIdRef.current != null &&
-        (fileId ?? null) !== skipReportFileIdRef.current
-      ) {
+      } else if (skipReportFileIdRef.current != null && (fileId ?? null) !== skipReportFileIdRef.current) {
         skipReportFileIdRef.current = null;
         setSkippedEdits([]);
         setSkippedTotal(0);
@@ -585,39 +542,25 @@ export function FormFillProvider({
         // Only pdfbox mode can use them: the bundle is PDFBox's own view of the document.
         const bundled = bundledFieldsRef.current;
         bundledFieldsRef.current = null;
-        const usable =
-          bundled &&
-          bundled.size === file.size &&
-          providerModeRef.current === "pdfbox";
-        let fields = usable
-          ? await markStaticFormText(file, bundled.fields)
-          : await providerRef.current.fetchFields(file);
+        const usable = bundled && bundled.size === file.size && providerModeRef.current === "pdfbox";
+        let fields = usable ? await markStaticFormText(file, bundled.fields) : await providerRef.current.fetchFields(file);
         // If another fetch or reset happened while we were waiting, discard this result
         if (fetchVersionRef.current !== version) {
-          console.debug(
-            "[FormFill] Discarding stale fetch result (version mismatch)",
-          );
+          console.debug("[FormFill] Discarding stale fetch result (version mismatch)");
           return;
         }
 
         // pdfbox returns signature fields without a rendered appearance; merge the
         // pdfium ones by name, since appending would list a signature twice.
-        if (
-          providerModeRef.current === "pdfbox" &&
-          fields.some((field) => field.type === "signature")
-        ) {
+        if (providerModeRef.current === "pdfbox" && fields.some((field) => field.type === "signature")) {
           try {
             // Convert File/Blob to ArrayBuffer for pdfiumService
             const arrayBuffer = await file.arrayBuffer();
-            const sigFields =
-              await fetchSignatureFieldsWithAppearances(arrayBuffer);
+            const sigFields = await fetchSignatureFieldsWithAppearances(arrayBuffer);
             if (fetchVersionRef.current !== version) return; // stale check after async
             fields = mergeSignatureAppearances(fields, sigFields);
           } catch (e) {
-            console.warn(
-              "[FormFill] Failed to extract signature appearances for pdfbox mode:",
-              e,
-            );
+            console.warn("[FormFill] Failed to extract signature appearances for pdfbox mode:", e);
           }
         }
 
@@ -646,9 +589,7 @@ export function FormFillProvider({
       } catch (err) {
         if (fetchVersionRef.current !== version) return; // stale
         const msg =
-          (isAxiosError<{ message?: string }>(err)
-            ? err.response?.data?.message
-            : undefined) ||
+          (isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined) ||
           (err instanceof Error ? err.message : undefined) ||
           "Failed to fetch form fields";
         recordDiagnosticException("forms", "field-fetch-failed", err, {
@@ -707,35 +648,35 @@ export function FormFillProvider({
   }, []);
 
   const submitForm = useCallback(
-    async (file: File | Blob, flatten = false) => {
+    async (file: File | Blob, flatten = false, operationId?: string) => {
       const values = { ...valuesStore.values };
       const provider = providerRef.current.name;
+      const filledValueCount = Object.values(values).filter((value) => value.trim().length > 0).length;
       recordDiagnosticEvent("info", "forms", "fill-pdf-started", {
+        operationId,
         provider,
         fileSizeBytes: file.size,
         fieldCount: fieldsRef.current.length,
+        filledValueCount,
       });
       try {
-        const preparedFile = await maskStaticFormTextUnderlays(
-          file,
-          fieldsRef.current,
-        );
-        const blob = await providerRef.current.fillForm(
-          preparedFile,
-          values,
-          flatten,
-        );
+        const preparedFile = await maskStaticFormTextUnderlays(file, fieldsRef.current);
+        const blob = await providerRef.current.fillForm(preparedFile, values, flatten);
         recordDiagnosticEvent("info", "forms", "fill-pdf-succeeded", {
+          operationId,
           provider,
           fileSizeBytes: blob.size,
           fieldCount: fieldsRef.current.length,
+          filledValueCount,
         });
         return blob;
       } catch (error) {
         recordDiagnosticException("forms", "fill-pdf-failed", error, {
           provider,
+          operationId,
           fileSizeBytes: file.size,
           fieldCount: fieldsRef.current.length,
+          filledValueCount,
         });
         throw error;
       }
@@ -770,23 +711,15 @@ export function FormFillProvider({
     [valuesStore],
   );
 
-  const getField = useCallback(
-    (fieldName: string) => fieldsRef.current.find((f) => f.name === fieldName),
-    [],
-  );
+  const getField = useCallback((fieldName: string) => fieldsRef.current.find((f) => f.name === fieldName), []);
 
   const getFieldsForPage = useCallback(
     (pageIndex: number) =>
-      fieldsRef.current.filter((f) =>
-        f.widgets?.some((w: WidgetCoordinates) => w.pageIndex === pageIndex),
-      ),
+      fieldsRef.current.filter((f) => f.widgets?.some((w: WidgetCoordinates) => w.pageIndex === pageIndex)),
     [],
   );
 
-  const getValue = useCallback(
-    (fieldName: string) => valuesStore.getValue(fieldName),
-    [valuesStore],
-  );
+  const getValue = useCallback((fieldName: string) => valuesStore.getValue(fieldName), [valuesStore]);
 
   const reset = useCallback(() => {
     // Increment version to invalidate any in-flight fetch
@@ -799,11 +732,7 @@ export function FormFillProvider({
   }, [valuesStore, clearEditingState]);
 
   const discardValues = useCallback(() => {
-    valuesStore.reset(
-      Object.fromEntries(
-        fieldsRef.current.map((field) => [field.name, field.value ?? ""]),
-      ),
-    );
+    valuesStore.reset(Object.fromEntries(fieldsRef.current.map((field) => [field.name, field.value ?? ""])));
     dispatch({ type: "MARK_CLEAN" });
     dispatch({ type: "SET_VALIDATION_ERRORS", errors: {} });
   }, [valuesStore]);
@@ -816,51 +745,34 @@ export function FormFillProvider({
   }, []);
 
   // --- Create mode ---
-  const addPendingField = useCallback(
-    (field: Omit<NewFieldDefinition, "name"> & { name?: string }): string => {
-      rememberForUndo();
-      editedFileIdRef.current = lastKnownFileIdRef.current;
-      const seq = ++pendingCounterRef.current;
-      const id = `pending-${seq}`;
-      // Friendly, readable default names that match how the viewer labels
-      // fields, instead of cryptic "Field_5".
-      const TYPE_DEFAULT_NAME: Record<string, string> = {
-        text: "Text field",
-        checkbox: "Checkbox",
-        combobox: "Dropdown",
-        listbox: "List",
-        radio: "Radio group",
-        button: "Button",
-        signature: "Signature",
-      };
-      const defaultName =
-        field.name?.trim() ||
-        `${TYPE_DEFAULT_NAME[field.type] ?? "Field"} ${seq}`;
-      // Choice/radio fields are useless without options, so seed defaults.
-      const needsOptions =
-        field.type === "combobox" ||
-        field.type === "listbox" ||
-        field.type === "radio";
-      const options =
-        field.options ?? (needsOptions ? ["Option 1", "Option 2"] : undefined);
-      setPendingFields((prev) => [
-        ...prev,
-        { ...field, name: defaultName, options, id },
-      ]);
-      return id;
-    },
-    [],
-  );
+  const addPendingField = useCallback((field: Omit<NewFieldDefinition, "name"> & { name?: string }): string => {
+    rememberForUndo();
+    editedFileIdRef.current = lastKnownFileIdRef.current;
+    const seq = ++pendingCounterRef.current;
+    const id = `pending-${seq}`;
+    // Friendly, readable default names that match how the viewer labels
+    // fields, instead of cryptic "Field_5".
+    const TYPE_DEFAULT_NAME: Record<string, string> = {
+      text: "Text field",
+      checkbox: "Checkbox",
+      combobox: "Dropdown",
+      listbox: "List",
+      radio: "Radio group",
+      button: "Button",
+      signature: "Signature",
+    };
+    const defaultName = field.name?.trim() || `${TYPE_DEFAULT_NAME[field.type] ?? "Field"} ${seq}`;
+    // Choice/radio fields are useless without options, so seed defaults.
+    const needsOptions = field.type === "combobox" || field.type === "listbox" || field.type === "radio";
+    const options = field.options ?? (needsOptions ? ["Option 1", "Option 2"] : undefined);
+    setPendingFields((prev) => [...prev, { ...field, name: defaultName, options, id }]);
+    return id;
+  }, []);
 
-  const updatePendingField = useCallback(
-    (id: string, patch: Partial<NewFieldDefinition>) => {
-      rememberForUndo();
-      setPendingFields((prev) =>
-        prev.map((f) => (f.id === id ? { ...f, ...patch } : f)),
-      );
-    },
-    [],
-  );
+  const updatePendingField = useCallback((id: string, patch: Partial<NewFieldDefinition>) => {
+    rememberForUndo();
+    setPendingFields((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f)));
+  }, []);
 
   const removePendingField = useCallback(
     (id: string) => {
@@ -876,17 +788,14 @@ export function FormFillProvider({
   }, []);
 
   // --- Modify mode ---
-  const stageModification = useCallback(
-    (targetName: string, patch: Partial<ModifyFieldDefinition>) => {
-      rememberForUndo();
-      editedFileIdRef.current = lastKnownFileIdRef.current;
-      setModifiedFields((prev) => ({
-        ...prev,
-        [targetName]: { ...prev[targetName], targetName, ...patch },
-      }));
-    },
-    [],
-  );
+  const stageModification = useCallback((targetName: string, patch: Partial<ModifyFieldDefinition>) => {
+    rememberForUndo();
+    editedFileIdRef.current = lastKnownFileIdRef.current;
+    setModifiedFields((prev) => ({
+      ...prev,
+      [targetName]: { ...prev[targetName], targetName, ...patch },
+    }));
+  }, []);
 
   const clearModification = useCallback((targetName: string) => {
     setModifiedFields((prev) => {
@@ -899,9 +808,7 @@ export function FormFillProvider({
   const toggleFieldDeleted = useCallback((name: string) => {
     rememberForUndo();
     editedFileIdRef.current = lastKnownFileIdRef.current;
-    setDeletedFieldNames((prev) =>
-      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name],
-    );
+    setDeletedFieldNames((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
   }, []);
 
   const clearModifications = useCallback(() => {
@@ -911,29 +818,21 @@ export function FormFillProvider({
   }, []);
 
   const commitDesign = useCallback(
-    async (
-      file: File | Blob,
-      apply: (blob: Blob) => Promise<void>,
-    ): Promise<void> => {
+    async (file: File | Blob, apply: (blob: Blob) => Promise<void>): Promise<void> => {
       const sourceFileId = lastKnownFileIdRef.current;
       committingDesignRef.current = true;
       try {
         const result = await applyFieldEdits(file, {
           add: pendingFields.map(({ id: _id, ...definition }) => definition),
-          modify: Object.values(modifiedFields).filter(
-            (edit) => !deletedFieldNames.includes(edit.targetName),
-          ),
+          modify: Object.values(modifiedFields).filter((edit) => !deletedFieldNames.includes(edit.targetName)),
           delete: deletedFieldNames,
         });
-        bundledFieldsRef.current = result.fields
-          ? { fields: result.fields, size: result.blob.size }
-          : null;
+        bundledFieldsRef.current = result.fields ? { fields: result.fields, size: result.blob.size } : null;
         await apply(result.blob);
         clearEditingState();
         setSkippedEdits(result.skipped);
         setSkippedTotal(result.skippedTotal);
-        skipReportFileIdRef.current =
-          forFileIdRef.current ?? PENDING_SKIP_REPORT;
+        skipReportFileIdRef.current = forFileIdRef.current ?? PENDING_SKIP_REPORT;
       } catch (error) {
         // A replacement fetch starts only after persistence. Reapplying its draft would
         // duplicate fields if storage succeeded but the viewer could not open the PDF.
@@ -948,9 +847,7 @@ export function FormFillProvider({
   );
 
   const hasUncommittedChanges =
-    pendingFields.length > 0 ||
-    Object.keys(modifiedFields).length > 0 ||
-    deletedFieldNames.length > 0;
+    pendingFields.length > 0 || Object.keys(modifiedFields).length > 0 || deletedFieldNames.length > 0;
 
   const fieldsByPage = useMemo(() => {
     const map = new Map<number, FormField[]>();
@@ -1081,9 +978,7 @@ export function FormFillProvider({
 
   return (
     <FormValuesStoreContext.Provider value={valuesStore}>
-      <FormFillContext.Provider value={value}>
-        {children}
-      </FormFillContext.Provider>
+      <FormFillContext.Provider value={value}>{children}</FormFillContext.Provider>
     </FormValuesStoreContext.Provider>
   );
 }
@@ -1106,9 +1001,6 @@ export function useStaleBakedFieldNames(): Set<string> {
     if (mode === "fill" || !modifiedFields || !deletedFieldNames) {
       return new Set<string>();
     }
-    return new Set<string>([
-      ...Object.keys(modifiedFields),
-      ...deletedFieldNames,
-    ]);
+    return new Set<string>([...Object.keys(modifiedFields), ...deletedFieldNames]);
   }, [mode, modifiedFields, deletedFieldNames]);
 }

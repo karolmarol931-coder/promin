@@ -9052,6 +9052,15 @@ apiKeys = "API Keys"
 apiKeysDescription = "Personal keys for calling the Promin API from scripts and integrations."
 title = "Developer"
 
+[settings.diagnostics]
+description = "The report includes recent app and local service logs. Some technical log details may contain private information; review the report before sharing. Nothing is sent automatically."
+eventCount = "Saved events"
+export = "Export diagnostic report"
+exported = "Report downloaded. Review it, then send it to your support contact."
+exportedPartial = "A partial report was downloaded because local service logs could not be included."
+exportFailed = "The diagnostic report could not be downloaded."
+title = "Diagnostics"
+
 [settings.general]
 autoUnzip = "Auto-unzip API responses"
 autoUnzipFileLimit = "Auto-unzip file limit"
@@ -9147,13 +9156,6 @@ title = "Version Information"
 auto = "Auto"
 fitPage = "Fit page"
 fitWidth = "Fit width"
-
-[settings.diagnostics]
-description = "Promin keeps a small error history on this computer. The report contains app events and technical error details, not PDF files or form values. Nothing is sent automatically."
-eventCount = "Saved events"
-export = "Export diagnostic report"
-exported = "Report downloaded. Attach it when you send a bug report."
-title = "Diagnostics"
 
 [settings.help]
 description = "Guided walkthroughs of the editor and the admin area."
@@ -9843,9 +9845,6 @@ submit = "Split"
 tags = "divide,separate,break,split,extract pages,separate pages,divide document,break apart,separate files,unbind,split by page,divide by chapter"
 title = "Split PDF"
 
-[split.results]
-sourceUnchanged = "The original PDF stays unchanged. The {{count}} result files are shown below; save them to keep the split parts."
-
 [split.error]
 failed = "An error occurred while splitting the PDF."
 
@@ -9927,6 +9926,9 @@ label = "Horizontal Divisions"
 [split.poster.yFactor]
 description = "Number of rows to split each page into"
 label = "Vertical Divisions"
+
+[split.results]
+sourceUnchanged = "The original PDF stays unchanged. The {{count}} result files are shown below; save them to keep the split parts."
 
 [split.settings]
 selectMethodFirst = "Please select a split method first"
@@ -10615,7 +10617,9 @@ noFileProvided = "Error: No file provided to viewer"
 apply = "Apply Changes"
 dismiss = "Dismiss"
 download = "Download PDF"
+formNotReady = "The form is still loading for this PDF. Try saving again in a moment."
 hasFieldsDesc = "This PDF contains fillable fields"
+saveFailed = "The PDF could not be saved. Try again and include a diagnostic report if the problem continues."
 title = "Form Fields"
 unsavedBadge = "Unsaved"
 unsavedDesc = "You have unsaved changes"
@@ -10891,6 +10895,8 @@ rulerSettings = "Scale Settings"
 save = "Save"
 saveAll = "Save All"
 saveAs = "Save As"
+saveErrorBody = "Try saving the PDF again."
+saveErrorTitle = "Could not save PDF"
 search = "Search PDF"
 selectAll = "Select All"
 selectByNumber = "Select by Page Numbers"

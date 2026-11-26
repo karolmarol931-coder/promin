@@ -2,15 +2,7 @@ import { usePdfAccess } from "@editor/hooks/usePdfAccess";
 import { pdfAllows } from "@editor/services/pdfPermissions";
 
 import { PdfPermissionFlag } from "@embedpdf/models";
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@editor/ui/Button";
 import { ActionIcon } from "@editor/ui/ActionIcon";
@@ -24,13 +16,8 @@ import {
   subscribeFilesPageReturnRoute,
 } from "@editor/components/filesPage/filesPageReturnRoute";
 import { useWorkbenchBar } from "@editor/contexts/WorkbenchBarContext";
-import {
-  useAllFiles,
-  useFileSelectors,
-  useFileSelection,
-  useFileActions,
-} from "@editor/contexts/FileContext";
-import { isStirlingFile } from "@editor/types/fileContext";
+import { useAllFiles, useFileSelectors, useFileSelection, useFileActions } from "@editor/contexts/FileContext";
+import { getFormFillFileId, isStirlingFile } from "@editor/types/fileContext";
 import { useFileActionTerminology } from "@editor/hooks/useFileActionTerminology";
 import { useFileActionIcons } from "@editor/hooks/useFileActionIcons";
 import { useToolWorkflow } from "@editor/contexts/ToolWorkflowContext";
@@ -43,19 +30,14 @@ import { useTitleBarStrip } from "@editor/contexts/TitleBarStripContext";
 import ViewerShareButton from "@editor/components/viewer/ViewerShareButton";
 import { useSharingEnabled } from "@editor/hooks/useSharingEnabled";
 import { usePolicyFileBadges } from "@editor/hooks/usePolicyFileBadges";
-import {
-  POLICY_IN_FLIGHT_STATUSES,
-  usePolicyRuns,
-} from "@editor/components/policies/policyRunStore";
+import { POLICY_IN_FLIGHT_STATUSES, usePolicyRuns } from "@editor/components/policies/policyRunStore";
 import { downloadFileWithPolicy as downloadFile } from "@editor/services/exportWithPolicy";
 import { enforceExportPolicies } from "@editor/services/policyExport";
 import { downloadFile as downloadRaw } from "@editor/services/downloadService";
+import { useFormFill } from "@editor/tools/formFill/FormFillContext";
+import { dispatchFormApply } from "@editor/tools/formFill/formFillEvents";
 import { alert as showAlert } from "@editor/components/toast";
-import {
-  WorkbenchBarButtonConfig,
-  WorkbenchBarRenderContext,
-  WorkbenchBarSection,
-} from "@editor/types/workbenchBar";
+import { WorkbenchBarButtonConfig, WorkbenchBarRenderContext, WorkbenchBarSection } from "@editor/types/workbenchBar";
 import WorkbenchBarDesktopActions from "@editor/components/shared/workbenchBar/WorkbenchBarDesktopActions";
 import WorkbenchBarMobileActions from "@editor/components/shared/workbenchBar/WorkbenchBarMobileActions";
 import WorkbenchBarToolbarHandle from "@editor/components/shared/workbenchBar/WorkbenchBarToolbarHandle";
@@ -64,6 +46,7 @@ import { WorkbenchBarActionsProps } from "@editor/components/shared/workbenchBar
 import { useIsMobile, useIsPhone } from "@editor/hooks/useIsMobile";
 import "@editor/components/shared/WorkbenchBar.css";
 import { NotificationBell } from "@editor/components/notifications/NotificationBell";
+import { createDiagnosticOperationId, recordDiagnosticEvent, recordDiagnosticException } from "@editor/services/diagnosticLog";
 
 const SECTION_ORDER: WorkbenchBarSection[] = ["top", "middle", "bottom"];
 
@@ -94,21 +77,15 @@ export default function WorkbenchBar({
   const navigate = useNavigate();
   const strip = useTitleBarStrip();
   const searchScopes = useEditorSearchScopes();
-  const returnRoute = useSyncExternalStore(
-    subscribeFilesPageReturnRoute,
-    getFilesPageReturnRoute,
-    () => null,
-  );
+  const returnRoute = useSyncExternalStore(subscribeFilesPageReturnRoute, getFilesPageReturnRoute, () => null);
   const handleBackToFiles = useCallback(() => {
     if (!returnRoute) return;
     const target = returnRoute.route;
     clearFilesPageReturnRoute();
     navigate(target);
   }, [returnRoute, navigate]);
-  const { buttons, actions, allButtonsDisabled, viewFileActions } =
-    useWorkbenchBar();
-  const { toolPanelMode, leftPanelView, customWorkbenchViews } =
-    useToolWorkflow();
+  const { buttons, actions, allButtonsDisabled, viewFileActions } = useWorkbenchBar();
+  const { toolPanelMode, leftPanelView, customWorkbenchViews } = useToolWorkflow();
   const { selectedTool } = useNavigationState();
   const isCustomView = !isBaseWorkbench(currentView);
   const isViewer = currentView === "viewer";
@@ -137,10 +114,7 @@ export default function WorkbenchBar({
             for (const entry of entries) {
               const span = entry.target;
               if (span instanceof HTMLElement) {
-                span.parentElement?.style.setProperty(
-                  "--view-label-w",
-                  `${Math.ceil(span.getBoundingClientRect().width)}px`,
-                );
+                span.parentElement?.style.setProperty("--view-label-w", `${Math.ceil(span.getBoundingClientRect().width)}px`);
               }
             }
           }),
@@ -150,16 +124,12 @@ export default function WorkbenchBar({
   const measureViewLabel = useCallback(
     (span: HTMLSpanElement | null) => {
       if (!span) return;
-      span.parentElement?.style.setProperty(
-        "--view-label-w",
-        `${Math.ceil(span.getBoundingClientRect().width)}px`,
-      );
+      span.parentElement?.style.setProperty("--view-label-w", `${Math.ceil(span.getBoundingClientRect().width)}px`);
       labelSizeObserver?.observe(span);
     },
     [labelSizeObserver],
   );
-  const disableForFullscreen =
-    toolPanelMode === "fullscreen" && leftPanelView === "toolPicker";
+  const disableForFullscreen = toolPanelMode === "fullscreen" && leftPanelView === "toolPicker";
   const terminology = useFileActionTerminology();
   const icons = useFileActionIcons();
   const { sharingEnabled } = useSharingEnabled();
@@ -174,6 +144,7 @@ export default function WorkbenchBar({
   const { actions: fileActions } = useFileActions();
   const { files: activeFiles } = useAllFiles();
   const { activeFileId, setActiveFileId } = useViewer();
+  const { state: formFillState, forFileId: formFillForFileId, submitForm } = useFormFill();
   const policyFileBadges = usePolicyFileBadges();
   // Block print/export while any file the export would touch is under active
   // policy enforcement: the viewer exports its active file, every other view
@@ -186,16 +157,12 @@ export default function WorkbenchBar({
       : selectedFileIds.length > 0
         ? selectedFileIds
         : activeFiles.filter(isStirlingFile).map((f) => f.fileId);
-  const enforcingFileId = exportTargetIds.find((id) =>
-    (policyFileBadges.get(id) ?? []).some((p) => p.enforcing),
-  );
+  const enforcingFileId = exportTargetIds.find((id) => (policyFileBadges.get(id) ?? []).some((p) => p.enforcing));
   const policyEnforcing = enforcingFileId != null;
   const policyRuns = usePolicyRuns();
   const enforcingRun = policyEnforcing
     ? policyRuns.find(
-        (r) =>
-          r.fileId === enforcingFileId &&
-          (POLICY_IN_FLIGHT_STATUSES as readonly string[]).includes(r.status),
+        (r) => r.fileId === enforcingFileId && (POLICY_IN_FLIGHT_STATUSES as readonly string[]).includes(r.status),
       )
     : undefined;
   const enforcingProgress =
@@ -207,27 +174,18 @@ export default function WorkbenchBar({
 
   // Registered into the bar's own row rather than the tool row below it. Already
   // sorted by order when registered.
-  const barRowButtons = useMemo(
-    () =>
-      buttons.filter((btn) => btn.section === "bar" && (btn.visible ?? true)),
-    [buttons],
-  );
+  const barRowButtons = useMemo(() => buttons.filter((btn) => btn.section === "bar" && (btn.visible ?? true)), [buttons]);
 
   // Beside the view switcher rather than among the actions: what the view is showing
   // reads as part of the view, not as something to do to it.
   const barLeadButtons = useMemo(
-    () =>
-      buttons.filter(
-        (btn) => btn.section === "bar-lead" && (btn.visible ?? true),
-      ),
+    () => buttons.filter((btn) => btn.section === "bar-lead" && (btn.visible ?? true)),
     [buttons],
   );
 
   const sectionsWithButtons = useMemo(() => {
     return SECTION_ORDER.map((section) => {
-      const sectionButtons = buttons.filter(
-        (btn) => (btn.section ?? "top") === section && (btn.visible ?? true),
-      );
+      const sectionButtons = buttons.filter((btn) => (btn.section ?? "top") === section && (btn.visible ?? true));
       return { section, buttons: sectionButtons };
     }).filter((entry) => entry.buttons.length > 0);
   }, [buttons]);
@@ -235,32 +193,101 @@ export default function WorkbenchBar({
   const handleExportAll = useCallback(
     async (forceNewFile = false) => {
       if (currentView === "viewer") {
-        const buffer = await viewerContext?.exportActions?.saveAsCopy?.();
-        if (!buffer) return;
-        const fileToExport =
-          activeFiles.find(
-            (file) => isStirlingFile(file) && file.fileId === activeFileId,
-          ) ?? activeFiles[0];
-        if (!fileToExport) return;
-        const stub = isStirlingFile(fileToExport)
-          ? selectors.getStirlingFileStub(fileToExport.fileId)
-          : undefined;
+        const operationId = createDiagnosticOperationId();
+        const startedAt = Date.now();
+        recordDiagnosticEvent("info", "exports", "viewer-save-started", {
+          operationId,
+          phase: forceNewFile ? "save-as" : "save",
+        });
         try {
+          const fileToExport =
+            activeFiles.find((file) => isStirlingFile(file) && file.fileId === activeFileId) ?? activeFiles[0];
+          if (!fileToExport) throw new Error("There is no active PDF to save.");
+          const stub = isStirlingFile(fileToExport) ? selectors.getStirlingFileStub(fileToExport.fileId) : undefined;
+          const formIdentityMatches = formFillForFileId === getFormFillFileId(fileToExport);
+          const saveFormValues = formFillState.isDirty && formIdentityMatches;
+          recordDiagnosticEvent(
+            saveFormValues ? "info" : formFillState.isDirty ? "warning" : "info",
+            "exports",
+            "viewer-save-source-selected",
+            {
+              operationId,
+              phase: saveFormValues ? "dirty-form" : formFillState.isDirty ? "form-identity-mismatch" : "viewer-export",
+              fieldCount: formFillState.fields.length,
+            },
+          );
+          if (formFillState.isDirty && !formIdentityMatches) {
+            throw new Error(
+              t("viewer.formBar.formNotReady", "The form is still loading for this PDF. Try saving again in a moment."),
+            );
+          }
+          let pdf: Blob;
+          if (saveFormValues) {
+            pdf = await submitForm(fileToExport, false, operationId);
+          } else {
+            const buffer = await viewerContext?.exportActions?.saveAsCopy?.();
+            if (!buffer) throw new Error("The viewer did not return PDF data.");
+            pdf = new Blob([buffer], { type: "application/pdf" });
+          }
+          const filename = stub?.name ?? fileToExport.name;
+
+          if (saveFormValues && !forceNewFile && stub?.localFilePath) {
+            await dispatchFormApply(pdf, { operationId });
+            recordDiagnosticEvent("info", "exports", "viewer-save-succeeded", {
+              operationId,
+              action: "save-form",
+              fileSizeBytes: pdf.size,
+              durationMs: Date.now() - startedAt,
+            });
+            return;
+          }
+
           const result = await downloadFile({
-            data: new Blob([buffer], { type: "application/pdf" }),
+            data: pdf,
             // Stub name, not File.name: a rename only writes the stub.
-            filename: stub?.name ?? fileToExport.name,
+            filename,
             localPath: forceNewFile ? undefined : stub?.localFilePath,
             fileId: stub?.id,
+            operationId,
+            action: forceNewFile ? "viewer-save-as" : "viewer-save",
           });
+          if (result.cancelled) {
+            recordDiagnosticEvent("info", "exports", "viewer-save-cancelled", {
+              operationId,
+              durationMs: Date.now() - startedAt,
+            });
+            return;
+          }
+          if (saveFormValues && !forceNewFile) {
+            await dispatchFormApply(pdf, {
+              operationId,
+              savedPath: result.savedPath,
+            });
+          }
           if (!forceNewFile && !result.cancelled && stub && result.savedPath) {
             fileActions.updateStirlingFileStub(stub.id, {
               localFilePath: stub.localFilePath ?? result.savedPath,
               isDirty: false,
             });
           }
+          recordDiagnosticEvent("info", "exports", "viewer-save-succeeded", {
+            operationId,
+            action: forceNewFile ? "save-as" : "save",
+            fileSizeBytes: pdf.size,
+            durationMs: Date.now() - startedAt,
+          });
         } catch (error) {
-          console.error("[WorkbenchBar] Failed to export viewer file:", error);
+          recordDiagnosticException("exports", "viewer-save-failed", error, {
+            operationId,
+            action: forceNewFile ? "save-as" : "save",
+            phase: forceNewFile ? "save-as" : "save",
+            durationMs: Date.now() - startedAt,
+          });
+          showAlert({
+            alertType: "error",
+            title: t("workbenchBar.saveErrorTitle", "Could not save PDF"),
+            body: error instanceof Error ? error.message : t("workbenchBar.saveErrorBody", "Try saving the PDF again."),
+          });
         }
         return;
       }
@@ -273,16 +300,8 @@ export default function WorkbenchBar({
           ? selectedFiles
           : activeFiles;
       const stubs = viewExport
-        ? viewExport.map((entry) =>
-            entry.fileId
-              ? selectors.getStirlingFileStub(entry.fileId)
-              : undefined,
-          )
-        : filesToExport.map((file) =>
-            isStirlingFile(file)
-              ? selectors.getStirlingFileStub(file.fileId)
-              : undefined,
-          );
+        ? viewExport.map((entry) => (entry.fileId ? selectors.getStirlingFileStub(entry.fileId) : undefined))
+        : filesToExport.map((file) => (isStirlingFile(file) ? selectors.getStirlingFileStub(file.fileId) : undefined));
 
       // Enforce all files in one batch so the toast shows progress across the
       // whole set (e.g. "report.pdf (2 of 5)") rather than N invisible solo runs.
@@ -320,11 +339,7 @@ export default function WorkbenchBar({
             });
           }
         } catch (error) {
-          console.error(
-            "[WorkbenchBar] Failed to export file:",
-            file.name,
-            error,
-          );
+          console.error("[WorkbenchBar] Failed to export file:", file.name, error);
         }
       }
     },
@@ -333,17 +348,21 @@ export default function WorkbenchBar({
       selectedFiles,
       activeFiles,
       activeFileId,
+      formFillState.isDirty,
+      formFillState.fields.length,
+      formFillForFileId,
+      submitForm,
       viewerContext,
       viewFileActions,
       selectors,
       fileActions,
+      t,
     ],
   );
 
   const printAccess = usePdfAccess(activeFileId);
   const canPrint =
-    pdfAllows(printAccess, PdfPermissionFlag.Print) &&
-    pdfAllows(printAccess, PdfPermissionFlag.PrintHighQuality);
+    pdfAllows(printAccess, PdfPermissionFlag.Print) && pdfAllows(printAccess, PdfPermissionFlag.PrintHighQuality);
   const printDisabledReason =
     printAccess?.encrypted && !canPrint
       ? pdfAllows(printAccess, PdfPermissionFlag.Print)
@@ -351,10 +370,7 @@ export default function WorkbenchBar({
             "encryptedPdfUnlock.lowQualityPrintUnsupported",
             "This PDF allows low-quality printing only, which this viewer does not support.",
           )
-        : t(
-            "encryptedPdfUnlock.printRestricted",
-            "Printing is restricted. Verify permissions in Manage protection.",
-          )
+        : t("encryptedPdfUnlock.printRestricted", "Printing is restricted. Verify permissions in Manage protection.")
       : undefined;
   const handlePrint = useCallback(() => {
     viewerContext?.printActions?.print?.();
@@ -367,17 +383,11 @@ export default function WorkbenchBar({
       await fileActions.clearAllFiles();
     } else if (currentView === "viewer") {
       const file =
-        (activeFileId
-          ? activeFiles.find(
-              (f) => isStirlingFile(f) && f.fileId === activeFileId,
-            )
-          : null) ?? activeFiles[0];
+        (activeFileId ? activeFiles.find((f) => isStirlingFile(f) && f.fileId === activeFileId) : null) ?? activeFiles[0];
       const countBeforeRemove = activeFiles.length;
       if (file && isStirlingFile(file)) {
         // Pick the next file to show before removing, so the sidebar stays in sync.
-        const remaining = activeFiles.filter(
-          (f) => isStirlingFile(f) && f.fileId !== file.fileId,
-        );
+        const remaining = activeFiles.filter((f) => isStirlingFile(f) && f.fileId !== file.fileId);
         const nextFile = remaining.find(isStirlingFile) ?? null;
         await fileActions.removeFiles([file.fileId], false);
         if (countBeforeRemove <= 1) {
@@ -389,15 +399,7 @@ export default function WorkbenchBar({
         setCurrentView("fileEditor");
       }
     }
-  }, [
-    currentView,
-    viewFileActions,
-    fileActions,
-    activeFiles,
-    activeFileId,
-    setActiveFileId,
-    setCurrentView,
-  ]);
+  }, [currentView, viewFileActions, fileActions, activeFiles, activeFileId, setActiveFileId, setCurrentView]);
 
   const downloadTooltip = useMemo(() => {
     if (currentView === "viewer") return terminology.download;
@@ -405,8 +407,7 @@ export default function WorkbenchBar({
     return terminology.downloadAll;
   }, [currentView, selectedCount, t, terminology]);
 
-  const actionsDisabled =
-    totalItems === 0 || allButtonsDisabled || disableForFullscreen;
+  const actionsDisabled = totalItems === 0 || allButtonsDisabled || disableForFullscreen;
 
   // Shared by the mobile overflow menu and the desktop icon cluster so the two
   // stay in step; each renders the same actions in its own shape.
@@ -426,21 +427,13 @@ export default function WorkbenchBar({
     onClose: handleClose,
   };
 
-  const toggleMobileTools = useCallback(
-    () => setMobileToolsExpanded((v) => !v),
-    [],
-  );
-  const handleRetractToolbar = useCallback(
-    () => onCollapseViewerToolbar?.(true),
-    [onCollapseViewerToolbar],
-  );
+  const toggleMobileTools = useCallback(() => setMobileToolsExpanded((v) => !v), []);
+  const handleRetractToolbar = useCallback(() => onCollapseViewerToolbar?.(true), [onCollapseViewerToolbar]);
 
   const renderButton = useCallback(
     (btn: WorkbenchBarButtonConfig) => {
       const action = actions[btn.id];
-      const disabled = Boolean(
-        btn.disabled || allButtonsDisabled || disableForFullscreen,
-      );
+      const disabled = Boolean(btn.disabled || allButtonsDisabled || disableForFullscreen);
       const isActive = Boolean(btn.active);
 
       const triggerAction = () => {
@@ -461,9 +454,7 @@ export default function WorkbenchBar({
 
       if (!btn.icon) return null;
 
-      const ariaLabel =
-        btn.ariaLabel ||
-        (typeof btn.tooltip === "string" ? btn.tooltip : btn.id);
+      const ariaLabel = btn.ariaLabel || (typeof btn.tooltip === "string" ? btn.tooltip : btn.id);
       const buttonNode = (
         <ActionIcon
           variant={isActive ? "primary" : "quiet"}
@@ -526,9 +517,7 @@ export default function WorkbenchBar({
     const MIN_SEARCH_WIDTH = 320;
     const measure = () => {
       const viewsEl = bar.querySelector<HTMLElement>(".workbench-bar-views");
-      const globalsEl = bar.querySelector<HTMLElement>(
-        ".workbench-bar-globals",
-      );
+      const globalsEl = bar.querySelector<HTMLElement>(".workbench-bar-globals");
       const viewsWidth = viewsEl?.offsetWidth ?? 0;
       const globalsWidth = globalsEl?.offsetWidth ?? 0;
       // clientWidth minus the two side clusters, the bar's 16px h-padding and
@@ -541,16 +530,10 @@ export default function WorkbenchBar({
       // an unclamped value would paint the pill over the adjacent cluster.
       const slotEl = bar.querySelector<HTMLElement>(".workbench-bar-search");
       const pillEl = slotEl?.querySelector<HTMLElement>(".super-search");
-      const slack = Math.max(
-        0,
-        ((slotEl?.offsetWidth ?? 0) - (pillEl?.offsetWidth ?? 0)) / 2,
-      );
+      const slack = Math.max(0, ((slotEl?.offsetWidth ?? 0) - (pillEl?.offsetWidth ?? 0)) / 2);
       const centred = (globalsWidth - viewsWidth) / 2;
       const offset = Math.min(slack, Math.max(-slack, centred));
-      bar.style.setProperty(
-        "--workbench-bar-search-offset",
-        wrapped ? "0px" : `${offset}px`,
-      );
+      bar.style.setProperty("--workbench-bar-search-offset", wrapped ? "0px" : `${offset}px`);
     };
     const ro = new ResizeObserver(measure);
     ro.observe(bar);
@@ -572,12 +555,8 @@ export default function WorkbenchBar({
             className="workbench-bar-view-btn workbench-bar-back-btn"
             onClick={handleBackToFiles}
             aria-label={t(
-              returnRoute.label
-                ? "filesPage.backToFolder"
-                : "filesPage.backToMyFiles",
-              returnRoute.label
-                ? `Back to ${returnRoute.label}`
-                : "Back to File library",
+              returnRoute.label ? "filesPage.backToFolder" : "filesPage.backToMyFiles",
+              returnRoute.label ? `Back to ${returnRoute.label}` : "Back to File library",
               { folder: returnRoute.label ?? "" },
             )}
             leftSection={<Icon name="arrow-left" size={"1.1rem"} />}
@@ -607,11 +586,7 @@ export default function WorkbenchBar({
             label: (
               <>
                 {opt.icon}
-                <span
-                  className={`workbench-bar-view-label${
-                    opt.value === openView ? " is-open" : ""
-                  }`}
-                >
+                <span className={`workbench-bar-view-label${opt.value === openView ? " is-open" : ""}`}>
                   <span ref={measureViewLabel}>{opt.label}</span>
                 </span>
               </>
@@ -644,40 +619,28 @@ export default function WorkbenchBar({
   // Workbench then shows a tab below the bar to bring it back.
   const toolRow =
     sectionsWithButtons.length > 0 && !(isViewer && viewerToolbarCollapsed) ? (
-      <div
-        className={`workbench-bar-center${
-          isMobile && mobileToolsExpanded
-            ? " workbench-bar-center--expanded"
-            : ""
-        }`}
-      >
+      <div className={`workbench-bar-center${isMobile && mobileToolsExpanded ? " workbench-bar-center--expanded" : ""}`}>
         <div className="workbench-bar-center-scroll">
-          {sectionsWithButtons.map(
-            ({ section, buttons: sectionButtons }, idx) => (
-              <React.Fragment key={section}>
-                {idx > 0 && <div className="workbench-bar-divider" />}
-                {sectionButtons.map((btn) => {
-                  const content = renderButton(btn);
-                  if (!content) return null;
-                  return (
-                    <div key={btn.id} className="workbench-bar-action-wrapper">
-                      {content}
-                    </div>
-                  );
-                })}
-              </React.Fragment>
-            ),
-          )}
+          {sectionsWithButtons.map(({ section, buttons: sectionButtons }, idx) => (
+            <React.Fragment key={section}>
+              {idx > 0 && <div className="workbench-bar-divider" />}
+              {sectionButtons.map((btn) => {
+                const content = renderButton(btn);
+                if (!content) return null;
+                return (
+                  <div key={btn.id} className="workbench-bar-action-wrapper">
+                    {content}
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
         </div>
         <WorkbenchBarToolbarHandle
           isMobile={isMobile}
           expanded={mobileToolsExpanded}
           onToggleExpanded={toggleMobileTools}
-          onRetract={
-            isViewer && onCollapseViewerToolbar
-              ? handleRetractToolbar
-              : undefined
-          }
+          onRetract={isViewer && onCollapseViewerToolbar ? handleRetractToolbar : undefined}
         />
       </div>
     ) : null;
@@ -695,21 +658,14 @@ export default function WorkbenchBar({
           </div>
         );
       })}
-      {barRowButtons.length > 0 && (
-        <div className="workbench-bar-divider workbench-bar-globals-sep" />
-      )}
+      {barRowButtons.length > 0 && <div className="workbench-bar-divider workbench-bar-globals-sep" />}
       {/* Share (viewer only; opens the same modal as My Files "Manage sharing") */}
-      {currentView === "viewer" && sharingEnabled && (
-        <ViewerShareButton disabled={actionsDisabled} />
-      )}
+      {currentView === "viewer" && sharingEnabled && <ViewerShareButton disabled={actionsDisabled} />}
 
       {isMobile ? (
         <WorkbenchBarMobileActions {...globalActionProps} />
       ) : (
-        <WorkbenchBarDesktopActions
-          {...globalActionProps}
-          enforcingProgress={enforcingProgress}
-        />
+        <WorkbenchBarDesktopActions {...globalActionProps} enforcingProgress={enforcingProgress} />
       )}
       {isPhone && (
         <>
@@ -730,12 +686,7 @@ export default function WorkbenchBar({
         {strip.viewsSlot && createPortal(viewsCluster, strip.viewsSlot)}
         {strip.globalsSlot && createPortal(globalsCluster, strip.globalsSlot)}
         {toolRow && (
-          <div
-            ref={barRef}
-            className="workbench-bar"
-            data-wrapped="false"
-            data-portaled="true"
-          >
+          <div ref={barRef} className="workbench-bar" data-wrapped="false" data-portaled="true">
             {toolRow}
           </div>
         )}
@@ -744,12 +695,7 @@ export default function WorkbenchBar({
   }
 
   return (
-    <div
-      ref={barRef}
-      className="workbench-bar"
-      data-wrapped="false"
-      data-tour="workbench-bar"
-    >
+    <div ref={barRef} className="workbench-bar" data-wrapped="false" data-tour="workbench-bar">
       {viewsCluster}
       {searchCluster}
       {toolRow}
