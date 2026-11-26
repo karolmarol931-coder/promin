@@ -285,7 +285,9 @@ export function WorkbenchSessionPersistence() {
           if (view) held = beginRestoredView();
           // The same entry point My Files uses, so a restored file is governed by the same rules as
           // any other file entering the workbench - including whether a policy has already run on it.
-          await actions.addStirlingFileStubs(toRestore);
+          await actions.addStirlingFileStubs(toRestore, {
+            suppressPageSizeReview: true,
+          });
           const restoredIds = new Set(toRestore.map((stub) => stub.id));
           // File intake can begin during either storage lookup or insertion. Keep its selection
           // and view, while still reopening the saved files alongside it.

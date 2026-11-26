@@ -180,7 +180,7 @@ describe("restore", () => {
     await act(async () => {});
     expect(actions.addStirlingFileStubs).toHaveBeenCalledWith([
       stub("root-a", "root-a"),
-    ]);
+    ], { suppressPageSizeReview: true });
     expect(actions.setSelectedFiles).not.toHaveBeenCalled();
     expect(mocks.setActiveFileId).not.toHaveBeenCalled();
     expect(mocks.restoreWorkbench).not.toHaveBeenCalled();
@@ -252,7 +252,7 @@ describe("restore", () => {
     await act(async () => {});
     expect(actions.addStirlingFileStubs).toHaveBeenCalledWith([
       stub("root-a", "root-a"),
-    ]);
+    ], { suppressPageSizeReview: true });
     expect(actions.setSelectedFiles).not.toHaveBeenCalled();
     expect(mocks.setActiveFileId).not.toHaveBeenCalled();
     expect(mocks.restoreWorkbench).not.toHaveBeenCalled();
@@ -292,7 +292,7 @@ describe("restore", () => {
 
       expect(actions.addStirlingFileStubs).toHaveBeenCalledWith([
         stub("root-a", "root-a"),
-      ]);
+      ], { suppressPageSizeReview: true });
       expect(actions.setSelectedFiles).not.toHaveBeenCalled();
       expect(mocks.setActiveFileId).not.toHaveBeenCalled();
       expect(mocks.restoreWorkbench).not.toHaveBeenCalled();

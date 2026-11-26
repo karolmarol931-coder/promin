@@ -5788,6 +5788,19 @@ title = "Remove Digital Signature"
 [merge.settings]
 moreOptions = "More options"
 
+[workbench.pageSizeReview]
+addFailed = "The normalized copy could not be added to the workbench."
+description = "Create a separate copy with the unusual pages scaled proportionally and centered on the common page size. The original file will stay unchanged."
+failed = "Could not create the normalized copy. The original file is unchanged."
+file = "File"
+keep = "Keep original page sizes"
+normalize = "Create normalized copy and open it"
+pages = "Pages to normalize"
+subtitle = "This PDF has pages that are much larger or smaller than the main page size."
+target = "Common page size"
+title = "Different page sizes found"
+working = "Creating copy…"
+
 [merge.sortBy]
 advancedOptions = "More sorting options"
 ascending = "Ascending"

@@ -25,6 +25,7 @@ import { useTitleBarStrip } from "@editor/contexts/TitleBarStripContext";
 import WorkbenchFloatingSearch from "@editor/components/shared/WorkbenchFloatingSearch";
 import LandingPage from "@editor/components/shared/LandingPage";
 import DismissAllErrorsButton from "@editor/components/shared/DismissAllErrorsButton";
+import ImportedPdfPageSizeReview from "@editor/components/layout/ImportedPdfPageSizeReview";
 import { NotificationBell } from "@editor/components/notifications/NotificationBell";
 
 // Workbench panels are loaded on demand. Viewer pulls in pdfjs-dist and the
@@ -276,6 +277,7 @@ export default function Workbench() {
 
       {/* Dismiss All Errors Button */}
       <DismissAllErrorsButton />
+      <ImportedPdfPageSizeReview />
 
       {/* Main content area */}
       <Box

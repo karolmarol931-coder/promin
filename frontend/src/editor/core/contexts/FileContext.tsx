@@ -81,6 +81,7 @@ import {
 } from "@editor/services/pdfAccessService";
 import { alert } from "@editor/components/toast";
 import { hasPdfPermissionOverride } from "@editor/services/pdfPermissions";
+import { publishWorkbenchFilesAdded } from "@editor/services/workbenchFileEvents";
 
 import { reportFilesRemoved } from "@editor/services/failureReporting";
 import {
@@ -531,6 +532,7 @@ function FileContextInner({
       }
       const admitted = await awaitAdmissions(stirlingFiles);
       if (options?.selectFiles && admitted.length > 0) selectFiles(admitted);
+      if (!options?.skipWorkspaceDispatch) publishWorkbenchFilesAdded(admitted);
       return admitted;
     },
     [
@@ -575,6 +577,7 @@ function FileContextInner({
       }
       const admitted = await awaitAdmissions(stirlingFiles);
       if (options?.selectFiles && admitted.length > 0) selectFiles(admitted);
+      publishWorkbenchFilesAdded(admitted);
       return admitted;
     },
     [enablePersistence, indexedDB, dispatchWithUnlock, awaitAdmissions],
@@ -583,12 +586,17 @@ function FileContextInner({
   const addStirlingFileStubsAction = useCallback(
     async (
       stirlingFileStubs: StirlingFileStub[],
-      options?: { insertAfterPageId?: string; selectFiles?: boolean },
+      options?: {
+        insertAfterPageId?: string;
+        selectFiles?: boolean;
+        suppressPageSizeReview?: boolean;
+      },
     ): Promise<StirlingFile[]> => {
       // StirlingFileStubs preserve all metadata - perfect for FileManager use case!
+      const { suppressPageSizeReview, ...addOptions } = options ?? {};
       const result = await addStirlingFileStubs(
         stirlingFileStubs,
-        options,
+        addOptions,
         stateRef,
         filesRef,
         dispatchWithUnlock,
@@ -597,6 +605,7 @@ function FileContextInner({
 
       const admitted = await awaitAdmissions(result);
       if (options?.selectFiles && admitted.length > 0) selectFiles(admitted);
+      if (!suppressPageSizeReview) publishWorkbenchFilesAdded(admitted);
       return admitted;
     },
     [dispatchWithUnlock, awaitAdmissions],

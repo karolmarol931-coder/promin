@@ -432,7 +432,11 @@ export interface FileContextActions {
   ) => Promise<StirlingFile[]>;
   addStirlingFileStubs: (
     stirlingFileStubs: StirlingFileStub[],
-    options?: { insertAfterPageId?: string; selectFiles?: boolean },
+    options?: {
+      insertAfterPageId?: string;
+      selectFiles?: boolean;
+      suppressPageSizeReview?: boolean;
+    },
   ) => Promise<StirlingFile[]>;
   removeFiles: (
     fileIds: FileId[],

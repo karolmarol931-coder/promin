@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import stirling.software.SPDF.config.swagger.StandardPdfResponse;
 import stirling.software.SPDF.model.api.general.MergePdfsRequest;
+import stirling.software.SPDF.model.api.general.NormalizePageSizesRequest;
 import stirling.software.common.annotations.AutoJobPostMapping;
 import stirling.software.common.annotations.api.GeneralApi;
 import stirling.software.common.enumeration.ResourceWeight;
@@ -409,6 +410,68 @@ public class MergeController {
                 GeneralUtils.generateFilename(firstFilename, "_merged_unsigned.pdf");
 
         return WebResponseUtils.pdfFileToWebResponse(outputTempFile, mergedFileName);
+    }
+
+    @AutoJobPostMapping(
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            value = "/normalize-page-sizes",
+            resourceWeight = ResourceWeight.MEDIUM_WEIGHT)
+    @StandardPdfResponse
+    @Operation(
+            summary = "Normalize selected PDF page sizes",
+            description =
+                    "Resizes only the selected pages to the supplied page size while preserving"
+                            + " their proportions and centering their contents.")
+    public ResponseEntity<Resource> normalizePageSizes(
+            @ModelAttribute NormalizePageSizesRequest request) throws IOException {
+        MultipartFile input = request.getFileInput();
+        if (input == null || input.isEmpty()) {
+            throw ExceptionUtils.createIllegalArgumentException(
+                    "error.fileUploadRequired", "A PDF file is required.");
+        }
+        if (request.getPortraitWidth() == null || request.getPortraitHeight() == null) {
+            throw new IOException("Page normalization requires a target page size.");
+        }
+
+        File source = tempFileManager.convertMultipartFileToFile(input);
+        TempFile output = tempFileManager.createManagedTempFile(".pdf");
+        boolean responseOwnsOutput = false;
+        try {
+            MergePageNormalizer.normalize(
+                    source,
+                    output.getFile(),
+                    parsePageIndexes(request.getPageIndexes()),
+                    request.getPortraitWidth(),
+                    request.getPortraitHeight());
+            ResponseEntity<Resource> response =
+                    WebResponseUtils.pdfFileToWebResponse(
+                            output,
+                            GeneralUtils.generateFilename(
+                                    input.getOriginalFilename(), "_normalized.pdf"));
+            responseOwnsOutput = true;
+            return response;
+        } finally {
+            tempFileManager.deleteTempFile(source);
+            if (!responseOwnsOutput) output.close();
+        }
+    }
+
+    private static Set<Integer> parsePageIndexes(String pageIndexes) throws IOException {
+        if (pageIndexes == null || pageIndexes.isBlank() || pageIndexes.length() > 100_000) {
+            throw new IOException("Page indexes are missing or invalid.");
+        }
+        Set<Integer> selectedPages = new LinkedHashSet<>();
+        for (String value : pageIndexes.split(",", -1)) {
+            try {
+                int pageIndex = Integer.parseInt(value.trim());
+                if (pageIndex < 0) throw new IOException("Page index is out of range.");
+                selectedPages.add(pageIndex);
+            } catch (NumberFormatException e) {
+                throw new IOException("Page index is invalid.", e);
+            }
+        }
+        if (selectedPages.isEmpty()) throw new IOException("No pages were selected.");
+        return selectedPages;
     }
 
     private static Map<Integer, Set<Integer>> parseNormalizationPageRefs(

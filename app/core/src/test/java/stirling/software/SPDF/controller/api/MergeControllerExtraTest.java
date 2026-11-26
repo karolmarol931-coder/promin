@@ -1,15 +1,18 @@
 package stirling.software.SPDF.controller.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.mock;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -23,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import stirling.software.SPDF.model.api.general.NormalizePageSizesRequest;
 import stirling.software.common.model.ApplicationProperties;
 import stirling.software.common.service.CustomPDFDocumentFactory;
 import stirling.software.common.service.PdfMetadataService;
@@ -61,6 +65,20 @@ class MergeControllerExtraTest {
     private static MockMultipartFile pdf(String name, int pages) throws IOException {
         return new MockMultipartFile(
                 "fileInput", name, MediaType.APPLICATION_PDF_VALUE, pdfBytes(pages));
+    }
+
+    private static MockMultipartFile mixedSizePdf() throws IOException {
+        try (PDDocument doc = new PDDocument();
+                ByteArrayOutputStream output = new ByteArrayOutputStream()) {
+            for (int i = 0; i < 5; i++) doc.addPage(new PDPage(PDRectangle.A4));
+            doc.addPage(new PDPage(new PDRectangle(2432, 3440)));
+            doc.save(output);
+            return new MockMultipartFile(
+                    "fileInput",
+                    "merged_11.pdf",
+                    MediaType.APPLICATION_PDF_VALUE,
+                    output.toByteArray());
+        }
     }
 
     private void addTableOfContents(PDDocument merged, MultipartFile[] files) throws Exception {
@@ -106,6 +124,29 @@ class MergeControllerExtraTest {
 
         private PDDocument loadPdf(byte[] bytes) throws IOException {
             return org.apache.pdfbox.Loader.loadPDF(bytes);
+        }
+    }
+
+    @Test
+    void normalizesSingleImportedPdfAndReturnsASeparateDocument() throws Exception {
+        NormalizePageSizesRequest request = new NormalizePageSizesRequest();
+        request.setFileInput(mixedSizePdf());
+        request.setPageIndexes("5");
+        request.setPortraitWidth(PDRectangle.A4.getWidth());
+        request.setPortraitHeight(PDRectangle.A4.getHeight());
+
+        var response = mergeController.normalizePageSizes(request);
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try (InputStream input = response.getBody().getInputStream()) {
+            input.transferTo(output);
+        }
+
+        try (PDDocument normalized = Loader.loadPDF(output.toByteArray())) {
+            assertThat(normalized.getNumberOfPages()).isEqualTo(6);
+            assertThat(normalized.getPage(5).getMediaBox().getWidth())
+                    .isCloseTo(PDRectangle.A4.getWidth(), within(0.01f));
+            assertThat(normalized.getPage(5).getMediaBox().getHeight())
+                    .isCloseTo(PDRectangle.A4.getHeight(), within(0.01f));
         }
     }
 

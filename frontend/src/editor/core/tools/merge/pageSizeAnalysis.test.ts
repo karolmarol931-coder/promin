@@ -12,6 +12,20 @@ const a4: MergePageSizeSample[] = Array.from({ length: 5 }, (_, pageIndex) => ({
 }));
 
 describe("merge page size analysis", () => {
+  it("detects an outlier inside one imported PDF", () => {
+    const plan = detectMergePageSizeOutliers([
+      ...a4,
+      {
+        fileIndex: 0,
+        pageIndex: 5,
+        width: 2432,
+        height: 3440,
+      },
+    ]);
+
+    expect(plan?.pages).toEqual([{ fileIndex: 0, pageIndex: 5 }]);
+  });
+
   it("flags a page with the same shape but a much larger physical size", () => {
     const plan = detectMergePageSizeOutliers([
       ...a4,

@@ -63,6 +63,33 @@ class MergePageNormalizerTest {
         }
     }
 
+    @Test
+    void normalizesOnlyTheOutlierInAnAlreadyMergedMixedSizeDocument() throws Exception {
+        File source = tempDir.resolve("mixed-sizes.pdf").toFile();
+        File destination = tempDir.resolve("mixed-sizes-normalized.pdf").toFile();
+        try (PDDocument document = new PDDocument()) {
+            for (int i = 0; i < 5; i++) document.addPage(new PDPage(PDRectangle.A4));
+            document.addPage(new PDPage(new PDRectangle(2432, 3440)));
+            document.save(source);
+        }
+
+        MergePageNormalizer.normalize(source, destination, Set.of(5), 595.28f, 841.89f);
+
+        try (PDDocument normalized = Loader.loadPDF(destination)) {
+            assertThat(normalized.getNumberOfPages()).isEqualTo(6);
+            for (int i = 0; i < 5; i++) {
+                assertThat(normalized.getPage(i).getMediaBox().getWidth())
+                        .isCloseTo(PDRectangle.A4.getWidth(), within(0.01f));
+                assertThat(normalized.getPage(i).getMediaBox().getHeight())
+                        .isCloseTo(PDRectangle.A4.getHeight(), within(0.01f));
+            }
+            assertThat(normalized.getPage(5).getMediaBox().getWidth())
+                    .isCloseTo(PDRectangle.A4.getWidth(), within(0.01f));
+            assertThat(normalized.getPage(5).getMediaBox().getHeight())
+                    .isCloseTo(PDRectangle.A4.getHeight(), within(0.01f));
+        }
+    }
+
     private static void createFormPdf(File file) throws IOException {
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(new PDRectangle(2432, 3440));
