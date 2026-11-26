@@ -55,9 +55,13 @@ const LandingPage = ({ readerEmpty = false }: { readerEmpty?: boolean }) => {
             <span className="winter-tree__layer winter-tree__layer--upper" />
           </div>
           <div className="winter-snowman">
+            <span className="winter-snowman__arm winter-snowman__arm--left" />
+            <span className="winter-snowman__arm winter-snowman__arm--right" />
             <span className="winter-snowman__base" />
             <span className="winter-snowman__body" />
             <span className="winter-snowman__head" />
+            <span className="winter-snowman__nose" />
+            <span className="winter-snowman__hat" />
             <span className="winter-snowman__scarf" />
           </div>
         </div>
