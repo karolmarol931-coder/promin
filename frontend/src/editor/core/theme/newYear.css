@@ -285,12 +285,41 @@ html[data-new-year-theme="on"] .landing-page__winter-scene {
 
 .winter-scene__art {
   position: absolute;
+  right: 0;
+  bottom: 0;
+  display: block;
+  width: 115.79%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  user-select: none;
+}
+
+.winter-scene__taxi-sign {
+  position: absolute;
+  z-index: 1;
+  bottom: 9%;
+  left: 0;
+  width: 16.5%;
+  aspect-ratio: 12 / 7;
+  pointer-events: none;
+}
+
+.winter-scene__taxi-sign-body {
+  position: absolute;
   inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center bottom;
+  user-select: none;
+}
+
+.winter-scene__taxi-sign-logo {
+  position: absolute;
+  top: 42%;
+  left: 24%;
+  width: 52%;
+  height: auto;
   user-select: none;
 }
 
