@@ -143,7 +143,7 @@ html[data-new-year-theme="on"][data-document-open] .new-year-snowfall {
   inset: 0;
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 1px 1px var(--c-seasonal-shadow));
+  filter: drop-shadow(0 0.35px 0.5px var(--c-seasonal-shadow));
   opacity: 0;
   pointer-events: none;
 }
