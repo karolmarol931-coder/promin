@@ -1,5 +1,4 @@
 use tauri::{Manager, RunEvent, WindowEvent};
-use tauri_plugin_window_state::StateFlags;
 
 mod utils;
 pub mod commands;
@@ -88,11 +87,6 @@ pub fn run() {
     .plugin(tauri_plugin_notification::init())
     .plugin(tauri_plugin_updater::Builder::new().build())
     .plugin(tauri_plugin_process::init())
-    .plugin(
-      tauri_plugin_window_state::Builder::default()
-        .with_state_flags(StateFlags::all() & !StateFlags::DECORATIONS)
-        .build()
-    )
     .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
       // Runs in the existing instance when a second launch is attempted
       // (e.g. "open with" / double-click while the app is running).

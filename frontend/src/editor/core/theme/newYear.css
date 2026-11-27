@@ -271,7 +271,8 @@ html[data-new-year-theme="on"] .promin-brand__bulb {
   right: clamp(0.75rem, 3vw, 2.5rem);
   bottom: 0;
   width: clamp(23rem, 44vw, 40rem);
-  max-width: calc(100% - 1.5rem);
+  /* Reserve space for the enlarged frame so the sign stays inside the landing pane. */
+  max-width: min(calc(100% - 1.5rem), calc(79.36% - 2.5rem));
   aspect-ratio: 19 / 8;
   overflow: visible;
   opacity: 0;
@@ -354,7 +355,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
   .landing-page__winter-scene {
     right: 1rem;
     width: min(84vw, 34rem);
-    max-width: calc(100% - 0.5rem);
+    max-width: min(calc(100% - 0.5rem), calc(89.29% - 1.5625rem));
     transform: scale(1.12);
   }
 }
