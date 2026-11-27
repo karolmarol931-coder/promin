@@ -45,8 +45,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   defaultToolPanelMode: DEFAULT_TOOL_PANEL_MODE,
   defaultStartupView: "tools",
   defaultViewerZoom: "auto",
-  theme: "system",
-  newYearThemeEnabled: false,
+  theme: "dark",
+  newYearThemeEnabled: true,
   toolPanelModePromptSeen: false,
   hasSelectedToolPanelMode: false,
   showLegacyToolDescriptions: false,
@@ -60,6 +60,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 const STORAGE_KEY = "stirlingpdf_preferences";
+const APPEARANCE_ROLLOUT_KEY = "stirlingpdf_appearance_rollout_3_2_42";
 
 class PreferencesService {
   private serverDefaults: Partial<UserPreferences> = {};
@@ -96,6 +97,7 @@ class PreferencesService {
   }
 
   getPreference<K extends keyof UserPreferences>(key: K): UserPreferences[K] {
+    this.applyAppearanceRollout();
     // Explicitly re-read every time in case preferences have changed in another tab etc.
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
@@ -130,6 +132,7 @@ class PreferencesService {
   }
 
   getAllPreferences(): UserPreferences {
+    this.applyAppearanceRollout();
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -154,6 +157,23 @@ class PreferencesService {
     } catch (error) {
       console.error("Error clearing preferences:", error);
       throw error;
+    }
+  }
+
+  private applyAppearanceRollout(): void {
+    try {
+      if (localStorage.getItem(APPEARANCE_ROLLOUT_KEY) === "complete") {
+        return;
+      }
+
+      const stored = localStorage.getItem(STORAGE_KEY);
+      const preferences = stored ? JSON.parse(stored) : {};
+      preferences.theme = "dark";
+      preferences.newYearThemeEnabled = true;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+      localStorage.setItem(APPEARANCE_ROLLOUT_KEY, "complete");
+    } catch (error) {
+      console.error("Error applying the seasonal appearance rollout:", error);
     }
   }
 }

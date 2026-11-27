@@ -103,7 +103,11 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         <div style={{ minHeight: "100vh" }}>
           <ToastProvider>
             <ToastPortalBinder />
-            <div className="new-year-snowfall" aria-hidden="true" />
+            <div className="new-year-snowfall" aria-hidden="true">
+              <span className="new-year-snowfall__layer new-year-snowfall__layer--far" />
+              <span className="new-year-snowfall__layer new-year-snowfall__layer--mid" />
+              <span className="new-year-snowfall__layer new-year-snowfall__layer--near" />
+            </div>
             {children}
             <ToastRenderer />
           </ToastProvider>

@@ -20,7 +20,7 @@ Read this before touching colours or theming anywhere in the frontend.
 | `colors.css` | **Semantic tokens** (`--c-*`), mapped from primitives per theme. This is what you should reference. |
 | `dimensions.css` | Non-colour tokens: spacing, radius, z-index, type, motion. |
 | `index.css` | Barrel that `@import`s the above. Imported by `ThemeProvider` (and Storybook). |
-| `newYear.css` | Optional seasonal palette and decorative styles, enabled only by a local preference. |
+| `newYear.css` | Seasonal palette and decorations, enabled by default and switchable in local preferences. |
 | `mantineTheme.ts` | Mantine theme object wiring. |
 
 The old `compat.css` legacy-alias layer has been removed — every component now references `--c-*` directly. Two **legacy** colour files still exist outside this folder and are being phased out — prefer `--c-*` over their tokens, and don't add to them:

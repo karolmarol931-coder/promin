@@ -7,7 +7,7 @@ html[data-new-year-theme="on"] {
   --c-seasonal-berry: var(--p-winter-berry-600);
   --c-seasonal-gold: var(--p-winter-gold-500);
   --c-seasonal-snow: var(--p-white);
-  --c-seasonal-flake: var(--p-blue-200);
+  --c-seasonal-flake: var(--p-blue-400);
   --c-seasonal-bulb-blue: var(--p-blue-400);
   --c-seasonal-bulb-gold: var(--p-amber-400);
   --c-seasonal-bulb-green: var(--p-green-400);
@@ -106,7 +106,7 @@ html[data-new-year-theme="on"][data-theme="dark"] {
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  opacity: 0.62;
+  opacity: 0.84;
   mask-image: linear-gradient(
     to bottom,
     var(--p-black) 0%,
@@ -124,55 +124,64 @@ html[data-new-year-theme="on"][data-document-open] .new-year-snowfall {
   opacity: 0.1;
 }
 
-.new-year-snowfall::before,
-.new-year-snowfall::after {
+.new-year-snowfall__layer {
   position: absolute;
   inset: -100vh 0;
-  content: "";
-  background-repeat: repeat;
-  will-change: transform;
+  background-color: var(--c-seasonal-flake);
+  mask-repeat: repeat;
+  mask-size: 100vw 100vh;
+  -webkit-mask-repeat: repeat;
+  -webkit-mask-size: 100vw 100vh;
+  will-change: transform, translate;
 }
 
-.new-year-snowfall::before {
-  background-image:
-    radial-gradient(circle, var(--c-seasonal-flake) 0 1px, transparent 1.7px),
-    radial-gradient(circle, var(--c-seasonal-flake) 0 1.4px, transparent 2.1px),
-    radial-gradient(circle, var(--c-seasonal-flake) 0 0.7px, transparent 1.5px),
-    radial-gradient(circle, var(--c-seasonal-flake) 0 0.9px, transparent 1.7px);
-  background-size:
-    76px 100vh,
-    119px 100vh,
-    53px 100vh,
-    97px 100vh;
-  background-position:
-    13px -15px,
-    43px 37px,
-    7px 24px,
-    67px 72px;
-  opacity: 0.78;
-  animation: new-year-snowfall 20s linear infinite;
-}
-
-.new-year-snowfall::after {
-  background-image:
-    radial-gradient(circle, var(--c-seasonal-flake) 0 1.5px, transparent 2.2px),
-    radial-gradient(circle, var(--c-seasonal-flake) 0 0.8px, transparent 1.6px),
-    radial-gradient(circle, var(--c-seasonal-flake) 0 1px, transparent 1.8px);
-  background-size:
-    101px 100vh,
-    67px 100vh,
-    151px 100vh;
-  background-position:
-    29px 15px,
-    9px 53px,
-    81px 6px;
+.new-year-snowfall__layer--far {
+  mask-image: url("../assets/seasonal/winter-snow-far.svg");
+  -webkit-mask-image: url("../assets/seasonal/winter-snow-far.svg");
   opacity: 0.62;
-  animation: new-year-snowfall 30s linear -14s infinite;
+  animation:
+    new-year-snowfall-fall 28s linear infinite,
+    new-year-snowfall-drift 28s ease-in-out infinite;
 }
 
-@keyframes new-year-snowfall {
+.new-year-snowfall__layer--mid {
+  mask-image: url("../assets/seasonal/winter-snow-mid.svg");
+  -webkit-mask-image: url("../assets/seasonal/winter-snow-mid.svg");
+  opacity: 0.82;
+  animation:
+    new-year-snowfall-fall 20s linear -8s infinite,
+    new-year-snowfall-drift 20s ease-in-out -8s infinite;
+}
+
+.new-year-snowfall__layer--near {
+  mask-image: url("../assets/seasonal/winter-snow-near.svg");
+  -webkit-mask-image: url("../assets/seasonal/winter-snow-near.svg");
+  opacity: 0.52;
+  filter: blur(0.12px);
+  animation:
+    new-year-snowfall-fall 15s linear -4s infinite,
+    new-year-snowfall-drift 15s ease-in-out -4s infinite;
+}
+
+@keyframes new-year-snowfall-fall {
   to {
-    transform: translate3d(16px, 100vh, 0);
+    transform: translate3d(0, 100vh, 0);
+  }
+}
+
+@keyframes new-year-snowfall-drift {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  25% {
+    translate: 9px 0;
+  }
+  50% {
+    translate: 3px 0;
+  }
+  75% {
+    translate: -7px 0;
   }
 }
 
@@ -327,8 +336,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .new-year-snowfall::before,
-  .new-year-snowfall::after,
+  .new-year-snowfall__layer,
   .promin-brand__bulb {
     animation: none;
     will-change: auto;
