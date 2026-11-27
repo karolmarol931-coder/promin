@@ -8,15 +8,15 @@ html[data-new-year-theme="on"] {
   --c-seasonal-gold: var(--p-winter-gold-500);
   --c-seasonal-snow: var(--p-white);
   --c-seasonal-flake: var(--p-blue-200);
+  --c-seasonal-bulb-blue: var(--p-blue-400);
+  --c-seasonal-bulb-gold: var(--p-amber-400);
+  --c-seasonal-bulb-green: var(--p-green-400);
+  --c-seasonal-bulb-red: var(--p-red-400);
   --c-seasonal-shadow: color-mix(in srgb, var(--p-black) 18%, transparent);
 
   --c-primary: var(--c-seasonal-forest);
   --c-primary-hover: var(--c-seasonal-forest-hover);
-  --c-primary-subtle: color-mix(
-    in srgb,
-    var(--c-seasonal-forest) 12%,
-    transparent
-  );
+  --c-primary-subtle: color-mix(in srgb, var(--c-seasonal-forest) 12%, transparent);
   --c-accent-fg: var(--c-seasonal-forest);
   --c-accent-text: var(--c-seasonal-forest);
   --c-accent-solid: var(--c-seasonal-forest);
@@ -26,21 +26,9 @@ html[data-new-year-theme="on"][data-theme="light"] {
   --c-bg: color-mix(in srgb, var(--p-winter-ice-50) 36%, var(--p-paper));
   --c-bg-raised: color-mix(in srgb, var(--p-winter-ice-50) 42%, var(--p-white));
   --c-surface: color-mix(in srgb, var(--p-winter-ice-50) 30%, var(--p-snow));
-  --c-surface-raised: color-mix(
-    in srgb,
-    var(--p-winter-ice-50) 46%,
-    var(--p-white)
-  );
-  --c-border: color-mix(
-    in srgb,
-    var(--p-winter-forest-700) 14%,
-    var(--p-gray-200)
-  );
-  --c-border-subtle: color-mix(
-    in srgb,
-    var(--p-winter-forest-700) 10%,
-    var(--p-gray-200)
-  );
+  --c-surface-raised: color-mix(in srgb, var(--p-winter-ice-50) 46%, var(--p-white));
+  --c-border: color-mix(in srgb, var(--p-winter-forest-700) 14%, var(--p-gray-200));
+  --c-border-subtle: color-mix(in srgb, var(--p-winter-forest-700) 10%, var(--p-gray-200));
 }
 
 html[data-new-year-theme="on"][data-theme="dark"] {
@@ -53,46 +41,18 @@ html[data-new-year-theme="on"][data-theme="dark"] {
   --c-seasonal-gold: var(--p-winter-gold-500);
   --c-seasonal-flake: var(--p-white);
   --c-primary: var(--c-seasonal-forest);
-  --c-primary-hover: color-mix(
-    in srgb,
-    var(--c-seasonal-forest) 82%,
-    var(--p-black)
-  );
-  --c-primary-subtle: color-mix(
-    in srgb,
-    var(--c-seasonal-forest) 18%,
-    transparent
-  );
+  --c-primary-hover: color-mix(in srgb, var(--c-seasonal-forest) 82%, var(--p-black));
+  --c-primary-subtle: color-mix(in srgb, var(--c-seasonal-forest) 18%, transparent);
   --c-accent-fg: var(--p-winter-forest-300);
   --c-accent-text: var(--p-winter-forest-300);
   --c-accent-solid: var(--c-seasonal-forest);
 
   --c-bg: color-mix(in srgb, var(--p-winter-night-900) 20%, var(--p-c-141416));
-  --c-bg-raised: color-mix(
-    in srgb,
-    var(--p-winter-night-850) 22%,
-    var(--p-zinc-850)
-  );
-  --c-surface: color-mix(
-    in srgb,
-    var(--p-winter-night-850) 18%,
-    var(--p-c-1a1a1d)
-  );
-  --c-surface-raised: color-mix(
-    in srgb,
-    var(--p-winter-night-700) 25%,
-    var(--p-zinc-650)
-  );
-  --c-border: color-mix(
-    in srgb,
-    var(--p-winter-night-700) 40%,
-    var(--p-c-28282d)
-  );
-  --c-border-subtle: color-mix(
-    in srgb,
-    var(--p-winter-night-700) 28%,
-    var(--p-zinc-700)
-  );
+  --c-bg-raised: color-mix(in srgb, var(--p-winter-night-850) 22%, var(--p-zinc-850));
+  --c-surface: color-mix(in srgb, var(--p-winter-night-850) 18%, var(--p-c-1a1a1d));
+  --c-surface-raised: color-mix(in srgb, var(--p-winter-night-700) 25%, var(--p-zinc-650));
+  --c-border: color-mix(in srgb, var(--p-winter-night-700) 40%, var(--p-c-28282d));
+  --c-border-subtle: color-mix(in srgb, var(--p-winter-night-700) 28%, var(--p-zinc-700));
 }
 
 .new-year-snowfall {
@@ -200,127 +160,20 @@ html[data-new-year-theme="on"] .promin-brand__snow {
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease;
-  --garland-wire: color-mix(
-    in srgb,
-    var(--p-winter-forest-800) 76%,
-    var(--p-black)
-  );
+  --garland-wire: color-mix(in srgb, var(--p-winter-forest-800) 76%, var(--p-black));
 }
 
 .promin-brand__wire {
   position: absolute;
-  box-sizing: border-box;
-  display: block;
+  inset: 0;
   background: var(--garland-wire);
   box-shadow: 0 1px 1px var(--c-seasonal-shadow);
+  mask: url("../assets/brand/promin/new-year-logo-garland.svg") center / 100% 100% no-repeat;
+  -webkit-mask: url("../assets/brand/promin/new-year-logo-garland.svg") center / 100% 100% no-repeat;
 }
 
 html[data-new-year-theme="on"] .promin-brand__garland {
   opacity: 1;
-}
-
-.promin-brand__wire--p,
-.promin-brand__wire--r,
-.promin-brand__wire--pin,
-.promin-brand__wire--partner {
-  background: transparent;
-  border: 1px solid var(--garland-wire);
-}
-
-.promin-brand__wire--p {
-  top: 14%;
-  left: 0.5%;
-  width: 15%;
-  height: 43%;
-  border-left: 0;
-  border-radius: 0 58% 58% 0;
-}
-
-.promin-brand__wire--r {
-  top: 13%;
-  left: 16.5%;
-  width: 15%;
-  height: 43%;
-  border-left: 0;
-  border-radius: 0 58% 58% 0;
-}
-
-.promin-brand__wire--pin {
-  top: 12%;
-  left: 35%;
-  width: 17%;
-  height: 45%;
-  border-radius: 50%;
-}
-
-.promin-brand__wire--pin::after {
-  position: absolute;
-  bottom: -17%;
-  left: 50%;
-  width: 1px;
-  height: 30%;
-  background: var(--garland-wire);
-  content: "";
-  transform: translateX(-50%) rotate(-13deg);
-  transform-origin: top;
-}
-
-.promin-brand__wire--m-left,
-.promin-brand__wire--m-in-left,
-.promin-brand__wire--m-in-right,
-.promin-brand__wire--m-right,
-.promin-brand__wire--i,
-.promin-brand__wire--n-left,
-.promin-brand__wire--n-diagonal,
-.promin-brand__wire--n-right {
-  top: 16%;
-  width: 1px;
-  height: 42%;
-  transform-origin: top;
-}
-
-.promin-brand__wire--m-left {
-  left: 56%;
-}
-
-.promin-brand__wire--m-in-left {
-  left: 56%;
-  transform: rotate(-28deg);
-}
-
-.promin-brand__wire--m-in-right {
-  left: 74%;
-  transform: rotate(28deg);
-}
-
-.promin-brand__wire--m-right {
-  left: 74%;
-}
-
-.promin-brand__wire--i {
-  left: 78%;
-}
-
-.promin-brand__wire--n-left {
-  left: 84%;
-}
-
-.promin-brand__wire--n-diagonal {
-  left: 84%;
-  transform: rotate(-45deg);
-}
-
-.promin-brand__wire--n-right {
-  left: 99%;
-}
-
-.promin-brand__wire--partner {
-  top: 66%;
-  left: 55%;
-  width: 46%;
-  height: 19%;
-  border-top: 0;
-  border-radius: 0 0 50% 50%;
 }
 
 .promin-brand__bulb {
@@ -328,15 +181,11 @@ html[data-new-year-theme="on"] .promin-brand__garland {
   z-index: 1;
   top: var(--garland-y);
   left: var(--garland-x);
-  width: clamp(5px, 2.3%, 9px);
-  height: clamp(7px, 6.5%, 11px);
+  width: clamp(5px, 2.1%, 8px);
+  height: clamp(7px, 6%, 10px);
   border: 1px solid color-mix(in srgb, var(--p-white) 72%, var(--bulb-color));
   border-radius: 50% 50% 48% 48%;
-  background: radial-gradient(
-    circle at 33% 25%,
-    var(--p-white) 0 12%,
-    var(--bulb-color) 48%
-  );
+  background: radial-gradient(circle at 33% 25%, var(--p-white) 0 12%, var(--bulb-color) 48%);
   box-shadow: 0 0 4px color-mix(in srgb, var(--bulb-color) 72%, transparent);
   transform: translate(-50%, -22%);
 }
@@ -373,9 +222,10 @@ html[data-new-year-theme="on"] .promin-brand__bulb {
   z-index: 1;
   isolation: isolate;
   right: clamp(1.25rem, 6vw, 5rem);
-  bottom: 0.35rem;
+  bottom: 0;
   width: 14rem;
   height: 9rem;
+  overflow: clip;
   opacity: 0;
   pointer-events: none;
   transform: perspective(24rem) rotateX(2deg);
@@ -389,7 +239,7 @@ html[data-new-year-theme="on"] .landing-page__winter-scene {
 .landing-page__snow-floor {
   position: absolute;
   z-index: 0;
-  bottom: -0.5rem;
+  bottom: 0;
   left: 50%;
   width: 100vw;
   height: clamp(4.4rem, 12vh, 7.75rem);
@@ -421,8 +271,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
     color-mix(in srgb, var(--c-seasonal-snow) 94%, transparent),
     color-mix(in srgb, var(--p-winter-ice-100) 90%, transparent)
   );
-  box-shadow: 0 -0.75rem 1.8rem
-    color-mix(in srgb, var(--c-seasonal-snow) 46%, transparent);
+  box-shadow: 0 -0.75rem 1.8rem color-mix(in srgb, var(--c-seasonal-snow) 46%, transparent);
 }
 
 .landing-page__snow-floor::after {
@@ -438,7 +287,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
   position: absolute;
   z-index: 0;
   right: -1rem;
-  bottom: -0.5rem;
+  bottom: 0;
   left: -2rem;
   height: 2.8rem;
   border-radius: 50% 50% 0 0;
@@ -447,8 +296,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
     color-mix(in srgb, var(--c-seasonal-snow) 88%, transparent),
     color-mix(in srgb, var(--p-winter-ice-100) 80%, transparent)
   );
-  box-shadow: 0 -0.5rem 1.5rem
-    color-mix(in srgb, var(--c-seasonal-snow) 40%, transparent);
+  box-shadow: 0 -0.5rem 1.5rem color-mix(in srgb, var(--c-seasonal-snow) 40%, transparent);
   content: "";
 }
 
@@ -524,15 +372,14 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
   height: 0.3rem;
   border-radius: 50%;
   background: var(--c-seasonal-gold);
-  box-shadow: 0.65rem 1rem 0
-    color-mix(in srgb, var(--c-seasonal-berry) 88%, transparent);
+  box-shadow: 0.65rem 1rem 0 color-mix(in srgb, var(--c-seasonal-berry) 88%, transparent);
   content: "";
 }
 
 .winter-snowman {
   position: absolute;
   z-index: 2;
-  right: 0.15rem;
+  right: 0.5rem;
   bottom: 0.5rem;
   width: 3.6rem;
   height: 5.7rem;
@@ -542,7 +389,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
 .winter-snowman__arm {
   position: absolute;
   z-index: 0;
-  bottom: 2.62rem;
+  bottom: 2.78rem;
   width: 1.52rem;
   height: 0.16rem;
   border-radius: 999px;
@@ -560,47 +407,47 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
 }
 
 .winter-snowman__arm--left {
-  left: 0.12rem;
-  transform: rotate(-160deg);
+  left: -0.46rem;
+  transform: rotate(16deg);
   transform-origin: right center;
 }
 
 .winter-snowman__arm--left::before,
 .winter-snowman__arm--left::after {
-  left: -0.08rem;
-  transform-origin: left center;
+  left: -0.48rem;
+  transform-origin: right center;
 }
 
 .winter-snowman__arm--left::before {
   top: -0.03rem;
-  transform: rotate(-43deg);
+  transform: rotate(48deg);
 }
 
 .winter-snowman__arm--left::after {
   top: 0.05rem;
-  transform: rotate(38deg);
+  transform: rotate(-42deg);
 }
 
 .winter-snowman__arm--right {
-  right: 0.12rem;
-  transform: rotate(-20deg);
+  right: -0.46rem;
+  transform: rotate(-16deg);
   transform-origin: left center;
 }
 
 .winter-snowman__arm--right::before,
 .winter-snowman__arm--right::after {
-  right: -0.08rem;
-  transform-origin: right center;
+  right: -0.48rem;
+  transform-origin: left center;
 }
 
 .winter-snowman__arm--right::before {
   top: -0.03rem;
-  transform: rotate(43deg);
+  transform: rotate(-48deg);
 }
 
 .winter-snowman__arm--right::after {
   top: 0.05rem;
-  transform: rotate(-38deg);
+  transform: rotate(42deg);
 }
 
 .winter-snowman__base,
@@ -620,8 +467,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
     var(--p-gray-300) 100%
   );
   box-shadow:
-    inset -0.16rem -0.2rem 0.28rem
-      color-mix(in srgb, var(--p-gray-500) 20%, transparent),
+    inset -0.16rem -0.2rem 0.28rem color-mix(in srgb, var(--p-gray-500) 20%, transparent),
     0 0.12rem 0.2rem color-mix(in srgb, var(--p-white) 75%, transparent);
   transform: translateX(-50%);
 }
@@ -637,21 +483,9 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
   width: 2.35rem;
   height: 2.15rem;
   background-image:
-    radial-gradient(
-      circle at 50% 38%,
-      var(--p-zinc-700) 0 1.5px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 50% 62%,
-      var(--p-zinc-700) 0 1.5px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 50% 78%,
-      var(--p-zinc-700) 0 1.5px,
-      transparent 2px
-    ),
+    radial-gradient(circle at 50% 38%, var(--p-zinc-700) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 50% 62%, var(--p-zinc-700) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 50% 78%, var(--p-zinc-700) 0 1.5px, transparent 2px),
     radial-gradient(
       ellipse at 34% 20%,
       var(--p-white) 0 17%,
@@ -667,16 +501,8 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
   height: 1.68rem;
   z-index: 3;
   background-image:
-    radial-gradient(
-      circle at 63% 39%,
-      var(--p-zinc-800) 0 1.5px,
-      transparent 2px
-    ),
-    radial-gradient(
-      circle at 37% 39%,
-      var(--p-zinc-800) 0 1.5px,
-      transparent 2px
-    ),
+    radial-gradient(circle at 63% 39%, var(--p-zinc-800) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 37% 39%, var(--p-zinc-800) 0 1.5px, transparent 2px),
     radial-gradient(
       ellipse at 34% 20%,
       var(--p-white) 0 17%,
@@ -708,14 +534,8 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
   width: 1.55rem;
   height: 0.72rem;
   border-radius: 0.18rem 0.18rem 0.04rem 0.04rem;
-  background: linear-gradient(
-    180deg,
-    var(--p-zinc-700) 0 58%,
-    var(--c-seasonal-berry) 58% 76%,
-    var(--p-zinc-800) 76%
-  );
-  box-shadow: inset -0.16rem 0 0.2rem
-    color-mix(in srgb, var(--p-black) 35%, transparent);
+  background: linear-gradient(180deg, var(--p-zinc-700) 0 58%, var(--c-seasonal-berry) 58% 76%, var(--p-zinc-800) 76%);
+  box-shadow: inset -0.16rem 0 0.2rem color-mix(in srgb, var(--p-black) 35%, transparent);
   transform: translateX(-50%) rotate(-7deg);
 }
 
@@ -738,11 +558,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
   width: 1.8rem;
   height: 0.27rem;
   border-radius: 0.2rem 0.2rem 0.12rem 0.12rem;
-  background: linear-gradient(
-    180deg,
-    var(--c-seasonal-berry),
-    var(--p-red-700)
-  );
+  background: linear-gradient(180deg, var(--c-seasonal-berry), var(--p-red-700));
   box-shadow: 0 1px 2px var(--c-seasonal-shadow);
   transform: translateX(-50%) rotate(-3deg);
 }
