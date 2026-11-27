@@ -276,6 +276,8 @@ html[data-new-year-theme="on"] .promin-brand__bulb {
   overflow: visible;
   opacity: 0;
   pointer-events: none;
+  transform: scale(1.18);
+  transform-origin: right bottom;
   transition: opacity 300ms ease;
 }
 
@@ -353,6 +355,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
     right: 0.25rem;
     width: min(calc(100vw - 1rem), 34rem);
     max-width: calc(100% - 0.5rem);
+    transform: scale(1.06);
   }
 }
 
@@ -363,6 +366,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
 
   .landing-page__winter-scene {
     width: clamp(20rem, 32vw, 28rem);
+    transform: scale(1.12);
   }
 }
 
