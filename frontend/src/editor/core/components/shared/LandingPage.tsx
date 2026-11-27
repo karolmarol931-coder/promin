@@ -5,6 +5,8 @@ import { useFileHandler } from "@editor/hooks/useFileHandler";
 import { openFilesFromDisk } from "@editor/services/openFilesFromDisk";
 import { LandingActions } from "@editor/components/shared/LandingActions";
 import { LandingBrand } from "@editor/components/shared/LandingBrand";
+import { WinterScene } from "@editor/components/shared/WinterScene";
+import winterFloor from "@editor/assets/seasonal/winter-floor.svg";
 import "@editor/components/shared/LandingPage.css";
 
 const LandingPage = ({ readerEmpty = false }: { readerEmpty?: boolean }) => {
@@ -42,31 +44,14 @@ const LandingPage = ({ readerEmpty = false }: { readerEmpty?: boolean }) => {
     >
       {!readerEmpty && (
         <>
-          <div className="landing-page__snow-floor" aria-hidden="true" />
-          <div className="landing-page__winter-scene" aria-hidden="true">
-            <div className="winter-tree winter-tree--back">
-              <span className="winter-tree__trunk" />
-              <span className="winter-tree__layer winter-tree__layer--lower" />
-              <span className="winter-tree__layer winter-tree__layer--middle" />
-              <span className="winter-tree__layer winter-tree__layer--upper" />
-            </div>
-            <div className="winter-tree winter-tree--front">
-              <span className="winter-tree__trunk" />
-              <span className="winter-tree__layer winter-tree__layer--lower" />
-              <span className="winter-tree__layer winter-tree__layer--middle" />
-              <span className="winter-tree__layer winter-tree__layer--upper" />
-            </div>
-            <div className="winter-snowman">
-              <span className="winter-snowman__arm winter-snowman__arm--left" />
-              <span className="winter-snowman__arm winter-snowman__arm--right" />
-              <span className="winter-snowman__base" />
-              <span className="winter-snowman__body" />
-              <span className="winter-snowman__head" />
-              <span className="winter-snowman__nose" />
-              <span className="winter-snowman__hat" />
-              <span className="winter-snowman__scarf" />
-            </div>
-          </div>
+          <img
+            className="landing-page__snow-floor"
+            src={winterFloor}
+            alt=""
+            draggable={false}
+            aria-hidden="true"
+          />
+          <WinterScene />
         </>
       )}
       <div className="landing-page__content">

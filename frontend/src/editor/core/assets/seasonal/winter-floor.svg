@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 240" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="snow" x1="720" y1="0" x2="720" y2="240" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF" stop-opacity=".08" />
+      <stop offset=".22" stop-color="#FFF" stop-opacity=".3" />
+      <stop offset=".56" stop-color="#FFF" stop-opacity=".74" />
+      <stop offset="1" stop-color="#EAF2F3" stop-opacity=".97" />
+    </linearGradient>
+    <filter id="drift-shadow" x="-5%" y="-15%" width="110%" height="140%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="9" />
+    </filter>
+    <path id="drift-edge" d="M0 91c73 16 147 11 224-5s141-17 217-1 154 14 231-5 133-11 209 5 143 21 215 3 137-18 210 0c59 15 100 10 134 2v150H0V91Z" />
+  </defs>
+  <use href="#drift-edge" transform="translate(0 -2)" fill="#A7BEC2" opacity=".16" filter="url(#drift-shadow)" />
+  <use href="#drift-edge" fill="url(#snow)" />
+</svg>
