@@ -102,7 +102,7 @@ html[data-new-year-theme="on"][data-theme="dark"] {
   inset: 0;
   pointer-events: none;
   overflow: hidden;
-  opacity: 0.5;
+  opacity: 0.62;
   mask-image: linear-gradient(
     to bottom,
     var(--p-black) 0%,
@@ -133,31 +133,37 @@ html[data-new-year-theme="on"][data-document-open] .new-year-snowfall {
   background-image:
     radial-gradient(circle, var(--c-seasonal-flake) 0 1px, transparent 1.7px),
     radial-gradient(circle, var(--c-seasonal-flake) 0 1.4px, transparent 2.1px),
-    radial-gradient(circle, var(--c-seasonal-flake) 0 0.7px, transparent 1.5px);
+    radial-gradient(circle, var(--c-seasonal-flake) 0 0.7px, transparent 1.5px),
+    radial-gradient(circle, var(--c-seasonal-flake) 0 0.9px, transparent 1.7px);
   background-size:
-    86px 100vh,
-    137px 100vh,
-    61px 100vh;
+    76px 100vh,
+    119px 100vh,
+    53px 100vh,
+    97px 100vh;
   background-position:
     13px -15px,
     43px 37px,
-    7px 24px;
-  opacity: 0.7;
-  animation: new-year-snowfall 22s linear infinite;
+    7px 24px,
+    67px 72px;
+  opacity: 0.78;
+  animation: new-year-snowfall 20s linear infinite;
 }
 
 .new-year-snowfall::after {
   background-image:
     radial-gradient(circle, var(--c-seasonal-flake) 0 1.5px, transparent 2.2px),
-    radial-gradient(circle, var(--c-seasonal-flake) 0 0.8px, transparent 1.6px);
+    radial-gradient(circle, var(--c-seasonal-flake) 0 0.8px, transparent 1.6px),
+    radial-gradient(circle, var(--c-seasonal-flake) 0 1px, transparent 1.8px);
   background-size:
-    113px 100vh,
-    71px 100vh;
+    101px 100vh,
+    67px 100vh,
+    151px 100vh;
   background-position:
     29px 15px,
-    9px 53px;
-  opacity: 0.5;
-  animation: new-year-snowfall 34s linear -14s infinite;
+    9px 53px,
+    81px 6px;
+  opacity: 0.62;
+  animation: new-year-snowfall 30s linear -14s infinite;
 }
 
 @keyframes new-year-snowfall {
@@ -189,33 +195,141 @@ html[data-new-year-theme="on"] .promin-brand__snow {
 
 .promin-brand__garland {
   position: absolute;
-  z-index: 2;
-  top: -7%;
-  left: 1%;
-  width: 98%;
-  height: 10%;
+  z-index: 3;
+  inset: 0;
   opacity: 0;
   pointer-events: none;
+  transition: opacity 180ms ease;
+  --garland-wire: color-mix(
+    in srgb,
+    var(--p-winter-forest-800) 76%,
+    var(--p-black)
+  );
 }
 
-.promin-brand__garland::before {
+.promin-brand__wire {
   position: absolute;
-  inset: 0 0 1px;
-  border: 1px solid transparent;
-  border-bottom-color: color-mix(in srgb, var(--p-zinc-600) 72%, transparent);
-  border-radius: 0 0 50% 50% / 0 0 95% 95%;
-  content: "";
+  box-sizing: border-box;
+  display: block;
+  background: var(--garland-wire);
+  box-shadow: 0 1px 1px var(--c-seasonal-shadow);
 }
 
 html[data-new-year-theme="on"] .promin-brand__garland {
   opacity: 1;
 }
 
+.promin-brand__wire--p,
+.promin-brand__wire--r,
+.promin-brand__wire--pin,
+.promin-brand__wire--partner {
+  background: transparent;
+  border: 1px solid var(--garland-wire);
+}
+
+.promin-brand__wire--p {
+  top: 14%;
+  left: 0.5%;
+  width: 15%;
+  height: 43%;
+  border-left: 0;
+  border-radius: 0 58% 58% 0;
+}
+
+.promin-brand__wire--r {
+  top: 13%;
+  left: 16.5%;
+  width: 15%;
+  height: 43%;
+  border-left: 0;
+  border-radius: 0 58% 58% 0;
+}
+
+.promin-brand__wire--pin {
+  top: 12%;
+  left: 35%;
+  width: 17%;
+  height: 45%;
+  border-radius: 50%;
+}
+
+.promin-brand__wire--pin::after {
+  position: absolute;
+  bottom: -17%;
+  left: 50%;
+  width: 1px;
+  height: 30%;
+  background: var(--garland-wire);
+  content: "";
+  transform: translateX(-50%) rotate(-13deg);
+  transform-origin: top;
+}
+
+.promin-brand__wire--m-left,
+.promin-brand__wire--m-in-left,
+.promin-brand__wire--m-in-right,
+.promin-brand__wire--m-right,
+.promin-brand__wire--i,
+.promin-brand__wire--n-left,
+.promin-brand__wire--n-diagonal,
+.promin-brand__wire--n-right {
+  top: 16%;
+  width: 1px;
+  height: 42%;
+  transform-origin: top;
+}
+
+.promin-brand__wire--m-left {
+  left: 56%;
+}
+
+.promin-brand__wire--m-in-left {
+  left: 56%;
+  transform: rotate(-28deg);
+}
+
+.promin-brand__wire--m-in-right {
+  left: 74%;
+  transform: rotate(28deg);
+}
+
+.promin-brand__wire--m-right {
+  left: 74%;
+}
+
+.promin-brand__wire--i {
+  left: 78%;
+}
+
+.promin-brand__wire--n-left {
+  left: 84%;
+}
+
+.promin-brand__wire--n-diagonal {
+  left: 84%;
+  transform: rotate(-45deg);
+}
+
+.promin-brand__wire--n-right {
+  left: 99%;
+}
+
+.promin-brand__wire--partner {
+  top: 66%;
+  left: 55%;
+  width: 46%;
+  height: 19%;
+  border-top: 0;
+  border-radius: 0 0 50% 50%;
+}
+
 .promin-brand__bulb {
   position: absolute;
   z-index: 1;
-  width: clamp(5px, 2.25%, 8px);
-  height: clamp(5px, 5%, 9px);
+  top: var(--garland-y);
+  left: var(--garland-x);
+  width: clamp(5px, 2.3%, 9px);
+  height: clamp(7px, 6.5%, 11px);
   border: 1px solid color-mix(in srgb, var(--p-white) 72%, var(--bulb-color));
   border-radius: 50% 50% 48% 48%;
   background: radial-gradient(
@@ -224,6 +338,7 @@ html[data-new-year-theme="on"] .promin-brand__garland {
     var(--bulb-color) 48%
   );
   box-shadow: 0 0 4px color-mix(in srgb, var(--bulb-color) 72%, transparent);
+  transform: translate(-50%, -22%);
 }
 
 .promin-brand__bulb::before {
@@ -239,56 +354,7 @@ html[data-new-year-theme="on"] .promin-brand__garland {
 }
 
 html[data-new-year-theme="on"] .promin-brand__bulb {
-  animation: garland-bulb-glow 2.4s ease-in-out infinite alternate;
-}
-
-.promin-brand__bulb--one {
-  top: 37%;
-  left: 7%;
-  --bulb-color: var(--p-amber-400);
-  animation-delay: -0.2s;
-}
-
-.promin-brand__bulb--two {
-  top: 62%;
-  left: 21%;
-  --bulb-color: var(--p-red-400);
-  animation-delay: -1.1s;
-}
-
-.promin-brand__bulb--three {
-  top: 87%;
-  left: 36%;
-  --bulb-color: var(--p-green-400);
-  animation-delay: -0.6s;
-}
-
-.promin-brand__bulb--four {
-  top: 87%;
-  left: 64%;
-  --bulb-color: var(--p-blue-400);
-  animation-delay: -1.6s;
-}
-
-.promin-brand__bulb--five {
-  top: 62%;
-  left: 79%;
-  --bulb-color: var(--p-amber-400);
-  animation-delay: -0.9s;
-}
-
-.promin-brand__bulb--six {
-  top: 37%;
-  left: 93%;
-  --bulb-color: var(--p-red-400);
-  animation-delay: -1.4s;
-}
-
-.promin-brand__bulb--seven {
-  top: 94%;
-  left: 50%;
-  --bulb-color: var(--p-green-400);
-  animation-delay: -0.45s;
+  animation: garland-bulb-glow 2.4s ease-in-out var(--garland-delay) infinite alternate;
 }
 
 @keyframes garland-bulb-glow {
@@ -304,12 +370,12 @@ html[data-new-year-theme="on"] .promin-brand__bulb {
 
 .landing-page__winter-scene {
   position: absolute;
-  z-index: 0;
+  z-index: 1;
   isolation: isolate;
   right: clamp(1.25rem, 6vw, 5rem);
-  bottom: 0.75rem;
-  width: 12rem;
-  height: 8rem;
+  bottom: 0.35rem;
+  width: 14rem;
+  height: 9rem;
   opacity: 0;
   pointer-events: none;
   transform: perspective(24rem) rotateX(2deg);
@@ -318,6 +384,54 @@ html[data-new-year-theme="on"] .promin-brand__bulb {
 
 html[data-new-year-theme="on"] .landing-page__winter-scene {
   opacity: 0.88;
+}
+
+.landing-page__snow-floor {
+  position: absolute;
+  z-index: 0;
+  bottom: -0.5rem;
+  left: 50%;
+  width: 100vw;
+  height: clamp(4.4rem, 12vh, 7.75rem);
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 300ms ease;
+}
+
+html[data-new-year-theme="on"] .landing-page__snow-floor {
+  opacity: 0.92;
+}
+
+.landing-page__snow-floor::before,
+.landing-page__snow-floor::after {
+  position: absolute;
+  right: -4vw;
+  bottom: 0;
+  left: -4vw;
+  content: "";
+}
+
+.landing-page__snow-floor::before {
+  height: 84%;
+  border-radius: 52% 48% 0 0 / 26% 22% 0 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--c-seasonal-snow) 94%, transparent),
+    color-mix(in srgb, var(--p-winter-ice-100) 90%, transparent)
+  );
+  box-shadow: 0 -0.75rem 1.8rem
+    color-mix(in srgb, var(--c-seasonal-snow) 46%, transparent);
+}
+
+.landing-page__snow-floor::after {
+  bottom: 0.95rem;
+  height: 1.15rem;
+  border-top: 2px solid color-mix(in srgb, var(--p-white) 72%, transparent);
+  border-radius: 48% 52% 0 0;
+  opacity: 0.8;
+  transform: skewX(-8deg);
 }
 
 .landing-page__winter-scene::after {
@@ -418,53 +532,75 @@ html[data-new-year-theme="on"] .landing-page__winter-scene {
 .winter-snowman {
   position: absolute;
   z-index: 2;
-  right: 0.45rem;
+  right: 0.15rem;
   bottom: 0.5rem;
-  width: 3.3rem;
-  height: 5.4rem;
+  width: 3.6rem;
+  height: 5.7rem;
   filter: drop-shadow(0 0.6rem 0.45rem var(--c-seasonal-shadow));
 }
 
 .winter-snowman__arm {
   position: absolute;
   z-index: 0;
-  bottom: 2.55rem;
-  width: 1.35rem;
-  height: 0.12rem;
+  bottom: 2.62rem;
+  width: 1.52rem;
+  height: 0.16rem;
   border-radius: 999px;
   background: linear-gradient(180deg, var(--p-amber-700), var(--p-amber-800));
 }
 
+.winter-snowman__arm::before,
 .winter-snowman__arm::after {
   position: absolute;
-  top: -0.25rem;
-  width: 0.55rem;
-  height: 0.1rem;
+  width: 0.62rem;
+  height: 0.13rem;
   border-radius: 999px;
   background: inherit;
   content: "";
 }
 
 .winter-snowman__arm--left {
-  left: -0.06rem;
-  transform: rotate(-25deg);
+  left: 0.12rem;
+  transform: rotate(-160deg);
+  transform-origin: right center;
 }
 
+.winter-snowman__arm--left::before,
 .winter-snowman__arm--left::after {
-  left: 0.2rem;
-  transform: rotate(-48deg);
+  left: -0.08rem;
   transform-origin: left center;
 }
 
+.winter-snowman__arm--left::before {
+  top: -0.03rem;
+  transform: rotate(-43deg);
+}
+
+.winter-snowman__arm--left::after {
+  top: 0.05rem;
+  transform: rotate(38deg);
+}
+
 .winter-snowman__arm--right {
-  right: -0.06rem;
-  transform: rotate(25deg);
+  right: 0.12rem;
+  transform: rotate(-20deg);
+  transform-origin: left center;
+}
+
+.winter-snowman__arm--right::before,
+.winter-snowman__arm--right::after {
+  right: -0.08rem;
+  transform-origin: right center;
+}
+
+.winter-snowman__arm--right::before {
+  top: -0.03rem;
+  transform: rotate(43deg);
 }
 
 .winter-snowman__arm--right::after {
-  right: 0.2rem;
-  transform: rotate(48deg);
-  transform-origin: right center;
+  top: 0.05rem;
+  transform: rotate(-38deg);
 }
 
 .winter-snowman__base,
@@ -624,10 +760,25 @@ html[data-new-year-theme="on"] .landing-page__winter-scene {
 }
 
 @media (max-width: 54rem) {
+  .landing-page__snow-floor {
+    height: 4.6rem;
+  }
+
   .landing-page__winter-scene {
     right: 0.25rem;
     bottom: 0.1rem;
     transform: scale(0.68);
+    transform-origin: bottom right;
+  }
+}
+
+@media (max-height: 44rem) {
+  .landing-page__snow-floor {
+    height: 3.75rem;
+  }
+
+  .landing-page__winter-scene {
+    transform: perspective(24rem) rotateX(2deg) scale(0.72);
     transform-origin: bottom right;
   }
 }
@@ -645,6 +796,10 @@ html[data-new-year-theme="on"] .landing-page__winter-scene {
   }
 
   .landing-page__winter-scene {
+    transition: none;
+  }
+
+  .landing-page__snow-floor {
     transition: none;
   }
 }

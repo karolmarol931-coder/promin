@@ -41,30 +41,33 @@ const LandingPage = ({ readerEmpty = false }: { readerEmpty?: boolean }) => {
       style={{ position: "relative" }}
     >
       {!readerEmpty && (
-        <div className="landing-page__winter-scene" aria-hidden="true">
-          <div className="winter-tree winter-tree--back">
-            <span className="winter-tree__trunk" />
-            <span className="winter-tree__layer winter-tree__layer--lower" />
-            <span className="winter-tree__layer winter-tree__layer--middle" />
-            <span className="winter-tree__layer winter-tree__layer--upper" />
+        <>
+          <div className="landing-page__snow-floor" aria-hidden="true" />
+          <div className="landing-page__winter-scene" aria-hidden="true">
+            <div className="winter-tree winter-tree--back">
+              <span className="winter-tree__trunk" />
+              <span className="winter-tree__layer winter-tree__layer--lower" />
+              <span className="winter-tree__layer winter-tree__layer--middle" />
+              <span className="winter-tree__layer winter-tree__layer--upper" />
+            </div>
+            <div className="winter-tree winter-tree--front">
+              <span className="winter-tree__trunk" />
+              <span className="winter-tree__layer winter-tree__layer--lower" />
+              <span className="winter-tree__layer winter-tree__layer--middle" />
+              <span className="winter-tree__layer winter-tree__layer--upper" />
+            </div>
+            <div className="winter-snowman">
+              <span className="winter-snowman__arm winter-snowman__arm--left" />
+              <span className="winter-snowman__arm winter-snowman__arm--right" />
+              <span className="winter-snowman__base" />
+              <span className="winter-snowman__body" />
+              <span className="winter-snowman__head" />
+              <span className="winter-snowman__nose" />
+              <span className="winter-snowman__hat" />
+              <span className="winter-snowman__scarf" />
+            </div>
           </div>
-          <div className="winter-tree winter-tree--front">
-            <span className="winter-tree__trunk" />
-            <span className="winter-tree__layer winter-tree__layer--lower" />
-            <span className="winter-tree__layer winter-tree__layer--middle" />
-            <span className="winter-tree__layer winter-tree__layer--upper" />
-          </div>
-          <div className="winter-snowman">
-            <span className="winter-snowman__arm winter-snowman__arm--left" />
-            <span className="winter-snowman__arm winter-snowman__arm--right" />
-            <span className="winter-snowman__base" />
-            <span className="winter-snowman__body" />
-            <span className="winter-snowman__head" />
-            <span className="winter-snowman__nose" />
-            <span className="winter-snowman__hat" />
-            <span className="winter-snowman__scarf" />
-          </div>
-        </div>
+        </>
       )}
       <div className="landing-page__content">
         {readerEmpty ? (
