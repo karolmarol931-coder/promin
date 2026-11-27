@@ -106,11 +106,9 @@
       <path id="pine-shape" d="M90 10 C84 24 76 37 65 49 C74 47 83 48 90 55 C97 48 106 47 115 49 C104 37 96 24 90 10Z M90 44 C80 62 69 72 57 88 C68 84 79 87 90 97 C101 87 112 84 123 88 C111 72 100 62 90 44Z M90 83 C75 97 62 113 50 134 C65 128 78 132 90 140 C102 132 115 128 130 134 C118 113 105 97 90 83Z M90 132 C73 149 57 168 43 191 C61 185 76 188 90 197 C104 188 119 185 137 191 C123 168 107 149 90 132Z M90 185 C78 202 69 220 66 238 C75 235 83 235 90 238 C97 235 105 235 114 238 C111 220 102 202 90 185Z" />
       <use href="#pine-shape" fill="url(#pine)" />
       <use href="#pine-shape" fill="url(#pine-shadow)" opacity=".44" />
-      <g fill="none" stroke="#F5FAFC" stroke-linecap="round" stroke-opacity=".92">
-        <path d="M68 49c4-1 8 0 13 3m21 0c4-2 8-3 12-2" stroke-width="2.6" />
-        <path d="M60 89c5-1 11 1 17 4m20 3c6-3 12-5 20-5" stroke-width="2.8" />
-        <path d="M53 135c7-1 15 1 22 5m30 2c8-4 15-5 23-4" stroke-width="3" />
-        <path d="M47 192c8-1 16 2 24 6m39 0c9-5 17-6 25-5" stroke-width="3.2" />
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M65 49C73 47 83 48 90 55M90 55C97 48 107 47 115 49 M57 88C68 84 79 87 90 97M90 97C101 87 112 84 123 88 M50 134C65 128 78 132 90 140M90 140C102 132 115 128 130 134 M43 191C61 185 76 188 90 197M90 197C104 188 119 185 137 191" transform="translate(0 .8)" stroke="#AFC3C9" stroke-width="2.6" stroke-opacity=".46" />
+        <path d="M65 49C73 47 83 48 90 55M90 55C97 48 107 47 115 49 M57 88C68 84 79 87 90 97M90 97C101 87 112 84 123 88 M50 134C65 128 78 132 90 140M90 140C102 132 115 128 130 134 M43 191C61 185 76 188 90 197M90 197C104 188 119 185 137 191" stroke="url(#branch-snow)" stroke-width="1.8" stroke-opacity=".96" />
       </g>
       <path d="M90 55c34 11 44 24 17 39-24 13-52 20-52 34 0 15 44 24 69 38 23 13 2 25-31 38-15 6-25 10-18 14 7 4 21 5 35 2" stroke="#173D32" stroke-opacity=".78" stroke-width="1.4" stroke-linecap="round" />
       <path d="M79 246c5 3 17 3 22 0" stroke="#B88755" stroke-opacity=".7" stroke-width="2" stroke-linecap="round" />
@@ -217,7 +215,9 @@
     <path d="m661 150 21 5-20 5-4-5 3-5Z" fill="#D98232" />
     <path d="M659 193a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4Zm0 15a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4Zm0 15a3.2 3.2 0 1 0 0 6.4 3.2 3.2 0 0 0 0-6.4Z" fill="#34373B" />
     <path d="M628 138h62c2 0 3 2 2 4l-2 4h-62l-2-4c-1-2 0-4 2-4Zm10-2 4-24c.4-2 2-3 4-3h27c2 0 3.5 1.4 4 3l4 24h-43Z" fill="url(#hat)" />
-    <path d="M642 130h34l1.4 8h-36l.6-8Z" fill="#A23F4B" />
+    <path d="M640 112c2-1 4-2 7-2 2-3 5-3 8-1 3-2 6-2 9 0 3-2 6-1 8 1 2 0 4 1 6 3l1 2c-4-.6-8-.7-12 .2-4-.8-8-.8-12 0-5-.8-9-.8-13-.2l-2-3Z" fill="#F8FCFD" />
+    <path d="M641 115c6-.8 12 .2 18 0 7 .2 13-.8 20 0" stroke="#BFCFD3" stroke-width=".8" stroke-linecap="round" opacity=".7" />
+    <path d="M639 130h40c.8 0 1.2.4 1.4 1.3l1.1 6.7h-44.8l1.1-6.7c.2-.9.6-1.3 1.2-1.3Z" fill="#A23F4B" />
     <path d="M640 133h38" stroke="#CF7279" stroke-width="2" stroke-linecap="round" />
   </g>
   </g>

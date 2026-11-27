@@ -300,8 +300,10 @@ html[data-new-year-theme="on"] .landing-page__winter-scene {
   z-index: 1;
   bottom: 9%;
   left: 0;
-  width: 16.5%;
+  width: 14.85%;
   aspect-ratio: 12 / 7;
+  transform: rotate(10deg);
+  transform-origin: 50% 100%;
   pointer-events: none;
 }
 

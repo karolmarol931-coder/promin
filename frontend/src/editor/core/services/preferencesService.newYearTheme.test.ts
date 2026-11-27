@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { preferencesService } from "@editor/services/preferencesService";
 
 const PREFERENCES_KEY = "stirlingpdf_preferences";
-const APPEARANCE_ROLLOUT_KEY = "stirlingpdf_appearance_rollout_3_2_42";
+const APPEARANCE_ROLLOUT_KEY = "stirlingpdf_appearance_rollout_3_2_45";
 
 describe("Seasonal appearance rollout", () => {
   beforeEach(() => {

@@ -60,7 +60,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
 };
 
 const STORAGE_KEY = "stirlingpdf_preferences";
-const APPEARANCE_ROLLOUT_KEY = "stirlingpdf_appearance_rollout_3_2_42";
+const APPEARANCE_ROLLOUT_KEY = "stirlingpdf_appearance_rollout_3_2_45";
 
 class PreferencesService {
   private serverDefaults: Partial<UserPreferences> = {};
