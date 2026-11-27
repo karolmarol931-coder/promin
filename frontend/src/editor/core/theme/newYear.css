@@ -276,7 +276,7 @@ html[data-new-year-theme="on"] .promin-brand__bulb {
   overflow: visible;
   opacity: 0;
   pointer-events: none;
-  transform: scale(1.18);
+  transform: scale(1.26);
   transform-origin: right bottom;
   transition: opacity 300ms ease;
 }
@@ -302,7 +302,7 @@ html[data-new-year-theme="on"] .landing-page__winter-scene {
   z-index: 1;
   bottom: 9%;
   left: 0;
-  width: 14.85%;
+  width: 17%;
   aspect-ratio: 12 / 7;
   transform: rotate(10deg);
   transform-origin: 50% 100%;
@@ -352,10 +352,10 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
   }
 
   .landing-page__winter-scene {
-    right: 0.25rem;
-    width: min(calc(100vw - 1rem), 34rem);
+    right: 1rem;
+    width: min(84vw, 34rem);
     max-width: calc(100% - 0.5rem);
-    transform: scale(1.06);
+    transform: scale(1.12);
   }
 }
 
@@ -366,7 +366,7 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
 
   .landing-page__winter-scene {
     width: clamp(20rem, 32vw, 28rem);
-    transform: scale(1.12);
+    transform: scale(1.18);
   }
 }
 
