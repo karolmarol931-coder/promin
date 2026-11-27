@@ -16,7 +16,11 @@ html[data-new-year-theme="on"] {
 
   --c-primary: var(--c-seasonal-forest);
   --c-primary-hover: var(--c-seasonal-forest-hover);
-  --c-primary-subtle: color-mix(in srgb, var(--c-seasonal-forest) 12%, transparent);
+  --c-primary-subtle: color-mix(
+    in srgb,
+    var(--c-seasonal-forest) 12%,
+    transparent
+  );
   --c-accent-fg: var(--c-seasonal-forest);
   --c-accent-text: var(--c-seasonal-forest);
   --c-accent-solid: var(--c-seasonal-forest);
@@ -26,9 +30,21 @@ html[data-new-year-theme="on"][data-theme="light"] {
   --c-bg: color-mix(in srgb, var(--p-winter-ice-50) 36%, var(--p-paper));
   --c-bg-raised: color-mix(in srgb, var(--p-winter-ice-50) 42%, var(--p-white));
   --c-surface: color-mix(in srgb, var(--p-winter-ice-50) 30%, var(--p-snow));
-  --c-surface-raised: color-mix(in srgb, var(--p-winter-ice-50) 46%, var(--p-white));
-  --c-border: color-mix(in srgb, var(--p-winter-forest-700) 14%, var(--p-gray-200));
-  --c-border-subtle: color-mix(in srgb, var(--p-winter-forest-700) 10%, var(--p-gray-200));
+  --c-surface-raised: color-mix(
+    in srgb,
+    var(--p-winter-ice-50) 46%,
+    var(--p-white)
+  );
+  --c-border: color-mix(
+    in srgb,
+    var(--p-winter-forest-700) 14%,
+    var(--p-gray-200)
+  );
+  --c-border-subtle: color-mix(
+    in srgb,
+    var(--p-winter-forest-700) 10%,
+    var(--p-gray-200)
+  );
 }
 
 html[data-new-year-theme="on"][data-theme="dark"] {
@@ -41,18 +57,46 @@ html[data-new-year-theme="on"][data-theme="dark"] {
   --c-seasonal-gold: var(--p-winter-gold-500);
   --c-seasonal-flake: var(--p-white);
   --c-primary: var(--c-seasonal-forest);
-  --c-primary-hover: color-mix(in srgb, var(--c-seasonal-forest) 82%, var(--p-black));
-  --c-primary-subtle: color-mix(in srgb, var(--c-seasonal-forest) 18%, transparent);
+  --c-primary-hover: color-mix(
+    in srgb,
+    var(--c-seasonal-forest) 82%,
+    var(--p-black)
+  );
+  --c-primary-subtle: color-mix(
+    in srgb,
+    var(--c-seasonal-forest) 18%,
+    transparent
+  );
   --c-accent-fg: var(--p-winter-forest-300);
   --c-accent-text: var(--p-winter-forest-300);
   --c-accent-solid: var(--c-seasonal-forest);
 
   --c-bg: color-mix(in srgb, var(--p-winter-night-900) 20%, var(--p-c-141416));
-  --c-bg-raised: color-mix(in srgb, var(--p-winter-night-850) 22%, var(--p-zinc-850));
-  --c-surface: color-mix(in srgb, var(--p-winter-night-850) 18%, var(--p-c-1a1a1d));
-  --c-surface-raised: color-mix(in srgb, var(--p-winter-night-700) 25%, var(--p-zinc-650));
-  --c-border: color-mix(in srgb, var(--p-winter-night-700) 40%, var(--p-c-28282d));
-  --c-border-subtle: color-mix(in srgb, var(--p-winter-night-700) 28%, var(--p-zinc-700));
+  --c-bg-raised: color-mix(
+    in srgb,
+    var(--p-winter-night-850) 22%,
+    var(--p-zinc-850)
+  );
+  --c-surface: color-mix(
+    in srgb,
+    var(--p-winter-night-850) 18%,
+    var(--p-c-1a1a1d)
+  );
+  --c-surface-raised: color-mix(
+    in srgb,
+    var(--p-winter-night-700) 25%,
+    var(--p-zinc-650)
+  );
+  --c-border: color-mix(
+    in srgb,
+    var(--p-winter-night-700) 40%,
+    var(--p-c-28282d)
+  );
+  --c-border-subtle: color-mix(
+    in srgb,
+    var(--p-winter-night-700) 28%,
+    var(--p-zinc-700)
+  );
 }
 
 .new-year-snowfall {
@@ -174,7 +218,11 @@ html[data-new-year-theme="on"] .promin-brand__garland {
   height: clamp(7px, 6%, 10px);
   border: 1px solid color-mix(in srgb, var(--p-white) 72%, var(--bulb-color));
   border-radius: 50% 50% 48% 48%;
-  background: radial-gradient(circle at 33% 25%, var(--p-white) 0 12%, var(--bulb-color) 48%);
+  background: radial-gradient(
+    circle at 33% 25%,
+    var(--p-white) 0 12%,
+    var(--bulb-color) 48%
+  );
   box-shadow: 0 0 4px color-mix(in srgb, var(--bulb-color) 72%, transparent);
   transform: translate(-50%, -22%);
 }
@@ -191,9 +239,9 @@ html[data-new-year-theme="on"] .promin-brand__garland {
   transform: translateX(-50%);
 }
 
-html[data-new-year-theme="on"] .promin-brand__bulb,
-html[data-new-year-theme="on"] .winter-scene__bulb {
-  animation: garland-bulb-glow 2.4s ease-in-out var(--garland-delay) infinite alternate;
+html[data-new-year-theme="on"] .promin-brand__bulb {
+  animation: garland-bulb-glow 2.4s ease-in-out var(--garland-delay) infinite
+    alternate;
 }
 
 @keyframes garland-bulb-glow {
@@ -235,18 +283,6 @@ html[data-new-year-theme="on"] .landing-page__winter-scene {
   object-fit: contain;
   object-position: center bottom;
   user-select: none;
-}
-
-.winter-scene__garland {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  pointer-events: none;
-}
-
-.winter-scene__bulb {
-  width: clamp(4px, 0.75vw, 6px);
-  height: clamp(5px, 0.95vw, 8px);
 }
 
 .landing-page__snow-floor {
@@ -293,14 +329,12 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
 @media (prefers-reduced-motion: reduce) {
   .new-year-snowfall::before,
   .new-year-snowfall::after,
-  .promin-brand__bulb,
-  .winter-scene__bulb {
+  .promin-brand__bulb {
     animation: none;
     will-change: auto;
   }
 
-  .promin-brand__bulb,
-  .winter-scene__bulb {
+  .promin-brand__bulb {
     opacity: 1;
   }
 
