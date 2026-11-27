@@ -140,10 +140,9 @@ html[data-new-year-theme="on"][data-document-open] .new-year-snowfall {
 .promin-brand img.promin-brand__snow {
   position: absolute;
   z-index: 1;
-  top: 1.5%;
-  left: -0.5%;
-  width: 101%;
-  height: max(7px, 7.5%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   filter: drop-shadow(0 1px 1px var(--c-seasonal-shadow));
   opacity: 0;
   pointer-events: none;
@@ -160,16 +159,6 @@ html[data-new-year-theme="on"] .promin-brand__snow {
   opacity: 0;
   pointer-events: none;
   transition: opacity 180ms ease;
-  --garland-wire: color-mix(in srgb, var(--p-winter-forest-800) 76%, var(--p-black));
-}
-
-.promin-brand__wire {
-  position: absolute;
-  inset: 0;
-  background: var(--garland-wire);
-  box-shadow: 0 1px 1px var(--c-seasonal-shadow);
-  mask: url("../assets/brand/promin/new-year-logo-garland.svg") center / 100% 100% no-repeat;
-  -webkit-mask: url("../assets/brand/promin/new-year-logo-garland.svg") center / 100% 100% no-repeat;
 }
 
 html[data-new-year-theme="on"] .promin-brand__garland {
@@ -254,16 +243,11 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
   opacity: 0.92;
 }
 
-.landing-page__snow-floor::before,
-.landing-page__snow-floor::after {
+.landing-page__snow-floor::before {
   position: absolute;
   right: -4vw;
   bottom: 0;
   left: -4vw;
-  content: "";
-}
-
-.landing-page__snow-floor::before {
   height: 84%;
   border-radius: 52% 48% 0 0 / 26% 22% 0 0;
   background: linear-gradient(
@@ -271,16 +255,8 @@ html[data-new-year-theme="on"] .landing-page__snow-floor {
     color-mix(in srgb, var(--c-seasonal-snow) 94%, transparent),
     color-mix(in srgb, var(--p-winter-ice-100) 90%, transparent)
   );
-  box-shadow: 0 -0.75rem 1.8rem color-mix(in srgb, var(--c-seasonal-snow) 46%, transparent);
-}
-
-.landing-page__snow-floor::after {
-  bottom: 0.95rem;
-  height: 1.15rem;
-  border-top: 2px solid color-mix(in srgb, var(--p-white) 72%, transparent);
-  border-radius: 48% 52% 0 0;
-  opacity: 0.8;
-  transform: skewX(-8deg);
+  box-shadow: 0 -0.5rem 1.3rem color-mix(in srgb, var(--c-seasonal-snow) 28%, transparent);
+  content: "";
 }
 
 .landing-page__winter-scene::after {

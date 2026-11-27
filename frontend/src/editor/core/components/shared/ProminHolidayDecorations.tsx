@@ -73,7 +73,6 @@ function getBulbStyle({ color, delay, x, y }: GarlandBulb): GarlandBulbStyle {
 export function ProminHolidayDecorations() {
   return (
     <span className="promin-brand__garland" aria-hidden="true">
-      <span className="promin-brand__wire" />
       {GARLAND_BULBS.map((bulb) => (
         <span className="promin-brand__bulb" key={`${bulb.x}-${bulb.y}`} style={getBulbStyle(bulb)} />
       ))}
