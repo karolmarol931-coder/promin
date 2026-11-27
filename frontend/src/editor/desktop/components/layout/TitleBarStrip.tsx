@@ -1,7 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from "@tauri-apps/api/core";
-import winterIcicles from "@editor/assets/seasonal/winter-icicles.svg";
 import styles from "@editor/components/layout/TitleBarStrip.module.css";
 
 interface TitleBarStripProps {
@@ -67,13 +66,6 @@ export function TitleBarStrip({ children }: TitleBarStripProps) {
 
   return (
     <div className={styles.strip} data-title-bar-strip>
-      <img
-        className={styles.icicles}
-        src={winterIcicles}
-        alt=""
-        aria-hidden="true"
-        draggable={false}
-      />
       {children}
     </div>
   );
